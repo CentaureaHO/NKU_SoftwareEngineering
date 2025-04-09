@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+      "**/Dataset/GazeCapture/**": true
+    },
+    "search.exclude": {
+      "**/Dataset/GazeCapture/**": true
+    }
+}  
