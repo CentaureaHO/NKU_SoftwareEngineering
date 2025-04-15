@@ -1,2 +1,4 @@
 Dataset/*
 !Dataset/.gitkeep
+.vscode
+env.sh
