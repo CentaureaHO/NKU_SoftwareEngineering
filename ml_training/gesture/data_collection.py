@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import os
 import time
+import pandas as pd
 
 # 初始化参数
 mp_hands = mp.solutions.hands
@@ -44,6 +45,30 @@ recording_interval = 3  # 每隔多少帧保存一次
 max_samples = 1000  # 每次录制的帧数
 samples_saved = 0
 last_save_time = time.time()
+
+def remove_gesture_data(label):
+    """删除文件中特定手势标签的数据"""
+    if not os.path.isfile(file_path):
+        return
+    
+    try:
+        # 读取CSV文件
+        df = pd.read_csv(file_path)
+        
+        # 统计要删除的数据数量
+        rows_to_delete = len(df[df['label'] == label])
+        
+        if rows_to_delete > 0:
+            # 保留非指定标签的数据
+            df = df[df['label'] != label]
+            
+            # 写回CSV文件
+            df.to_csv(file_path, index=False)
+            print(f"已删除手势 {label} 的 {rows_to_delete} 条历史数据")
+        else:
+            print(f"未找到手势 {label} 的历史数据")
+    except Exception as e:
+        print(f"删除历史数据时出错: {e}")
 
 def check_hand_quality(landmarks):
     """检查手部关键点质量"""
@@ -147,6 +172,8 @@ while cap.isOpened():
         break
     elif 48 <= key <= 57:  # 数字键0-9
         recording_label = key - 48
+        # 在开始新的记录前删除相同手势的历史数据
+        remove_gesture_data(recording_label)
         is_recording = True
         samples_saved = 0
         last_save_time = time.time()
