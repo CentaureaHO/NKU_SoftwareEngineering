@@ -1,4 +1,6 @@
 Dataset/*
 !Dataset/.gitkeep
+!Dataset/gesture_data.csv
+!Dataset/augmented_gesture_data.csv
 **/__pycache__
 *.log

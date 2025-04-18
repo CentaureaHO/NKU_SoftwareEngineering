@@ -34,6 +34,13 @@ FACE_DETECTION_ERROR = 300       # 人脸检测错误
 HEAD_TRACKING_FAILED = 301       # 头部跟踪失败
 MEDIAPIPE_INITIALIZATION_FAILED = 302  # MediaPipe初始化失败
 
+# 手势识别相关错误码
+HAND_DETECTION_ERROR = 400       # 手部检测错误
+GESTURE_RECOGNITION_FAILED = 401  # 手势识别失败
+MODEL_NOT_FOUND = 402            # 模型文件未找到
+MODEL_LOADING_FAILED = 403       # 模型加载失败
+FEATURE_PROCESSING_ERROR = 404   # 特征处理错误
+
 # 错误码映射到描述信息
 ERROR_DESCRIPTIONS = {
     # 通用错误码描述
@@ -66,7 +73,14 @@ ERROR_DESCRIPTIONS = {
     # 头部跟踪器相关错误码描述
     FACE_DETECTION_ERROR: "人脸检测错误",
     HEAD_TRACKING_FAILED: "头部跟踪失败",
-    MEDIAPIPE_INITIALIZATION_FAILED: "MediaPipe初始化失败"
+    MEDIAPIPE_INITIALIZATION_FAILED: "MediaPipe初始化失败",
+    
+    # 手势识别相关错误码描述
+    HAND_DETECTION_ERROR: "手部检测错误",
+    GESTURE_RECOGNITION_FAILED: "手势识别失败",
+    MODEL_NOT_FOUND: "模型文件未找到",
+    MODEL_LOADING_FAILED: "模型加载失败",
+    FEATURE_PROCESSING_ERROR: "特征处理错误"
 }
 
 def get_error_message(error_code: int) -> str:
