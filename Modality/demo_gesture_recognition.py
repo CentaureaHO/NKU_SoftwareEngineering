@@ -67,9 +67,9 @@ def parse_arguments():
     parser.add_argument('--height', type=int, default=480, help='摄像头图像高度 (默认: 480)')
     
     # 模型相关参数
-    parser.add_argument('--model', type=str, default='model_data/gesture_model.h5', help='手势识别模型路径 (默认: model_data/gesture_model.h5)')
-    parser.add_argument('--feature-mean', type=str, default='model_data/feature_mean.npy', help='特征均值文件路径 (默认: model_data/feature_mean.npy)')
-    parser.add_argument('--feature-scale', type=str, default='model_data/feature_scale.npy', help='特征缩放文件路径 (默认: model_data/feature_scale.npy)')
+    parser.add_argument('--model', type=str, default='Modality/models/gesture_recognition/model_output/gesture_model.h5', help='手势识别模型路径 (默认: Modality/models/gesture_recognition/model_output/gesture_model.h5)')
+    parser.add_argument('--feature-mean', type=str, default='Modality/models/gesture_recognition/model_data/feature_mean.npy', help='特征均值文件路径 (默认: Modality/models/gesture_recognition/model_data/feature_mean.npy)')
+    parser.add_argument('--feature-scale', type=str, default='Modality/models/gesture_recognition/model_data/feature_scale.npy', help='特征缩放文件路径 (默认: Modality/models/gesture_recognition/model_data/feature_scale.npy)')
     
     # 识别相关参数
     parser.add_argument('--confidence', type=float, default=0.75, help='手势识别置信度阈值 (默认: 0.75)')
@@ -99,26 +99,15 @@ def main():
     
     # 检查模型文件是否存在
     if not os.path.exists(args.model) or not os.path.exists(args.feature_mean) or not os.path.exists(args.feature_scale):
-        # 如果模型文件不存在，可以提示用户从gesture_recognition目录拷贝
-        src_model = '../gesture_recognition/model_data/gesture_model.h5'
-        src_mean = '../gesture_recognition/model_data/feature_mean.npy'
-        src_scale = '../gesture_recognition/model_data/feature_scale.npy'
-        
-        if os.path.exists(src_model) and os.path.exists(src_mean) and os.path.exists(src_scale):
-            print("正在从gesture_recognition目录复制模型文件...")
-            import shutil
-            os.makedirs(model_dir, exist_ok=True)
-            shutil.copy2(src_model, args.model)
-            shutil.copy2(src_mean, args.feature_mean)
-            shutil.copy2(src_scale, args.feature_scale)
-            print("模型文件复制完成")
-        else:
-            print(f"错误: 模型文件不存在。请确保以下文件存在:")
-            print(f"  - {args.model}")
-            print(f"  - {args.feature_mean}")
-            print(f"  - {args.feature_scale}")
-            print("或者在gesture_recognition/model_data目录下存在相应文件")
-            return
+        print(f"错误: 模型文件不存在。请确保以下文件存在:")
+        print(f"  - {args.model}")
+        print(f"  - {args.feature_mean}")
+        print(f"  - {args.feature_scale}")
+        print("您可以通过命令行参数指定正确的模型文件路径:")
+        print("  --model 模型文件路径")
+        print("  --feature-mean 特征均值文件路径")
+        print("  --feature-scale 特征缩放文件路径")
+        return
     
     # 设置环境变量
     if args.debug:
