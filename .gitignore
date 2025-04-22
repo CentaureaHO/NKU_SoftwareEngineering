@@ -2,3 +2,5 @@ Dataset/*
 !Dataset/.gitkeep
 **/__pycache__
 *.log
+**/test.ipynb
+Modality/testcases

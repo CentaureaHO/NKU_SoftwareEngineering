@@ -1,10 +1,10 @@
 from .base_visual import BaseVisualModality, VisualState
-from .head_tracker import HeadState, HeadTracker
+from .head_tracker import HeadPoseState, HeadPoseTrackerGeom
 
 __all__ = [
     # base_visual.py
     'BaseVisualModality', 'VisualState',
 
     # head_tracker.py
-    'HeadState', 'HeadTracker',
+    'HeadPoseState', 'HeadPoseTrackerGeom',
 ]

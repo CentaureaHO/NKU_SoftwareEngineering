@@ -26,7 +26,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 
 from Modality.core import ModalityManager
 from Modality.core.error_codes import SUCCESS, get_error_message
-from Modality.visual import HeadTracker
+from Modality.visual import HeadPoseTrackerGeom
 from Modality.utils.visualization import VisualizationUtil
 
 def parse_args():
@@ -77,7 +77,7 @@ def main():
     logger.info(f"使用视频源: {video_source}")
     manager = ModalityManager()
     
-    monitor = HeadTracker(
+    monitor = HeadPoseTrackerGeom(
         source=video_source,
         width=args.width,
         height=args.height,
@@ -135,12 +135,13 @@ def main():
                 
                 if driver_state.detections["head_pose"]["detected"]:
                     head_pose = driver_state.detections["head_pose"]
-                    gaze = driver_state.detections["gaze"]
+                    head_movement = driver_state.detections["head_movement"]
                     
                     h, w = display_frame.shape[:2]
-                    info_panel_height = 100
+                    info_panel_height = 120  # 增加高度以显示额外信息
                     info_panel = np.ones((info_panel_height, w, 3), dtype=np.uint8) * 240
                     
+                    # 显示头部姿态
                     pitch = head_pose["pitch"]
                     yaw = head_pose["yaw"]
                     roll = head_pose["roll"]
@@ -148,9 +149,31 @@ def main():
                     cv2.putText(info_panel, pose_text, (10, 30), 
                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
                     
-                    gaze_text = f'View Direction: X={gaze["direction_x"]:.2f} Y={gaze["direction_y"]:.2f} Target={gaze["target"]}'
-                    cv2.putText(info_panel, gaze_text, (10, 60), 
+                    # 显示头部动作状态
+                    is_nodding = head_movement["is_nodding"]
+                    is_shaking = head_movement["is_shaking"]
+                    movement_status = head_movement["status"]
+                    
+                    movement_text = f'Movement: Nodding={is_nodding}, Shaking={is_shaking}, Status={movement_status}'
+                    cv2.putText(info_panel, movement_text, (10, 60), 
                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                    
+                    # 显示头部动作置信度
+                    nod_conf = head_movement["nod_confidence"]
+                    shake_conf = head_movement["shake_confidence"]
+                    conf_text = f'Confidence: Nod={nod_conf:.2f}, Shake={shake_conf:.2f}'
+                    cv2.putText(info_panel, conf_text, (10, 90), 
+                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+
+                    # 在主画面上显示当前状态
+                    status_color = (0, 255, 0)  # 绿色
+                    if movement_status == "nodding":
+                        status_color = (0, 165, 255)  # 橙色
+                    elif movement_status == "shaking":
+                        status_color = (0, 0, 255)    # 红色
+                        
+                    cv2.putText(display_frame, f"Status: {movement_status}", (w - 250, 40), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
 
                     combined_frame = np.vstack((display_frame, info_panel))
                     
