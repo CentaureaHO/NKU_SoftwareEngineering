@@ -1,6 +1,6 @@
 from .core import BaseModality, ModalityState, ModalityManager, ModalityFactory
 from .visual import (BaseVisualModality, VisualState, 
-                     HeadState, HeadTracker,
+                     HeadPoseState, HeadPoseTrackerGeom,
                      GestureState, GestureTracker)
 
 __all__ = [
@@ -9,6 +9,6 @@ __all__ = [
     
     # visual modality
     'BaseVisualModality', 'VisualState',
-    'HeadState', 'HeadTracker',
+    'HeadPoseState', 'HeadPoseTrackerGeom',
     'GestureState', 'GestureTracker',
 ]

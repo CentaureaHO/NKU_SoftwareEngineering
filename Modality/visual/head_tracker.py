@@ -1,13 +1,15 @@
 import cv2
 import numpy as np
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Any
 import math
 import logging
 import os
+from collections import deque
+import time
+import threading
 
-# 配置日志
 logging.basicConfig(
-    level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,  # 根据DEBUG环境变量设置日志级别
+    level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     filename='head_tracker.log',
     filemode='w'
@@ -26,24 +28,65 @@ from ..core.error_codes import (
     SUCCESS, MEDIAPIPE_INITIALIZATION_FAILED, RUNTIME_ERROR
 )
 
-class HeadState(VisualState):
-    """头部状态类"""
+# 头部姿态阈值和参数
+class HeadPoseParams:
+    """头部姿态检测的参数常量"""
+    VIDEO_FPS   = 30  # 视频帧率
+    HISTORY_LEN = 10  # 历史窗口大小（30FPS时约0.33s）
+    
+    # 检测阈值
+    NOD_THRESHOLD = 5.0         # 点头检测角度阈值 (度)
+    SHAKE_THRESHOLD = 6.0       # 摇头检测角度阈值 (度)
+    NOD_RATIO_THRESHOLD = 0.4   # 点头动作占比触发阈值
+    SHAKE_RATIO_THRESHOLD = 0.4 # 摇头动作占比触发阈值
+    NC_CHANGE_THRESHOLD = 0.025 # 鼻子-下巴距离变化阈值
+    STABLE_THRESHOLD = 1.5      # 静止状态角度阈值
+    
+    # 状态更新间隔
+    STATUS_UPDATE_INTERVAL = 0.2  # 秒
+    
+    # 状态枚举
+    STATUS_STATIONARY = "stationary"
+    STATUS_NODDING = "nodding"
+    STATUS_SHAKING = "shaking"
+    
+    # 最小检测所需历史数据量
+    MIN_HISTORY_DATA = 3
+    
+    # MediaPipe 人脸关键点索引
+    LANDMARK_NOSE = 1          # 鼻尖
+    LANDMARK_CHIN = 152        # 下巴
+    LANDMARK_LEFT_EYE = 159    # 左眼
+    LANDMARK_RIGHT_EYE = 386   # 右眼
+    LANDMARK_LEFT_EAR = 234    # 左耳
+    LANDMARK_RIGHT_EAR = 454   # 右耳
+    LANDMARK_LEFT_FACE = 206   # 左脸中心
+    LANDMARK_RIGHT_FACE = 426  # 右脸中心
+    
+    # 面部关键点列表
+    ESSENTIAL_LANDMARKS = [LANDMARK_NOSE, 33, 133, LANDMARK_LEFT_EYE, 145, 
+                          263, 362, 374, LANDMARK_RIGHT_EYE, 473, 468]
+
+
+class HeadPoseState(VisualState):
+    """简化版头部姿态状态类，专注于头部姿势和动作检测"""
     
     def __init__(self, frame=None, timestamp=None):
         super().__init__(frame, timestamp)
         self.detections = {
             "head_pose": {
-                "pitch": 0.0,  # 俯仰角（点头）
-                "yaw": 0.0,    # 偏航角（左右转头）
-                "roll": 0.0,   # 翻滚角（头部倾斜）
+                "pitch": 0.0,       # 俯仰角（点头）
+                "yaw": 0.0,         # 偏航角（左右转头）
+                "roll": 0.0,        # 翻滚角（头部倾斜）
                 "detected": False,  # 是否检测到人脸
-                "landmarks": []  # 关键点
+                "landmarks": []     # 关键点列表
             },
-            "gaze": {
-                "direction_x": 0.0,  # 视线水平方向 (-1: 左, 1: 右)
-                "direction_y": 0.0,  # 视线垂直方向 (-1: 上, 1: 下)
-                "confidence": 0.0,   # 视线方向估计的置信度
-                "target": "unknown"  # 视线目标（道路、后视镜、仪表盘等）
+            "head_movement": {
+                "is_nodding": False,        # 是否正在点头
+                "is_shaking": False,        # 是否正在摇头
+                "nod_confidence": 0.0,      # 点头动作的置信度
+                "shake_confidence": 0.0,    # 摇头动作的置信度
+                "status": HeadPoseParams.STATUS_STATIONARY  # 当前状态
             }
         }
     
@@ -51,18 +94,19 @@ class HeadState(VisualState):
         result = super().to_dict()
         return result
 
-class HeadTracker(BaseVisualModality):
+
+class HeadPoseTrackerGeom(BaseVisualModality):
     """
-    头部跟踪器，跟踪用户的头部姿态、视线方向
+    几何方法实现点头和摇头检测，通过独立线程运行
     """
     
-    def __init__(self, name: str = "head_tracker", source: int = 0, 
+    def __init__(self, name: str = "head_pose_tracker_geom", source: int = 0, 
                  width: int = 640, height: int = 480,
                  min_detection_confidence: float = 0.5, 
                  min_tracking_confidence: float = 0.5,
                  debug: bool = DEBUG):
         """
-        初始化头部跟踪器
+        初始化基于几何方法的头部姿态跟踪器
         
         Args:
             name: 模态名称
@@ -74,20 +118,51 @@ class HeadTracker(BaseVisualModality):
             debug: 是否启用调试模式
         """
         super().__init__(name, source, width, height)
-        self.min_detection_confidence = min_detection_confidence
-        self.min_tracking_confidence = min_tracking_confidence
-        self.debug = debug
-        self.face_mesh = None
-        
-        # 设置MediaPipe参数
+
         self.mp_face_options = {
-            'max_num_faces': 1,  # 只跟踪一个人脸
+            'max_num_faces': 1,
             'refine_landmarks': True,
             'min_detection_confidence': min_detection_confidence,
-            'min_tracking_confidence': min_tracking_confidence
+            'min_tracking_confidence': min_tracking_confidence,
         }
         
-        logger.info(f"头部跟踪器初始化完成，调试模式：{self.debug}")
+        # 面部关键点3D坐标
+        self.face_3d_coords = np.array([
+            [285, 528, 200],  # 鼻子
+            [285, 371, 152],  # 鼻子下方
+            [197, 574, 128],  # 左脸边缘
+            [173, 425, 108],  # 左眼附近
+            [360, 574, 128],  # 右脸边缘
+            [391, 425, 108]   # 右眼附近
+        ], dtype=np.float64)
+        
+        # 历史记录队列，用于平滑检测结果
+        self.nose_chin_distances = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        self.left_cheek_widths = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        self.right_cheek_widths = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        self.pitch_angles = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        self.yaw_angles = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        
+        # 原始动作检测结果队列，用于voting出当前状态
+        self.raw_nod_results = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        self.raw_shake_results = deque(maxlen=HeadPoseParams.HISTORY_LEN)
+        
+        self._processing_thread = None
+        self._stop_event = threading.Event()
+        
+        self._latest_state = HeadPoseState()
+        self._state_lock = threading.Lock()
+        
+        self._last_status_update = time.time()
+        
+        # 状态缓存，解决_process_frame中间隔时间内的状态不一致问题
+        self._current_is_nodding = False
+        self._current_is_shaking = False
+        self._current_nod_confidence = 0.0
+        self._current_shake_confidence = 0.0
+        self._current_status = HeadPoseParams.STATUS_STATIONARY
+        
+        self.face_mesh = None
     
     def initialize(self) -> int:
         """
@@ -102,7 +177,7 @@ class HeadTracker(BaseVisualModality):
             return result
 
         try:
-            # 设置MediaPipe，提供图像尺寸以避免警告
+            # 设置MediaPipe
             self.face_mesh = mp_face_mesh.FaceMesh(
                 max_num_faces=self.mp_face_options['max_num_faces'],
                 refine_landmarks=self.mp_face_options['refine_landmarks'],
@@ -110,245 +185,380 @@ class HeadTracker(BaseVisualModality):
                 min_tracking_confidence=self.mp_face_options['min_tracking_confidence'],
             )
             logger.info("MediaPipe人脸网格初始化成功")
-        except Exception as e:
-            logger.error(f"MediaPipe初始化失败: {str(e)}")
-            return MEDIAPIPE_INITIALIZATION_FAILED
             
-        return SUCCESS
+            return SUCCESS
+        except Exception as e:
+            logger.error(f"初始化失败: {str(e)}")
+            return MEDIAPIPE_INITIALIZATION_FAILED
     
-    def _process_frame(self, frame: np.ndarray) -> HeadState:
+    def _processing_loop(self):
+        """处理线程的主循环，负责连续处理视频帧"""
+        logger.info("处理线程已启动")
+        
+        if self.capture is None:
+            logger.error("视频源未初始化")
+            return
+        
+        frame_interval = 1.0 / HeadPoseParams.VIDEO_FPS
+        
+        while not self._stop_event.is_set():
+            start_time = time.time()
+            
+            ret, frame = self.capture.read()
+            if not ret:
+                if self.is_file_source and self.loop_video:
+                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    continue
+                else:
+                    logger.error("无法获取视频帧")
+                    break
+            
+            state = self._process_frame(frame)
+            with self._state_lock:
+                self._latest_state = state
+            
+            elapsed_time = time.time() - start_time
+            sleep_time = max(0, frame_interval - elapsed_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+        
+    
+    def update(self) -> HeadPoseState:
         """
-        处理图像帧，检测头部状态
+        获取最新的头部姿态状态
+        
+        Returns:
+            HeadPoseState: 当前头部状态
+        """
+        if not self._is_running or not self._processing_thread or not self._processing_thread.is_alive():
+            logger.warning("处理线程未运行")
+            return HeadPoseState()
+        
+        with self._state_lock:
+            return self._latest_state
+    
+    def _process_frame(self, frame: np.ndarray) -> HeadPoseState:
+        """
+        处理图像帧，检测头部姿态和动作
         
         Args:
             frame: 输入图像帧
             
         Returns:
-            HeadState: 头部状态
+            HeadPoseState: 头部姿态状态
         """
-        state = HeadState(frame=frame)
+        state = HeadPoseState(frame=frame, timestamp=time.time())
         
-        try:
-            # 将BGR图像转为RGB
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, _ = frame.shape
+        image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.face_mesh.process(image_rgb)
+        
+        nose_point = None
+        chin_point = None
+        left_ear_point = None
+        left_face_point = None
+        right_ear_point = None
+        right_face_point = None
+        
+        # 原始检测结果
+        current_nod_detected = False
+        current_shake_detected = False
+        
+        if results.multi_face_landmarks:
+            face_coordination_in_image = []
             
-            # 为了提高性能，将图像标记为不可写
-            rgb_frame.flags.writeable = False
-            
-            # 处理图像
-            results = self.face_mesh.process(rgb_frame)
-            
-            # 标记图像为可写
-            rgb_frame.flags.writeable = True
-            
-            if results.multi_face_landmarks:
-                logger.debug("检测到人脸")
-                face_landmarks = results.multi_face_landmarks[0]
+            for face_landmarks in results.multi_face_landmarks:
+                for idx, lm in enumerate(face_landmarks.landmark):
+                    x, y = int(lm.x * w), int(lm.y * h)
+                    if idx in [1, 9, 57, 130, 287, 359]:
+                        face_coordination_in_image.append([x, y])
+                    
+                    # 收集用于点头和摇头检测的点
+                    if idx == HeadPoseParams.LANDMARK_NOSE:  # 鼻尖
+                        nose_point = (x, y)
+                    elif idx == HeadPoseParams.LANDMARK_CHIN:  # 下巴
+                        chin_point = (x, y)
+                    elif idx == HeadPoseParams.LANDMARK_LEFT_EAR:  # 左耳
+                        left_ear_point = (x, y)
+                    elif idx == HeadPoseParams.LANDMARK_LEFT_FACE:  # 左脸中心点
+                        left_face_point = (x, y)
+                    elif idx == HeadPoseParams.LANDMARK_RIGHT_EAR:  # 右耳
+                        right_ear_point = (x, y)
+                    elif idx == HeadPoseParams.LANDMARK_RIGHT_FACE:  # 右脸中心点
+                        right_face_point = (x, y)
                 
-                # 计算头部姿态
-                pitch, yaw, roll = self._calculate_head_pose(face_landmarks, frame.shape)
+                landmarks_list = []
+                for i, landmark in enumerate(face_landmarks.landmark):
+                    if i in HeadPoseParams.ESSENTIAL_LANDMARKS:
+                        x, y, z = landmark.x, landmark.y, landmark.z
+                        landmarks_list.append((x, y, z))
                 
-                # 估计视线方向
-                gaze_x, gaze_y, gaze_conf, target = self._estimate_gaze_direction(face_landmarks, frame.shape)
-                
-                # 更新状态
-                state.detections["head_pose"]["pitch"] = pitch
-                state.detections["head_pose"]["yaw"] = yaw
-                state.detections["head_pose"]["roll"] = roll
+                state.detections["head_pose"]["landmarks"] = landmarks_list
                 state.detections["head_pose"]["detected"] = True
                 
-                # 存储关键点 (只存储必要的关键点，减少内存占用)
-                landmarks = []
-                essential_landmarks = [1, 33, 133, 159, 145, 263, 362, 374, 386, 473, 468]  # 基本面部特征点
-                for idx in essential_landmarks:
-                    if idx < len(face_landmarks.landmark):
-                        landmark = face_landmarks.landmark[idx]
-                        x = int(landmark.x * frame.shape[1])
-                        y = int(landmark.y * frame.shape[0])
-                        z = landmark.z
-                        landmarks.append((x, y, z))
-                
-                state.detections["head_pose"]["landmarks"] = landmarks
-                
-                # 更新视线信息
-                state.detections["gaze"]["direction_x"] = gaze_x
-                state.detections["gaze"]["direction_y"] = gaze_y
-                state.detections["gaze"]["confidence"] = gaze_conf
-                state.detections["gaze"]["target"] = target
-                
-            else:
-                logger.debug("未检测到人脸")
-        
-        except Exception as e:
-            logger.error(f"处理帧时出错: {str(e)}")
+                if len(face_coordination_in_image) == 6:
+                    face_coordination_in_image = np.array(face_coordination_in_image, dtype=np.float64)
+                    
+                    focal_length = 1 * w
+                    cam_matrix = np.array([
+                        [focal_length, 0, w / 2],
+                        [0, focal_length, h / 2],
+                        [0, 0, 1]
+                    ])
+                    dist_matrix = np.zeros((4, 1), dtype=np.float64)
+                    
+                    try:
+                        success, rotation_vec, translation_vec = cv2.solvePnP(
+                            self.face_3d_coords, face_coordination_in_image,
+                            cam_matrix, dist_matrix
+                        )
+                        
+                        rotation_matrix, _ = cv2.Rodrigues(rotation_vec)
+                        angles = self._rotation_matrix_to_angles(rotation_matrix)
+                        
+                        current_pitch = angles[0]  # 俯仰角（点头）
+                        current_yaw = angles[1]    # 偏航角（左右转头）
+                        current_roll = angles[2]   # 翻滚角（头部倾斜）
+                        
+                        state.detections["head_pose"]["pitch"] = float(current_pitch)
+                        state.detections["head_pose"]["yaw"] = float(current_yaw)
+                        state.detections["head_pose"]["roll"] = float(current_roll)
+                        
+                        self.pitch_angles.append(current_pitch)
+                        self.yaw_angles.append(current_yaw)
+                        
+                        if nose_point and chin_point and left_ear_point and left_face_point and right_ear_point and right_face_point:
+                            nose_chin_dist = self._euclidean_dist(nose_point, chin_point)
+                    
+                            left_cheek_width = self._euclidean_dist(left_ear_point, left_face_point)
+                            right_cheek_width = self._euclidean_dist(right_ear_point, right_face_point)
+                            
+                            self.nose_chin_distances.append(nose_chin_dist)
+                            self.left_cheek_widths.append(left_cheek_width)
+                            self.right_cheek_widths.append(right_cheek_width)
+                            
+                            current_nod_detected = self._detect_nod(
+                                list(self.pitch_angles), 
+                                list(self.nose_chin_distances)
+                            )
+                            
+                            current_shake_detected = self._detect_shake(
+                                list(self.yaw_angles), 
+                                list(self.left_cheek_widths), 
+                                list(self.right_cheek_widths)
+                            )
+                        
+                            self.raw_nod_results.append(1 if current_nod_detected else 0)
+                            self.raw_shake_results.append(1 if current_shake_detected else 0)
+                            
+                            is_nodding, is_shaking, nod_ratio, shake_ratio = self._get_movement_status(
+                                self.raw_nod_results, 
+                                self.raw_shake_results
+                            )
+                            
+                            current_time = time.time()
+                            if current_time - self._last_status_update >= HeadPoseParams.STATUS_UPDATE_INTERVAL:
+                                self._last_status_update = current_time
+                                
+                                self._current_is_nodding = is_nodding
+                                self._current_is_shaking = is_shaking
+                                self._current_nod_confidence = float(nod_ratio)
+                                self._current_shake_confidence = float(shake_ratio)
+                                
+                                if is_nodding:
+                                    self._current_status = HeadPoseParams.STATUS_NODDING
+                                elif is_shaking:
+                                    self._current_status = HeadPoseParams.STATUS_SHAKING
+                                else:
+                                    self._current_status = HeadPoseParams.STATUS_STATIONARY
+                            
+                            state.detections["head_movement"]["is_nodding"] = self._current_is_nodding
+                            state.detections["head_movement"]["is_shaking"] = self._current_is_shaking
+                            state.detections["head_movement"]["nod_confidence"] = self._current_nod_confidence
+                            state.detections["head_movement"]["shake_confidence"] = self._current_shake_confidence
+                            state.detections["head_movement"]["status"] = self._current_status
+                    
+                    except Exception as e:
+                        logger.error(f"计算头部姿态时出错: {str(e)}")
         
         return state
     
-    def _calculate_head_pose(self, face_landmarks, img_shape) -> Tuple[float, float, float]:
+    def start(self) -> int:
         """
-        计算头部姿态
+        开始头部姿态跟踪
         
-        Args:
-            face_landmarks: MediaPipe面部关键点
-            img_shape: 图像尺寸
-            
         Returns:
-            Tuple[float, float, float]: 俯仰角、偏航角、翻滚角（度数）
+            int: 错误码，0表示成功，其他值表示失败
         """
-        img_h, img_w, _ = img_shape
-        
+        result = super().start()
+        if result != SUCCESS:
+            logger.error(f"无法启动头部姿态跟踪器: {result}")
+            return result
+            
         try:
-            # 提取特征点
-            # 鼻尖
-            nose = face_landmarks.landmark[1]
-            nose_x = int(nose.x * img_w)
-            nose_y = int(nose.y * img_h)
-            
-            # 下巴
-            chin = face_landmarks.landmark[152]
-            chin_x = int(chin.x * img_w)
-            chin_y = int(chin.y * img_h)
-            
-            # 左眼和右眼中心
-            left_eye = face_landmarks.landmark[159]
-            left_eye_x = int(left_eye.x * img_w)
-            left_eye_y = int(left_eye.y * img_h)
-            
-            right_eye = face_landmarks.landmark[386]
-            right_eye_x = int(right_eye.x * img_w)
-            right_eye_y = int(right_eye.y * img_h)
-            
-            # 计算头部姿态
-            # 偏航角 (左右转动) - 基于眼睛的水平位置差异
-            eye_dx = right_eye_x - left_eye_x
-            if abs(eye_dx) < 0.001:
-                eye_dx = 0.001  # 避免除以零
-            eye_dy = right_eye_y - left_eye_y
-            eye_angle = math.atan2(eye_dy, eye_dx)
-            roll = math.degrees(eye_angle)
-            
-            # 俯仰角 (上下点头) - 基于鼻子和下巴的垂直关系
-            nose_chin_dy = chin_y - nose_y
-            pitch = (nose_chin_dy / img_h) * 90.0  # 归一化到大约 -45 到 45 度
-            
-            # 偏航角 (左右摇头) - 基于两眼中心与鼻子的关系
-            eye_center_x = (left_eye_x + right_eye_x) / 2
-            yaw = ((nose_x - eye_center_x) / img_w) * 90.0  # 归一化到大约 -45 到 45 度
-            
-            logger.debug(f"头部姿态: 俯仰={pitch:.1f}, 偏航={yaw:.1f}, 翻滚={roll:.1f}")
-            return pitch, yaw, roll
-            
+            self._stop_event.clear()
+            self._processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
+            self._processing_thread.start()
+            logger.info("头部姿态跟踪器已开始运行")
+            return SUCCESS
         except Exception as e:
-            logger.error(f"计算头部姿态时出错: {str(e)}")
-            return 0.0, 0.0, 0.0
-    
-    def _estimate_gaze_direction(self, face_landmarks, img_shape) -> Tuple[float, float, float, str]:
-        """
-        估计视线方向
-        
-        Args:
-            face_landmarks: MediaPipe面部关键点
-            img_shape: 图像尺寸
-            
-        Returns:
-            Tuple[float, float, float, str]: x方向, y方向, 置信度, 视线目标
-        """
-        img_h, img_w, _ = img_shape
-        
-        try:
-            # 提取特征点 - 眼睛关键点
-            # 左眼
-            left_iris_center = face_landmarks.landmark[468]  # 虹膜中心
-            left_eye_inner = face_landmarks.landmark[362]
-            left_eye_outer = face_landmarks.landmark[263]
-            left_eye_top = face_landmarks.landmark[386]
-            left_eye_bottom = face_landmarks.landmark[374]
-            
-            # 右眼
-            right_iris_center = face_landmarks.landmark[473]  # 虹膜中心
-            right_eye_inner = face_landmarks.landmark[133]
-            right_eye_outer = face_landmarks.landmark[33]
-            right_eye_top = face_landmarks.landmark[159]
-            right_eye_bottom = face_landmarks.landmark[145]
-            
-            # 计算左眼虹膜相对位置
-            left_eye_width = abs(left_eye_outer.x - left_eye_inner.x)
-            if left_eye_width < 0.001:
-                left_eye_width = 0.001  # 避免除以零
-            left_iris_rel_x = (left_iris_center.x - left_eye_inner.x) / left_eye_width - 0.5
-            
-            left_eye_height = abs(left_eye_top.y - left_eye_bottom.y)
-            if left_eye_height < 0.001:
-                left_eye_height = 0.001  # 避免除以零
-            left_iris_rel_y = (left_iris_center.y - left_eye_top.y) / left_eye_height - 0.5
-            
-            # 计算右眼虹膜相对位置
-            right_eye_width = abs(right_eye_outer.x - right_eye_inner.x)
-            if right_eye_width < 0.001:
-                right_eye_width = 0.001  # 避免除以零
-            right_iris_rel_x = (right_iris_center.x - right_eye_inner.x) / right_eye_width - 0.5
-            
-            right_eye_height = abs(right_eye_top.y - right_eye_bottom.y)
-            if right_eye_height < 0.001:
-                right_eye_height = 0.001  # 避免除以零
-            right_iris_rel_y = (right_iris_center.y - right_eye_top.y) / right_eye_height - 0.5
-            
-            # 平均两只眼睛的结果
-            gaze_x = (left_iris_rel_x + right_iris_rel_x) / 2 * 2  # 归一化到 -1 到 1
-            gaze_y = (left_iris_rel_y + right_iris_rel_y) / 2 * 2  # 归一化到 -1 到 1
-            
-            # 置信度 - 基于两眼一致性
-            x_diff = abs(left_iris_rel_x - right_iris_rel_x)
-            y_diff = abs(left_iris_rel_y - right_iris_rel_y)
-            confidence = max(0.0, 1.0 - (x_diff + y_diff))
-            
-            # 确定视线目标
-            target = "unknown"
-            
-            # 这些阈值和区域划分需要根据实际场景调整
-            if abs(gaze_x) < 0.2 and abs(gaze_y) < 0.2:
-                target = "center"  # 看中心
-            elif gaze_y < -0.3:
-                target = "up"  # 看上方
-            elif gaze_y > 0.3:
-                target = "down"  # 看下方
-            elif gaze_x > 0.3:
-                target = "right"  # 看右侧
-            elif gaze_x < -0.3:
-                target = "left"  # 看左侧
-            
-            logger.debug(f"视线方向: x={gaze_x:.2f}, y={gaze_y:.2f}, 目标={target}")
-            return gaze_x, gaze_y, confidence, target
-            
-        except Exception as e:
-            logger.error(f"估计视线方向时出错: {str(e)}")
-            return 0.0, 0.0, 0.0, "unknown"
+            logger.error(f"启动处理线程时出错: {str(e)}")
+            return RUNTIME_ERROR
     
     def shutdown(self) -> int:
         """
-        关闭头部跟踪器资源
+        关闭头部姿态跟踪器资源
         
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
         try:
+            if self._processing_thread and self._processing_thread.is_alive():
+                logger.info("正在停止处理线程...")
+                self._stop_event.set()
+                self._processing_thread.join(timeout=2.0) 
+                if self._processing_thread.is_alive():
+                    logger.warning("处理线程未能正常结束")
+                else:
+                    logger.info("处理线程已正常结束")
+            
             if self.face_mesh:
                 self.face_mesh.close()
                 self.face_mesh = None
+                logger.info("MediaPipe资源已释放")
             
             result = super().shutdown()
+            if result == SUCCESS:
+                logger.info("头部姿态跟踪器已关闭")
+            else:
+                logger.error(f"关闭头部姿态跟踪器时出错: {result}")
+            
             return result
+            
         except Exception as e:
-            logger.error(f"关闭头部跟踪器失败: {str(e)}")
+            logger.error(f"关闭头部姿态跟踪器失败: {str(e)}")
             return RUNTIME_ERROR
     
-    # 替换原来的release方法
-    def release(self) -> int:
+    @staticmethod
+    def _euclidean_dist(point1, point2):
+        """计算两点之间的欧几里得距离"""
+        return np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
+    
+    @staticmethod
+    def _rotation_matrix_to_angles(rotation_matrix):
         """
-        释放资源（已弃用，请使用shutdown）
+        从旋转矩阵计算欧拉角
+        :param rotation_matrix: 3*3 旋转矩阵
+        :return: 每个轴的角度(x, y, z) - 对应(pitch, yaw, roll)
+        """
+        x = math.atan2(rotation_matrix[2, 1], rotation_matrix[2, 2])
+        y = math.atan2(-rotation_matrix[2, 0], math.sqrt(rotation_matrix[0, 0] ** 2 +
+                                                     rotation_matrix[1, 0] ** 2))
+        z = math.atan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
+        return np.array([x, y, z]) * 180. / math.pi
+    
+    def _detect_nod(self, pitch_values, nose_chin_values):
+        """
+        检测点头动作
+        :param pitch_values: pitch角度历史数据
+        :param nose_chin_values: 鼻子到下巴距离历史数据
+        :return: 是否检测到点头动作
+        """
+        if len(pitch_values) < HeadPoseParams.MIN_HISTORY_DATA or len(nose_chin_values) < HeadPoseParams.MIN_HISTORY_DATA:
+            return False
+            
+        # 条件1: 利用pitch角度变化检测点头
+        pitch_std = np.std(pitch_values)  # 计算角度标准差
+        pitch_range = max(pitch_values) - min(pitch_values)  # 计算角度范围
         
-        Returns:
-            int: 错误码，0表示成功，其他值表示失败
+        if pitch_range < HeadPoseParams.STABLE_THRESHOLD:
+            return False  # 如果角度范围小于阈值，认为头部静止
+        
+        # 条件2: 利用鼻子到下巴距离变化检测点头
+        # 计算鼻子到下巴距离的变化率
+        nose_chin_diffs = []
+        for i in range(1, len(nose_chin_values)):
+            prev = nose_chin_values[i-1]
+            curr = nose_chin_values[i]
+            if prev > 0:
+                diff = (curr - prev) / prev
+                nose_chin_diffs.append(diff)
+        
+        if not nose_chin_diffs:
+            return False
+            
+        nc_std = np.std(nose_chin_diffs) * 100
+        
+        # 检测点头的鼻子-下巴距离变化模式: 先减后增 || 先增后减
+        has_increase = any(d > HeadPoseParams.NC_CHANGE_THRESHOLD for d in nose_chin_diffs)  # 有明显增加
+        has_decrease = any(d < -HeadPoseParams.NC_CHANGE_THRESHOLD for d in nose_chin_diffs)  # 有明显减少
+        
+        # 满足任一条件即可认为在点头
+        is_nodding = (pitch_range > HeadPoseParams.NOD_THRESHOLD and pitch_std > HeadPoseParams.NOD_THRESHOLD/2) or \
+                     (nc_std > 0.8 and has_increase and has_decrease)
+                      
+        return is_nodding
+    
+    def _detect_shake(self, yaw_values, left_values, right_values):
         """
-        logger.info("release方法已弃用，请使用shutdown")
-        return self.shutdown()
+        检测摇头动作
+        :param yaw_values: yaw角度历史数据
+        :param left_values: 左脸颊宽度历史数据
+        :param right_values: 右脸颊宽度历史数据
+        :return: 是否检测到摇头动作
+        """
+        if len(yaw_values) < HeadPoseParams.MIN_HISTORY_DATA or len(left_values) < HeadPoseParams.MIN_HISTORY_DATA or len(right_values) < HeadPoseParams.MIN_HISTORY_DATA:
+            return False
+            
+        # 条件1: 利用yaw角度变化检测摇头
+        yaw_std = np.std(yaw_values)  # 计算角度标准差
+        yaw_range = max(yaw_values) - min(yaw_values)  # 计算角度范围
+        
+        if yaw_range < HeadPoseParams.STABLE_THRESHOLD:
+            return False  # 如果角度范围小于阈值，认为头部静止
+            
+        # 条件2: 分析左右脸颊宽度的变化关系
+        left_range = max(left_values) - min(left_values)
+        right_range = max(right_values) - min(right_values)
+        
+        width_ratios = []
+        for l, r in zip(left_values, right_values):
+            if r > 0:
+                width_ratios.append(l / r)
+        
+        # 检测是否有左右变化的交替模式 (摇头时每侧均为交替变化)
+        left_derivatives = np.diff(left_values)
+        right_derivatives = np.diff(right_values)
+        
+        # 计算变化方向的相关性 (摇头时通常为负相关)
+        direction_correlation = np.corrcoef(left_derivatives, right_derivatives)[0, 1] if len(left_derivatives) > 1 else 0
+        
+        # 满足任一条件即可认为在摇头
+        is_shaking = (yaw_range > HeadPoseParams.SHAKE_THRESHOLD) or \
+                    (left_range > 4.0 and right_range > 4.0 and direction_correlation < -0.2)
+        
+        return is_shaking
+    
+    def _get_movement_status(self, raw_nods, raw_shakes):
+        """
+        根据原始检测结果确定最终动作状态
+        :param raw_nods: 原始点头检测结果
+        :param raw_shakes: 原始摇头检测结果
+        :return: (is_nodding, is_shaking, nod_ratio, shake_ratio) 当前是否在点头和摇头及其置信度
+        """
+        if len(raw_nods) < HeadPoseParams.MIN_HISTORY_DATA or len(raw_shakes) < HeadPoseParams.MIN_HISTORY_DATA:
+            return False, False, 0.0, 0.0
+            
+        nod_ratio = sum(raw_nods) / len(raw_nods)
+        shake_ratio = sum(raw_shakes) / len(raw_shakes)
+        is_nodding = nod_ratio >= HeadPoseParams.NOD_RATIO_THRESHOLD
+        is_shaking = shake_ratio >= HeadPoseParams.SHAKE_RATIO_THRESHOLD
+        
+        # 如果两者都检测到，取较高的置信度作为当前状态
+        if is_nodding and is_shaking:
+            if nod_ratio > shake_ratio:
+                is_shaking = False
+            else:
+                is_nodding = False
+                
+        return is_nodding, is_shaking, nod_ratio, shake_ratio

@@ -4,3 +4,5 @@ Dataset/*
 !Dataset/gesture/augmented_gesture_data.csv
 **/__pycache__
 *.log
+**/test.ipynb
+Modality/testcases
