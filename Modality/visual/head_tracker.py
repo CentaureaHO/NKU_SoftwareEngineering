@@ -36,7 +36,7 @@ class HeadPoseParams:
     
     # 检测阈值
     NOD_THRESHOLD = 5.0         # 点头检测角度阈值 (度)
-    SHAKE_THRESHOLD = 6.0       # 摇头检测角度阈值 (度)
+    SHAKE_THRESHOLD = 10.0       # 摇头检测角度阈值 (度)
     NOD_RATIO_THRESHOLD = 0.4   # 点头动作占比触发阈值
     SHAKE_RATIO_THRESHOLD = 0.4 # 摇头动作占比触发阈值
     NC_CHANGE_THRESHOLD = 0.025 # 鼻子-下巴距离变化阈值
