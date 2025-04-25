@@ -1,7 +1,10 @@
-Dataset/*
-!Dataset/.gitkeep
-!Dataset/gesture/gesture_data.csv
-!Dataset/gesture/augmented_gesture_data.csv
+Dataset/**
+
+!Dataset/static_gesture_recognition/gesture_data.csv
+!Dataset/static_gesture_recognition/augmented_gesture_data.csv
+!Dataset/dynamic_gesture_recognition/annotations/
+!Dataset/dynamic_gesture_recognition/annotations/**
+
 **/__pycache__
 *.log
 **/test.ipynb
