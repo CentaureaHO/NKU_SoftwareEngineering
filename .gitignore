@@ -1,5 +1,5 @@
 Dataset/**
-!Dataset/.gitkeep
+
 !Dataset/static_gesture_recognition/gesture_data.csv
 !Dataset/static_gesture_recognition/augmented_gesture_data.csv
 !Dataset/dynamic_gesture_recognition/annotations/
