@@ -1,0 +1,14 @@
+{
+    "window_size": 15,
+    "stride": 5,
+    "feature_dim": 30,
+    "num_classes": 4,
+    "gesture_mapping": {
+        "stationary": 0,
+        "nodding": 1,
+        "shaking": 2,
+        "other": 3
+    },
+    "accuracy": 0.9435736536979675,
+    "timestamp": "20250426_224433"
+}

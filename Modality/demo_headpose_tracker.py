@@ -26,7 +26,6 @@ mp_drawing_styles = mp.solutions.drawing_styles
 
 from Modality.core import ModalityManager
 from Modality.core.error_codes import SUCCESS, get_error_message
-from Modality.visual import HeadPoseTrackerGeom
 from Modality.utils.visualization import VisualizationUtil
 
 def parse_args():
@@ -37,6 +36,7 @@ def parse_args():
     parser.add_argument("--video", type=str, default="", help="使用视频文件而不是摄像头")
     parser.add_argument("--record", type=str, default="", help="录制结果到视频文件")
     parser.add_argument("--debug", action="store_true", help="开启调试模式，显示更详细信息")
+    parser.add_argument("--method", type=str, default="gru", choices=["geom", "gru"], help="选择方法 (默认为gru)")
     return parser.parse_args()
 
 def draw_face_mesh(image, results):
@@ -76,8 +76,15 @@ def main():
     
     logger.info(f"使用视频源: {video_source}")
     manager = ModalityManager()
+
+    if args.method == "gru":
+        from Modality.visual import HeadPoseTrackerGRU as Tracker
+        print("使用 GRU 模型进行头部姿态检测")
+    elif args.method == "geom":
+        from Modality.visual import HeadPoseTrackerGeom as Tracker
+        print("使用几何方法进行头部姿态检测")
     
-    monitor = HeadPoseTrackerGeom(
+    monitor = Tracker(
         source=video_source,
         width=args.width,
         height=args.height,
