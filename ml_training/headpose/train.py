@@ -68,7 +68,6 @@ class HeadGestureDataProcessor:
                 return None
         
         try:
-            # 基本角度和距离特征
             basic_features = [
                 float(key_data["pitch"]),
                 float(key_data["yaw"]),
@@ -78,9 +77,7 @@ class HeadGestureDataProcessor:
                 float(key_data["right_cheek_width"])
             ]
             
-            # 从raw_data提取面部关键点坐标
             if len(frame["raw_data"]) > 0:
-                # 收集所有面部关键点坐标
                 coords = []
                 for point in frame["raw_data"]:
                     if "x_px" in point and "y_px" in point:
@@ -89,41 +86,31 @@ class HeadGestureDataProcessor:
                 if coords:
                     coords = np.array(coords)
                     
-                    # 计算面部包围盒
                     x_min, y_min = np.min(coords, axis=0)
                     x_max, y_max = np.max(coords, axis=0)
-                    box_width = max(x_max - x_min, 1)  # 避免除零错误
+                    box_width = max(x_max - x_min, 1)
                     box_height = max(y_max - y_min, 1)
-                    box_center_x = (x_min + x_max) / 2
-                    box_center_y = (y_min + y_max) / 2
                     box_diagonal = np.sqrt(box_width**2 + box_height**2)
                     
-                    # 面部比例特征
                     aspect_ratio = box_width / box_height
                     
-                    # 归一化角度和距离
                     normalized_features = [
-                        # 比例特征
                         aspect_ratio,
-                        box_width / box_diagonal,  # 宽高比
-                        box_height / box_diagonal,  # 高宽比
+                        box_width / box_diagonal,
+                        box_height / box_diagonal,
                         
-                        # 角度归一化 - 除以大小以消除距离影响
                         float(key_data["pitch"]) / box_diagonal,
                         float(key_data["yaw"]) / box_diagonal,
                         float(key_data["roll"]) / box_diagonal,
                         
-                        # 面部特征点相对距离比例
                         float(key_data["nose_chin_distance"]) / box_height,
                         float(key_data["left_cheek_width"]) / box_width,
                         float(key_data["right_cheek_width"]) / box_width
                     ]
                     
-                    # 合并基本特征和归一化特征
                     combined_features = np.concatenate([basic_features, normalized_features])
                     return combined_features
-            
-            # 如果没有成功提取包围盒特征，只返回基本特征
+
             return np.array(basic_features, dtype=np.float32)
             
         except (ValueError, TypeError, KeyError) as e:
