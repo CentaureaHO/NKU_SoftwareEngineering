@@ -2,7 +2,8 @@ from .base_visual import BaseVisualModality, VisualState
 from .head_pose_common import HeadPoseParams, HeadPoseState
 from .head_tracker_geom import HeadPoseTrackerGeom
 from .head_tracker_gru import HeadPoseTrackerGRU
-from .gesture_tracker import GestureState, GestureTracker
+from .static_gesture_tracker import GestureState, GestureTracker
+from .dynamic_gesture_tracker import DynamicGestureState, DynamicGestureTracker
 
 __all__ = [
     # base_visual.py
@@ -17,6 +18,9 @@ __all__ = [
     # gru
     'HeadPoseTrackerGRU',
     
-    # gesture_tracker.py
+    # static_gesture_tracker.py
     'GestureState', 'GestureTracker',
+    
+    # dynamic_gesture_tracker.py
+    'DynamicGestureState', 'DynamicGestureTracker',
 ]
