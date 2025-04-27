@@ -43,3 +43,11 @@
 ```bash
    pip install torch torchvision torchaudio
 ```
+
+5. **安装ModelScope**
+
+   仅需要音频部分，使用：
+
+```bash
+   pip install modelscope[audio] -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
+```
