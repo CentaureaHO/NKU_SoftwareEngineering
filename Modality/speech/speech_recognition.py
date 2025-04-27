@@ -9,12 +9,11 @@ import pyaudio
 import webrtcvad
 from queue import Queue
 from pypinyin import lazy_pinyin
-from typing import Dict, Any, List, Optional, Set
-from collections import deque
+from typing import Dict, Any, List, Optional
 import logging
 import shutil
-import re
 from modelscope.pipelines import pipeline
+from modelscope.hub.snapshot_download import snapshot_download
 from funasr import AutoModel
 
 import sys
@@ -35,16 +34,20 @@ logger = logging.getLogger('SpeechRecognition')
 
 DEBUG = os.environ.get('MODALITY_DEBUG', '0') == '1'
 
-SAMPLE_RATE = 16000             # 采样率
-CHUNK = 1024                    # 音频数据块大小
-CHANNELS = 1                    # 单声道
-FORMAT = pyaudio.paInt16        # 16位PCM格式
-VAD_MODE = 3                    # VAD敏感度 (0-3, 越高越敏感)
-SILENCE_THRESHOLD = 1.0         # 无声间隔阈值(秒)
+ASR_MODEL_ID = "iic/SenseVoiceSmall"
+SV_MODEL_ID = "damo/speech_campplus_sv_zh-cn_16k-common"
+SV_MODEL_VERSION = "v1.0.0"
+
+RATE = 16000                # 采样率
+CHUNK = 1024                # 音频数据块大小
+CHANNELS = 1                # 单声道
+FORMAT = pyaudio.paInt16    # 16位PCM格式
+VAD_MODE = 3                # VAD敏感度 (0-3, 越高越敏感)
+SILENCE_THRESHOLD = 1.0     # 无声间隔阈值(秒)
 
 DEFAULT_CONFIG = {
-    "wake_words": ["小爱同学"],                  # 支持多唤醒词
-    "wake_words_pinyin": ["xiao ai tong xue"],  # 唤醒词拼音
+    "wake_words": ["你好小智"],                  # 支持多唤醒词
+    "wake_words_pinyin": ["ni hao xiao zhi"],   # 唤醒词拼音
     "enable_wake_word": True,                   # 是否启用唤醒词
     "enable_speaker_verification": True,        # 是否启用声纹识别
     "speaker_verification_threshold": 0.35,     # 声纹识别阈值
@@ -55,11 +58,12 @@ DEFAULT_CONFIG = {
         "关闭车窗": "window_control",
         "打开空调": "ac_control",
         "关闭空调": "ac_control"
-    }
+    },
+    "exit_keywords": ["再见", "拜拜", "结束", "关闭"]  # 退出聆听状态的关键词
 }
 
 class SpeechState(ModalityState):
-    """语音状态类"""
+    """语音状态类，继承自ModalityState"""
     
     def __init__(self, timestamp: float = None):
         super().__init__(timestamp)
@@ -85,7 +89,7 @@ class SpeechState(ModalityState):
         return result
 
 class SpeechRecognition(BaseModality):
-    """智能座舱语音识别模块"""
+    """智能座舱语音识别模块，继承自BaseModality"""
     
     def __init__(self, name: str = "speech_recognition", 
                  config_path: str = None,
@@ -113,12 +117,14 @@ class SpeechRecognition(BaseModality):
         self.output_dir = os.path.join(self.model_dir, "output")
         self.speaker_db_dir = os.path.join(self.model_dir, "speaker_db")
         self.temp_speaker_dir = os.path.join(self.model_dir, "temp_speakers")
+        self.model_cache_dir = os.path.join(self.model_dir, "model_cache")
         
         os.makedirs(self.model_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.speaker_db_dir, exist_ok=True)
         os.makedirs(self.temp_speaker_dir, exist_ok=True)
-        
+        os.makedirs(self.model_cache_dir, exist_ok=True)
+
         if config_path is None:
             self.config_path = os.path.join(self.model_dir, "config.json")
         else:
@@ -127,9 +133,9 @@ class SpeechRecognition(BaseModality):
         self.config = self._load_config()
         
         self.is_recording = False 
-        self.is_listening = not self.config["enable_wake_word"]  # 若不启用唤醒词，则一直监听
-        self.is_enrolling = False                                # 是否处于声纹注册模式
-        self.current_speaker_id = None                           # 当前识别到的说话人ID
+        self.is_listening = not self.config["enable_wake_word"]     # 若不启用唤醒词，则一直监听
+        self.is_enrolling = False                                   # 是否处于声纹注册模式
+        self.current_speaker_id = None                              # 当前识别到的说话人ID
         
         # VAD模块 (WebRTC)
         self.vad = None
@@ -172,11 +178,10 @@ class SpeechRecognition(BaseModality):
                 for key, value in DEFAULT_CONFIG.items():
                     if key not in config:
                         config[key] = value
-                
-                # 确保唤醒词拼音列表长度与唤醒词一致
+
                 if len(config['wake_words']) != len(config['wake_words_pinyin']):
                     config['wake_words_pinyin'] = [' '.join(lazy_pinyin(word)) for word in config['wake_words']]
-                    
+
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
                 
@@ -184,6 +189,111 @@ class SpeechRecognition(BaseModality):
         except Exception as e:
             logger.error(f"加载配置文件失败: {e}，使用默认配置")
             return DEFAULT_CONFIG.copy()
+            
+    def _download_and_cache_model(self, model_id: str, model_version: str = None) -> str:
+        """
+        下载并缓存模型，如果本地已有缓存则直接使用本地模型
+        
+        Args:
+            model_id: 模型ID
+            model_version: 模型版本（可选）
+            
+        Returns:
+            str: 模型本地缓存路径
+        """
+        cache_key = f"{model_id.replace('/', '_')}"
+        if model_version:
+            cache_key += f"_{model_version}"
+        
+        model_cache_path = os.path.join(self.model_cache_dir, cache_key)
+        model_info_path = os.path.join(model_cache_path, "model_info.json")
+        model_lock_path = os.path.join(model_cache_path, ".lock")
+        
+        if os.path.exists(model_cache_path) and os.path.exists(model_info_path):
+            try:
+                with open(model_info_path, 'r', encoding='utf-8') as f:
+                    model_info = json.load(f)
+                logger.info(f"模型已存在本地: {model_id} ({model_info.get('timestamp')})")
+                return model_info.get('path', model_cache_path)
+            except Exception as e:
+                logger.warning(f"读取本地模型信息失败: {e}")
+                if not os.path.exists(model_lock_path):
+                    try:
+                        logger.info(f"尝试清理损坏的模型缓存: {model_cache_path}")
+                        shutil.rmtree(model_cache_path, ignore_errors=True)
+                        os.makedirs(model_cache_path, exist_ok=True)
+                    except Exception as cleanup_err:
+                        logger.error(f"清理损坏的模型缓存失败: {cleanup_err}")
+        
+        if os.path.exists(model_lock_path):
+            lock_modified_time = os.path.getmtime(model_lock_path)
+            if time.time() - lock_modified_time > 1800:  # 30分钟
+                logger.warning(f"发现过期的锁文件，可能是之前的下载异常终止")
+                try:
+                    os.remove(model_lock_path)
+                except Exception:
+                    logger.error(f"无法删除过期的锁文件: {model_lock_path}")
+                    raise RuntimeError(f"模型缓存目录被锁定，且无法释放锁。请手动删除: {model_lock_path}")
+            else:
+                logger.warning(f"另一个进程正在下载模型，等待下载完成...")
+                for _ in range(60):
+                    time.sleep(10)
+                    if not os.path.exists(model_lock_path):
+                        break
+                if os.path.exists(model_lock_path):
+                    raise RuntimeError(f"等待其他进程下载模型超时。如果确定没有其他下载正在进行，请手动删除锁文件: {model_lock_path}")
+                
+                if os.path.exists(model_info_path):
+                    try:
+                        with open(model_info_path, 'r', encoding='utf-8') as f:
+                            model_info = json.load(f)
+                        logger.info(f"模型已由另一进程下载完成: {model_id}")
+                        return model_info.get('path', model_cache_path)
+                    except Exception:
+                        pass
+
+        os.makedirs(model_cache_path, exist_ok=True)
+        try:
+            with open(model_lock_path, 'w') as lock_file:
+                lock_file.write(f"PID: {os.getpid()}, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+                
+            try:
+                logger.info(f"正在下载模型: {model_id} {model_version if model_version else ''}")
+                model_path = snapshot_download(model_id, 
+                                             revision=model_version,
+                                             cache_dir=model_cache_path)
+                
+                model_info = {
+                    "model_id": model_id,
+                    "version": model_version,
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "path": model_path
+                }
+                
+                with open(model_info_path, 'w', encoding='utf-8') as f:
+                    json.dump(model_info, f, ensure_ascii=False, indent=4)
+                    
+                logger.info(f"模型下载成功: {model_id}")
+                return model_path
+                
+            except Exception as e:
+                logger.error(f"模型下载失败: {e}")
+                try:
+                    incomplete_marker = os.path.join(model_cache_path, ".incomplete")
+                    with open(incomplete_marker, 'w') as f:
+                        f.write(f"Download failed: {str(e)}")
+                except Exception:
+                    pass
+                raise
+            finally:
+                try:
+                    if os.path.exists(model_lock_path):
+                        os.remove(model_lock_path)
+                except Exception as del_err:
+                    logger.error(f"删除锁文件失败: {del_err}")
+        except Exception as lock_err:
+            logger.error(f"创建锁文件失败: {lock_err}")
+            raise RuntimeError(f"无法创建模型下载锁，可能没有写入权限: {model_lock_path}")
             
     def initialize(self) -> int:
         """
@@ -199,24 +309,73 @@ class SpeechRecognition(BaseModality):
             self.vad = webrtcvad.Vad()
             self.vad.set_mode(VAD_MODE)
             logger.info("VAD初始化成功")
-            
+
             logger.info("正在初始化语音识别模型...")
-            self.asr_model = AutoModel(model="iic/SenseVoiceSmall", 
-                                     trust_remote_code=True)
+
+            asr_model_path = os.path.join(self.model_cache_dir, ASR_MODEL_ID.replace("/", "_"), "model_info.json")
+            if os.path.exists(asr_model_path):
+                logger.info("从本地缓存加载ASR模型")
+                try:
+                    self.asr_model = AutoModel(model=ASR_MODEL_ID, 
+                                            trust_remote_code=True,
+                                            model_dir=self.model_cache_dir)
+                    logger.info("本地ASR模型加载成功")
+                except Exception as e:
+                    logger.error(f"本地ASR模型加载失败: {e}，尝试在线下载")
+                    model_path = self._download_and_cache_model(ASR_MODEL_ID)
+                    self.asr_model = AutoModel(model=model_path, 
+                                            trust_remote_code=True)
+            else:
+                logger.info("在线下载ASR模型")
+                model_path = self._download_and_cache_model(ASR_MODEL_ID)
+                self.asr_model = AutoModel(model=ASR_MODEL_ID,
+                                         trust_remote_code=True)
+            
             logger.info("语音识别模型加载成功")
 
             if self.config["enable_speaker_verification"]:
                 logger.info("正在初始化声纹识别模型...")
-                self.sv_model = pipeline(
-                    task='speaker-verification',
-                    model='damo/speech_campplus_sv_zh-cn_16k-common',
-                    model_revision='v1.0.0'
-                )
-                logger.info("声纹识别模型加载成功")
 
+                sv_cache_key = f"{SV_MODEL_ID.replace('/', '_')}_{SV_MODEL_VERSION}"
+                sv_model_path = os.path.join(self.model_cache_dir, sv_cache_key, "model_info.json")
+                
+                if os.path.exists(sv_model_path):
+                    logger.info("从本地缓存加载声纹识别模型")
+                    try:
+                        with open(sv_model_path, 'r', encoding='utf-8') as f:
+                            sv_model_info = json.load(f)
+                        
+                        self.sv_model = pipeline(
+                            task='speaker-verification',
+                            model=SV_MODEL_ID,
+                            model_revision=SV_MODEL_VERSION,
+                            cache_dir=self.model_cache_dir
+                        )
+                        logger.info("本地声纹识别模型加载成功")
+                    except Exception as e:
+                        logger.error(f"本地声纹识别模型加载失败: {e}，尝试在线下载")
+                        model_path = self._download_and_cache_model(SV_MODEL_ID, SV_MODEL_VERSION)
+                        self.sv_model = pipeline(
+                            task='speaker-verification',
+                            model=SV_MODEL_ID,
+                            model_revision=SV_MODEL_VERSION,
+                            cache_dir=self.model_cache_dir
+                        )
+                else:
+                    logger.info("在线下载声纹识别模型")
+                    model_path = self._download_and_cache_model(SV_MODEL_ID, SV_MODEL_VERSION)
+                    self.sv_model = pipeline(
+                        task='speaker-verification',
+                        model=SV_MODEL_ID,
+                        model_revision=SV_MODEL_VERSION,
+                        cache_dir=self.model_cache_dir
+                    )
+                
+                logger.info("声纹识别模型加载成功")
+            
             self._load_speakers()
             self._load_temp_speakers()
-            
+
             with self.audio_queue.mutex:
                 self.audio_queue.queue.clear()
             self.audio_segments = []
@@ -338,7 +497,7 @@ class SpeechRecognition(BaseModality):
             bool: 是否检测到语音活动
         """
         step_ms = 20  # 20ms
-        step_size = int(SAMPLE_RATE * step_ms / 1000)  # 每20ms的样本数
+        step_size = int(RATE * step_ms / 1000)  # 每20ms的样本数
         voice_frames = 0
         total_frames = 0
         
@@ -347,7 +506,7 @@ class SpeechRecognition(BaseModality):
             frame = audio_data[i:i+step_size]
             if len(frame) == step_size:
                 total_frames += 1
-                if self.vad.is_speech(frame.tobytes(), sample_rate=SAMPLE_RATE):
+                if self.vad.is_speech(frame.tobytes(), sample_rate=RATE):
                     voice_frames += 1
         
         if total_frames == 0:
@@ -361,7 +520,7 @@ class SpeechRecognition(BaseModality):
         with wave.open(filepath, 'wb') as wf:
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(2)  # 16-bit PCM = 2 bytes
-            wf.setframerate(SAMPLE_RATE)
+            wf.setframerate(RATE)
             wf.writeframes(audio_data)
         return filepath
         
@@ -515,18 +674,17 @@ class SpeechRecognition(BaseModality):
             return
             
         audio_data = b''.join(self.audio_segments)
-        
-        audio_duration = len(audio_data) / (SAMPLE_RATE * CHANNELS * 2)
-        
+        audio_duration = len(audio_data) / (RATE * CHANNELS * 2)
+
         if self.is_enrolling:
             if audio_duration < self.config["min_enrollment_duration"]:
                 logger.info(f"声纹注册语音太短 ({audio_duration:.1f}秒)，需要至少 {self.config['min_enrollment_duration']} 秒")
-                self.audio_segments = []  # 清空
+                self.audio_segments = []
                 return
                 
             enrollment_path = os.path.join(self.speaker_db_dir, f"{self.enrolling_id}.wav")
             self._save_audio(audio_data, enrollment_path)
-
+  
             speaker_info = {
                 "name": self.enrolling_name,
                 "path": enrollment_path,
@@ -535,7 +693,7 @@ class SpeechRecognition(BaseModality):
             
             with open(os.path.join(self.speaker_db_dir, f"{self.enrolling_id}.json"), 'w', encoding='utf-8') as f:
                 json.dump(speaker_info, f, ensure_ascii=False, indent=4)
-
+                
             self.speakers[self.enrolling_id] = speaker_info
             
             logger.info(f"声纹注册成功: {self.enrolling_name} (ID: {self.enrolling_id})")
@@ -549,12 +707,11 @@ class SpeechRecognition(BaseModality):
                 self._latest_state = state
                 
             return
-        
+
         temp_file = os.path.join(self.output_dir, "temp_audio.wav")
         self._save_audio(audio_data, temp_file)
- 
-        state = SpeechState()
         
+        state = SpeechState()
         if not self.is_listening and self.config["enable_wake_word"]:
             text = self._recognize_speech(temp_file)
             state.recognition["text"] = text
@@ -568,7 +725,7 @@ class SpeechRecognition(BaseModality):
                     state.recognition["wake_word"] = wake_word
                     state.recognition["has_wake_word"] = True
                     state.recognition["is_command"] = True
-                    
+
                     if self.config["enable_speaker_verification"]:
                         speaker_id, is_registered, confidence = self._identify_speaker(temp_file)
                         if speaker_id:
@@ -582,6 +739,9 @@ class SpeechRecognition(BaseModality):
                             state.recognition["confidence"] = confidence
                             
                             logger.info(f"识别到说话人: {speaker_name} {'(已注册)' if is_registered else '(临时)'}")
+                else:
+                    self.audio_segments = []
+                    return
         else:
             text = self._recognize_speech(temp_file)
             state.recognition["text"] = text
@@ -619,8 +779,9 @@ class SpeechRecognition(BaseModality):
                         self._save_temp_speaker(temp_file)
                 
                 if self.config["enable_wake_word"] and self.is_listening:
-                    if any(keyword in text for keyword in ["再见", "拜拜", "结束", "关闭"]):
-                        logger.info("检测到结束指令，退出聆听状态")
+                    exit_keywords = self.config.get("exit_keywords", ["再见", "拜拜", "结束", "关闭"])
+                    if any(exit_word in text for exit_word in exit_keywords):
+                        logger.info(f"检测到结束指令：{text}，退出聆听状态")
                         self.is_listening = False
                         
         with self._state_lock:
@@ -668,7 +829,7 @@ class SpeechRecognition(BaseModality):
         try:
             stream = p.open(format=FORMAT,
                         channels=CHANNELS,
-                        rate=SAMPLE_RATE,
+                        rate=RATE,
                         input=True,
                         frames_per_buffer=CHUNK)
             
@@ -1074,5 +1235,98 @@ class SpeechRecognition(BaseModality):
         self._cleanup_temp_speakers()
         
         logger.info(f"设置最大临时声纹数量: {count}")
+        return True
+    
+    def add_exit_keyword(self, keyword: str) -> bool:
+        """
+        添加退出聆听状态的关键词
+        
+        Args:
+            keyword: 要添加的关键词
+            
+        Returns:
+            bool: 是否添加成功
+        """
+        if "exit_keywords" not in self.config:
+            self.config["exit_keywords"] = ["再见", "拜拜", "结束", "关闭"]
+            
+        if keyword in self.config["exit_keywords"]:
+            logger.warning(f"退出关键词 '{keyword}' 已存在")
+            return False
+            
+        self.config["exit_keywords"].append(keyword)
+        
+        # 保存到配置文件
+        with open(self.config_path, 'w', encoding='utf-8') as f:
+            json.dump(self.config, f, ensure_ascii=False, indent=4)
+            
+        logger.info(f"添加退出关键词成功: {keyword}")
+        return True
+        
+    def remove_exit_keyword(self, keyword: str) -> bool:
+        """
+        删除退出聆听状态的关键词
+        
+        Args:
+            keyword: 要删除的关键词
+            
+        Returns:
+            bool: 是否删除成功
+        """
+        if "exit_keywords" not in self.config or keyword not in self.config["exit_keywords"]:
+            logger.warning(f"退出关键词 '{keyword}' 不存在")
+            return False
+            
+        # 至少保留一个退出关键词
+        if len(self.config["exit_keywords"]) <= 1:
+            logger.warning(f"不能删除最后一个退出关键词")
+            return False
+            
+        self.config["exit_keywords"].remove(keyword)
+        
+        # 保存到配置文件
+        with open(self.config_path, 'w', encoding='utf-8') as f:
+            json.dump(self.config, f, ensure_ascii=False, indent=4)
+            
+        logger.info(f"删除退出关键词成功: {keyword}")
+        return True
+        
+    def get_exit_keywords(self) -> List[str]:
+        """
+        获取所有退出聆听状态的关键词
+        
+        Returns:
+            List[str]: 退出关键词列表
+        """
+        return self.config.get("exit_keywords", ["再见", "拜拜", "结束", "关闭"]).copy()
+
+    def enable_listening(self) -> bool:
+        """
+        启用聆听状态
+        
+        Returns:
+            bool: 是否启用成功
+        """
+        if self.is_listening:
+            logger.warning("已处于聆听状态")
+            return False
+            
+        self.is_listening = True
+        logger.info("已启用聆听状态")
+        return True
+    
+    def disable_listening(self) -> bool:
+        """
+        禁用聆听状态
+        
+        Returns:
+            bool: 是否禁用成功
+        """
+        if not self.is_listening:
+            logger.warning("已处于非聆听状态")
+            return False
+            
+        self.is_listening = False
+        logger.info("已禁用聆听状态")
         return True
     
