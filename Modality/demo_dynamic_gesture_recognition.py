@@ -68,6 +68,8 @@ def main():
     parser.add_argument('--confidence', type=float, default=0.65, help='置信度阈值')
     parser.add_argument('--motion_threshold', type=float, default=500.0, help='运动检测阈值')
     parser.add_argument('--debug', action='store_true', help='启用调试模式')
+    parser.add_argument('--input_width', type=int, default=176, help='输入图像宽度')
+    parser.add_argument('--input_height', type=int, default=100, help='输入图像高度')
     args = parser.parse_args()
     
     # 如果选择快速测试模式，使用快速测试模型和配置
@@ -103,7 +105,7 @@ def main():
     # 创建跟踪器
     print(f"初始化动态手势识别模态...")
     print(f"  - 摄像头: {args.camera}")
-    print(f"  - 分辨率: 640x480")
+    print(f"  - 分辨率: 640x480 (捕获), {args.input_width}x{args.input_height} (处理)")
     print(f"  - 模型: {args.model}")
     print(f"  - 模型类: {args.model_class}")
     print(f"  - 标签: {args.labels}")
@@ -117,6 +119,8 @@ def main():
         label_path=args.labels,
         confidence_threshold=args.confidence,
         motion_threshold=args.motion_threshold,
+        input_width=args.input_width,
+        input_height=args.input_height,
         debug=True  # 始终开启调试模式以获取前五个预测
     )
     
@@ -315,18 +319,22 @@ def main():
         
         # 在显示画面上绘制一个矩形框，指示模型实际处理的区域
         display_h, display_w = display_frame.shape[:2]
-        input_ratio = 84 / 224
-        box_size = int(min(display_w, display_h) * input_ratio)
-        box_x1 = (display_w - box_size) // 2
-        box_y1 = (display_h - box_size) // 2
-        box_x2 = box_x1 + box_size
-        box_y2 = box_y1 + box_size
+        
+        # 将框扩大到整个摄像头视野，使用176x100的比例
+        input_ratio_w = 176 / display_w
+        input_ratio_h = 100 / display_h
+        
+        # 使用整个屏幕作为输入区域
+        box_x1 = 0
+        box_y1 = 0
+        box_x2 = display_w
+        box_y2 = display_h
         
         cv2.rectangle(display_frame, (box_x1, box_y1), (box_x2, box_y2), (0, 255, 0), 2)
         display_frame = put_chinese_text(
             display_frame, 
-            "请将手势放在框内(84x84)", 
-            (box_x1, box_y1 - 10), 
+            "全屏手势检测区域", 
+            (box_x1 + 10, box_y1 + 30), 
             font_size=16,
             color=(0, 255, 0)
         )

@@ -218,6 +218,8 @@ class DynamicGestureTracker(BaseVisualModality):
                  history_size: int = 6,
                  min_consensus: int = 4,
                  prediction_cooldown: float = 1.0,
+                 input_width: int = 176,
+                 input_height: int = 100,
                  debug: bool = DEBUG):
         """
         初始化动态手势跟踪器
@@ -236,6 +238,8 @@ class DynamicGestureTracker(BaseVisualModality):
             history_size: 历史记录大小
             min_consensus: 达成共识所需的最小样本数
             prediction_cooldown: 预测之间的冷却时间(秒)
+            input_width: 输入到模型前的图像宽度
+            input_height: 输入到模型前的图像高度
             debug: 是否启用调试模式
         """
         super().__init__(name, source, width, height)
@@ -248,6 +252,8 @@ class DynamicGestureTracker(BaseVisualModality):
         self.history_size = history_size
         self.min_consensus = min_consensus
         self.prediction_cooldown = prediction_cooldown
+        self.input_width = input_width
+        self.input_height = input_height
         self.debug = debug
         
         # 初始化状态
@@ -369,8 +375,9 @@ class DynamicGestureTracker(BaseVisualModality):
             return state
         
         try:
-            # 调整帧大小用于模型输入
-            frame_for_model = cv2.resize(frame, (224, 224))
+            # 首先将整个帧缩放到指定的低分辨率，然后再缩放到模型所需的输入尺寸
+            frame_small = cv2.resize(frame, (self.input_width, self.input_height))
+            frame_for_model = cv2.resize(frame_small, (224, 224))
             
             # 预处理并添加到缓冲区
             img_tensor = preprocess_frame(frame_for_model, self.transform)
