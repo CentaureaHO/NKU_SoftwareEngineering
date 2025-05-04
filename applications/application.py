@@ -11,20 +11,20 @@ import os
 from typing import List
 from enum import Enum
 from datetime import datetime
-from music import Music
-from navigation import Navigation
-from vehicle_state import VehicleState
+from .music import Music
+from .navigation import Navigation
+from .vehicle_state import VehicleState
 
 class Application:
     type = Enum("type", ["music","navigation","vehicle_state"])
+    
     def __init__(self) -> None:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        relative_path = "../database/log/Log.txt"
-        self.log_path = os.path.join(current_dir, relative_path)
-
-    def schedule(self,application_type: Enum,args: List) -> str:
+        pass    
+    
+    # TODO(): 应该考虑不同功能之间的冲突问题
+    @classmethod
+    def schedule(cls,application_type: Enum,args: List) -> str:
         if application_type == Application.type.music:
-            self.Log("播放音乐——南开校歌音频.mp3")
             music = Music()
             music.play("南开校歌")
         elif application_type == Application.type.navigation:
@@ -34,14 +34,16 @@ class Application:
             state = VehicleState()
             print(state.monitor(VehicleState.type.oil_quantity))
 
-    def Log(self,log: str) -> None:
-        current_time = datetime.now()
-        time_string = current_time.strftime("[%Y-%m-%d %H:%M:%S]")
-        print(log)
-        with open(self.log_path, 'a+' ,encoding='utf-8') as file:
-            file.write(time_string)
-            file.write(log)
-            file.write("\n")
+    @classmethod
+    def to_string(cls,application_type: Enum) -> str:
+        if application_type == Application.type.music:
+            return "音乐"
+        elif application_type == Application.type.navigation:
+            return "导航"
+        elif application_type == Application.type.vehicle_state:
+            return "车辆状态"
+        else:
+            return "未知功能"
 
 if __name__ == '__main__':
     app = Application()

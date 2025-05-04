@@ -28,7 +28,8 @@ logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     filename='speech_recognition.log',
-    filemode='w'
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('SpeechRecognition')
 
@@ -513,7 +514,11 @@ class SpeechRecognition(BaseModality):
             return False
             
         ratio = voice_frames / total_frames
+
+        # print(f"Ratio = {ratio:.2f}, current state: {"listening" if self.is_listening else "not"}")
+
         return ratio > 0.4  # 如果超过40%的帧包含语音，视为有语音活动
+        # return True
         
     def _save_audio(self, audio_data: bytes, filepath: str) -> str:
         """保存音频数据到文件"""

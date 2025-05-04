@@ -72,7 +72,8 @@ def main():
     else:
         os.environ["MODALITY_DEBUG"] = "0"
     
-    video_source = args.video if args.video else args.camera
+    #video_source = args.video if args.video else args.camera
+    video_source = args.camera
     
     logger.info(f"使用视频源: {video_source}")
     manager = ModalityManager()
@@ -117,100 +118,24 @@ def main():
     
     print("按 'q' 键退出")
     
-    try:
-        while True:
-            states = manager.update_all()
-            
-            if not states or monitor.name not in states:
-                logger.warning("无法获取驾驶员状态，退出中...")
-                break
-            
-            driver_state = states[monitor.name]
-            
-            if driver_state.frame is not None:
-                frame = driver_state.frame.copy()
-                display_frame = frame.copy()
-                
-                if args.debug and driver_state.detections["head_pose"]["detected"]:
-                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    rgb_frame.flags.writeable = False
-                    results = face_mesh.process(rgb_frame)
-                    rgb_frame.flags.writeable = True
-                    display_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+    from individuation import Individuation
+    while True:
+        states = manager.update_all()
+        #print(states)
+        state = states['head_pose_tracker_gru']
+        if state.detections['head_movement']['is_nodding']:
+            print("点头")
+            Individuation.head_individuation("点头")
+        else:
+            print("未检测到点头")
+        if state.detections['head_movement']['is_shaking']:
+            print("摇头")
+            Individuation.head_individuation("摇头")
+        else:
+            print("未检测到摇头")
 
-                    display_frame = draw_face_mesh(display_frame, results)
-                
-                if driver_state.detections["head_pose"]["detected"]:
-                    head_pose = driver_state.detections["head_pose"]
-                    head_movement = driver_state.detections["head_movement"]
-                    
-                    h, w = display_frame.shape[:2]
-                    info_panel_height = 120  # 增加高度以显示额外信息
-                    info_panel = np.ones((info_panel_height, w, 3), dtype=np.uint8) * 240
-                    
-                    # 显示头部姿态
-                    pitch = head_pose["pitch"]
-                    yaw = head_pose["yaw"]
-                    roll = head_pose["roll"]
-                    pose_text = f"Head Pose: P={pitch:.2f} Y={yaw:.2f} R={roll:.2f}"
-                    cv2.putText(info_panel, pose_text, (10, 30), 
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                    
-                    # 显示头部动作状态
-                    is_nodding = head_movement["is_nodding"]
-                    is_shaking = head_movement["is_shaking"]
-                    movement_status = head_movement["status"]
-                    
-                    movement_text = f'Movement: Nodding={is_nodding}, Shaking={is_shaking}, Status={movement_status}'
-                    cv2.putText(info_panel, movement_text, (10, 60), 
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                    
-                    # 显示头部动作置信度
-                    nod_conf = head_movement["nod_confidence"]
-                    shake_conf = head_movement["shake_confidence"]
-                    conf_text = f'Confidence: Nod={nod_conf:.2f}, Shake={shake_conf:.2f}'
-                    cv2.putText(info_panel, conf_text, (10, 90), 
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-
-                    # 在主画面上显示当前状态
-                    status_color = (0, 255, 0)  # 绿色
-                    if movement_status == "nodding":
-                        status_color = (0, 165, 255)  # 橙色
-                    elif movement_status == "shaking":
-                        status_color = (0, 0, 255)    # 红色
-                        
-                    cv2.putText(display_frame, f"Status: {movement_status}", (w - 250, 40), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
-
-                    combined_frame = np.vstack((display_frame, info_panel))
-                    
-                    VisualizationUtil.show_frame("Driver Monitoring", combined_frame)
-                    
-                    if video_writer:
-                        video_writer.write(frame)
-                else:
-                    cv2.putText(display_frame, "No Driver Detected", (10, 30),
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                    VisualizationUtil.show_frame("Driver Monitoring", display_frame)
-            
-            key = VisualizationUtil.wait_key(1)
-            if key == ord('q') or key == ord('Q'):
-                break
-    
-    except KeyboardInterrupt:
-        logger.info("接收到中断信号，退出中...")
-    
-    finally:
-        if face_mesh:
-            face_mesh.close()
-        
-        result = manager.shutdown_all()
-        if result != SUCCESS:
-            logger.warning(f"关闭模态时遇到问题: {get_error_message(result)}")
-        
-        if video_writer:
-            video_writer.release()
-        VisualizationUtil.destroy_windows()
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     main()
+ 

@@ -1,0 +1,99 @@
+2025-05-04 19:18:18,581 - matplotlib - DEBUG - matplotlib data path: D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\matplotlib\mpl-data
+2025-05-04 19:18:18,587 - matplotlib - DEBUG - CONFIGDIR=C:\Users\13033\.matplotlib
+2025-05-04 19:18:18,588 - matplotlib - DEBUG - interactive is False
+2025-05-04 19:18:18,588 - matplotlib - DEBUG - platform is win32
+2025-05-04 19:18:18,645 - matplotlib - DEBUG - CACHEDIR=C:\Users\13033\.matplotlib
+2025-05-04 19:18:18,648 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\13033\.matplotlib\fontlist-v390.json
+2025-05-04 19:18:20,517 - tensorflow - DEBUG - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2025-05-04 19:18:20,878 - h5py._conv - DEBUG - Creating converter from 7 to 5
+2025-05-04 19:18:20,878 - h5py._conv - DEBUG - Creating converter from 5 to 7
+2025-05-04 19:18:20,878 - h5py._conv - DEBUG - Creating converter from 7 to 5
+2025-05-04 19:18:20,878 - h5py._conv - DEBUG - Creating converter from 5 to 7
+2025-05-04 19:18:21,377 - jax._src.path - DEBUG - etils.epath was not found. Using pathlib for file I/O.
+2025-05-04 19:18:28,803 - datasets - INFO - PyTorch version 2.7.0 available.
+2025-05-04 19:18:28,806 - datasets - INFO - TensorFlow version 2.19.0 available.
+2025-05-04 19:18:28,806 - datasets - INFO - JAX version 0.6.0 available.
+2025-05-04 19:18:29,224 - torio._extension.utils - DEBUG - Loading FFmpeg6
+2025-05-04 19:18:29,227 - torio._extension.utils - DEBUG - Failed to load FFmpeg6 extension.
+Traceback (most recent call last):
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 116, in _find_ffmpeg_extension
+    ext = _find_versionsed_ffmpeg_extension(ffmpeg_ver)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 108, in _find_versionsed_ffmpeg_extension
+    _load_lib(lib)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 94, in _load_lib
+    torch.ops.load_library(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torch\_ops.py", line 1392, in load_library
+    ctypes.CDLL(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\ctypes\__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: Could not find module 'D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\lib\libtorio_ffmpeg6.pyd' (or one of its dependencies). Try using the full path with constructor syntax.
+2025-05-04 19:18:29,228 - torio._extension.utils - DEBUG - Loading FFmpeg5
+2025-05-04 19:18:29,229 - torio._extension.utils - DEBUG - Failed to load FFmpeg5 extension.
+Traceback (most recent call last):
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 116, in _find_ffmpeg_extension
+    ext = _find_versionsed_ffmpeg_extension(ffmpeg_ver)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 108, in _find_versionsed_ffmpeg_extension
+    _load_lib(lib)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 94, in _load_lib
+    torch.ops.load_library(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torch\_ops.py", line 1392, in load_library
+    ctypes.CDLL(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\ctypes\__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: Could not find module 'D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\lib\libtorio_ffmpeg5.pyd' (or one of its dependencies). Try using the full path with constructor syntax.
+2025-05-04 19:18:29,230 - torio._extension.utils - DEBUG - Loading FFmpeg4
+2025-05-04 19:18:29,231 - torio._extension.utils - DEBUG - Failed to load FFmpeg4 extension.
+Traceback (most recent call last):
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 116, in _find_ffmpeg_extension
+    ext = _find_versionsed_ffmpeg_extension(ffmpeg_ver)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 108, in _find_versionsed_ffmpeg_extension
+    _load_lib(lib)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 94, in _load_lib
+    torch.ops.load_library(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torch\_ops.py", line 1392, in load_library
+    ctypes.CDLL(path)
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\ctypes\__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: Could not find module 'D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\lib\libtorio_ffmpeg4.pyd' (or one of its dependencies). Try using the full path with constructor syntax.
+2025-05-04 19:18:29,232 - torio._extension.utils - DEBUG - Loading FFmpeg
+2025-05-04 19:18:29,232 - torio._extension.utils - DEBUG - Failed to load FFmpeg extension.
+Traceback (most recent call last):
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 116, in _find_ffmpeg_extension
+    ext = _find_versionsed_ffmpeg_extension(ffmpeg_ver)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\Anaconda3\Anaconda3\envs\smart_cab\Lib\site-packages\torio\_extension\utils.py", line 106, in _find_versionsed_ffmpeg_extension
+    raise RuntimeError(f"FFmpeg{version} extension is not available.")
+RuntimeError: FFmpeg extension is not available.
+2025-05-04 19:18:29,478 - root - DEBUG - New registry table added: preprocessor_classes
+2025-05-04 19:18:29,780 - root - DEBUG - Key Conformer already exists in model_classes, re-register
+2025-05-04 19:18:29,921 - root - DEBUG - Key ParaformerSANMDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:29,929 - root - DEBUG - Key ParaformerSANMDecoderExport already exists in decoder_classes, re-register
+2025-05-04 19:18:29,938 - root - DEBUG - Key ParaformerSANMDecoderOnlineExport already exists in decoder_classes, re-register
+2025-05-04 19:18:29,947 - root - DEBUG - Key ParaformerSANDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:29,956 - root - DEBUG - Key ParaformerDecoderSANExport already exists in decoder_classes, re-register
+2025-05-04 19:18:30,067 - root - DEBUG - New registry table added: adaptor_classes
+2025-05-04 19:18:30,128 - root - DEBUG - Key Linear already exists in adaptor_classes, re-register
+2025-05-04 19:18:30,199 - root - DEBUG - Key TransformerDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:30,209 - root - DEBUG - Key LightweightConvolutionTransformerDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:30,214 - root - DEBUG - Key LightweightConvolution2DTransformerDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:30,218 - root - DEBUG - Key DynamicConvolutionTransformerDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:30,225 - root - DEBUG - Key DynamicConvolution2DTransformerDecoder already exists in decoder_classes, re-register
+2025-05-04 19:18:30,387 - root - DEBUG - New registry table added: lid_predictor_classes
+2025-05-04 19:18:30,522 - DriverMonitor - INFO - 使用视频源: 0
+2025-05-04 19:18:31,634 - HeadTrackerGRU - INFO - MediaPipe人脸网格初始化成功
+2025-05-04 19:18:31,634 - HeadTrackerGRU - INFO - 正在加载模型: C:\Users\13033\Desktop\软工大作业代码5.3\Modality\models\headpose\model.h5
+2025-05-04 19:18:31,650 - h5py._conv - DEBUG - Creating converter from 3 to 5
+2025-05-04 19:18:31,766 - absl - WARNING - Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+2025-05-04 19:18:31,770 - HeadTrackerGRU - INFO - 正在加载缩放器: C:\Users\13033\Desktop\软工大作业代码5.3\Modality\models\headpose\scaler.pkl
+2025-05-04 19:18:31,771 - HeadTrackerGRU - INFO - 正在加载配置: C:\Users\13033\Desktop\软工大作业代码5.3\Modality\models\headpose\config.json
+2025-05-04 19:18:31,771 - HeadTrackerGRU - INFO - 模型加载成功，窗口大小: 15, 特征维度: 30
+2025-05-04 19:18:31,771 - HeadTrackerGRU - INFO - 姿势映射: {'stationary': 0, 'nodding': 1, 'shaking': 2, 'other': 3}
+2025-05-04 19:18:31,771 - HeadTrackerGRU - INFO - 处理线程已启动
+2025-05-04 19:18:31,771 - HeadTrackerGRU - INFO - 头部姿态跟踪器已开始运行
+2025-05-04 19:18:31,771 - DriverMonitor - INFO - 驾驶员监测器已启动
