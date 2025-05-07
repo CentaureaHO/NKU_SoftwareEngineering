@@ -8,36 +8,32 @@ Module Description:
 """
 
 import os
-import threading
-from typing import List
-from enum import Enum
-from applications import application
-#from Modality.demo_speech_recognition import main as demo_main
-import os
-import sys
 import time
 import argparse
-import logging
 from Modality.core.modality_manager import ModalityManager
 from Modality.speech.speech_recognition import SpeechRecognition
 from Modality.core.error_codes import SUCCESS, get_error_message
 import cv2
-import numpy as np
 import time
 import argparse
-import sys
 import os
-from typing import Dict, Any
-import logging
 import mediapipe as mp
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
-
 from Modality.core import ModalityManager
-from Modality.core.error_codes import SUCCESS, get_error_message
-from Modality.utils.visualization import VisualizationUtil
+from Modality.core.error_codes import SUCCESS
+import cv2
+import time
+import os
+import numpy as np
+import sys
+import argparse
+from PIL import Image, ImageDraw, ImageFont
+# 确保可以导入Modality模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from Modality import ModalityManager, GestureTracker
 
 class MultimodalController:
     # TODO():这个函数负责启动时打开各个模态,目前已做了语音
@@ -46,6 +42,7 @@ class MultimodalController:
         self.manager = ModalityManager()
         self.init_speecher()
         self.init_headpose()
+        self.init_static_gesture()
 
     def init_speecher(self) -> None:
         parser = argparse.ArgumentParser(description='智能座舱语音识别演示')
@@ -148,6 +145,85 @@ class MultimodalController:
         
         print("头部姿态识别系统初始化完成")
 
+    def init_static_gesture(self) -> None:
+        # 解析命令行参数
+        parser = argparse.ArgumentParser(description='手势识别模态演示')
+    
+        # 摄像头相关参数
+        parser.add_argument('--camera', type=int, default=0, help='摄像头设备ID (默认: 0)')
+        parser.add_argument('--width', type=int, default=640, help='摄像头图像宽度 (默认: 640)')
+        parser.add_argument('--height', type=int, default=480, help='摄像头图像高度 (默认: 480)')
+        
+        # 模型相关参数
+        parser.add_argument('--model', type=str, default='Modality/models/static_gesture_recognition/model_output/gesture_model.h5', help='手势识别模型路径 (默认: Modality/models/static_gesture_recognition/model_output/gesture_model.h5)')
+        parser.add_argument('--feature-mean', type=str, default='Modality/models/static_gesture_recognition/model_data/feature_mean.npy', help='特征均值文件路径 (默认: Modality/models/static_gesture_recognition/model_data/feature_mean.npy)')
+        parser.add_argument('--feature-scale', type=str, default='Modality/models/static_gesture_recognition/model_data/feature_scale.npy', help='特征缩放文件路径 (默认: Modality/models/static_gesture_recognition/model_data/feature_scale.npy)')
+        
+        # 识别相关参数
+        parser.add_argument('--confidence', type=float, default=0.75, help='手势识别置信度阈值 (默认: 0.75)')
+        parser.add_argument('--stability', type=float, default=0.7, help='手势稳定性阈值 (默认: 0.7)')
+        
+        # 调试相关参数
+        parser.add_argument('--debug', action='store_true', help='开启调试模式')
+        args = parser.parse_args()
+        
+        # 如果模型目录不存在，创建它
+        model_dir = os.path.dirname(args.model)
+        if model_dir and not os.path.exists(model_dir):
+            os.makedirs(model_dir, exist_ok=True)
+        
+        # 检查模型文件是否存在
+        if not os.path.exists(args.model) or not os.path.exists(args.feature_mean) or not os.path.exists(args.feature_scale):
+            print(f"错误: 模型文件不存在。请确保以下文件存在:")
+            print(f"  - {args.model}")
+            print(f"  - {args.feature_mean}")
+            print(f"  - {args.feature_scale}")
+            print("您可以通过命令行参数指定正确的模型文件路径:")
+            print("  --model 模型文件路径")
+            print("  --feature-mean 特征均值文件路径")
+            print("  --feature-scale 特征缩放文件路径")
+            return
+        
+        # 设置环境变量
+        if args.debug:
+            os.environ['MODALITY_DEBUG'] = '1'
+        
+        print(f"初始化手势识别模态...")
+        print(f"  - 摄像头: {args.camera}")
+        print(f"  - 分辨率: {args.width}x{args.height}")
+        print(f"  - 模型: {args.model}")
+        print(f"  - 置信度阈值: {args.confidence}")
+        print(f"  - 稳定性阈值: {args.stability}")
+        
+        # 创建模态管理器
+        manager = ModalityManager()
+        
+        # 创建手势识别模态
+        static_gesture_tracker = GestureTracker(
+            name="static_gesture_tracker",
+            source=args.camera,
+            width=args.width,
+            height=args.height,
+            model_path=args.model,
+            feature_mean_path=args.feature_mean,
+            feature_scale_path=args.feature_scale,
+            confidence_threshold=args.confidence,
+            stability_threshold=args.stability,
+            debug=args.debug
+        )
+        
+        # 注册模态
+        self.manager.register_modality(static_gesture_tracker)
+        
+        # 启动模态
+        result = self.manager.start_modality("static_gesture_tracker")
+        if result != 0:
+            print(f"错误: 启动手势识别模态失败，错误码: {result}")
+            return
+        
+        print("手势识别模态启动成功")
+        print("按ESC键退出")
+
     def control_speecher(self,state) -> None:
         if state and state.recognition["text"]:
             current_text = state.recognition["text"]
@@ -170,131 +246,39 @@ class MultimodalController:
                 from individuation import Individuation
                 Individuation.speech_individuation(current_text)
 
+
     def control_headpose(self,state) -> None:
-        from individuation import Individuation
+        #from individuation import Individuation
         if state.detections['head_movement']['is_nodding']:
             print("点头")
-            Individuation.head_individuation("点头")
+            #Individuation.head_individuation("点头")
             time.sleep(0.5)
         elif state.detections['head_movement']['is_shaking']:
             print("摇头")
-            Individuation.head_individuation("摇头")
+            #Individuation.head_individuation("摇头")
             time.sleep(0.5)
 
-    # TODO():
+    def control_static_gesture(self,state) -> None:
+        if state.detections["gesture"]["detected"]:
+            name = state.detections["gesture"]["name"]
+            print(f"手势: {name}")
+            time.sleep(0.5)
+    
     def control(self) -> None:
         try:
-            
-            
             while True:
-                # state = self.speech_modality.update()
                 states = self.manager.update_all()
                 for name, state in states.items():
-                    print(f"模态: {name}")
+                    # print(f"模态: {name}")
                     if name == "speech_recognition":
                         self.control_speecher(state)
                     elif name == "head_pose_tracker_gru":
                         self.control_headpose(state)
+                    elif name == "static_gesture_tracker":
+                        self.control_static_gesture(state)
                     else:
                         assert False, f"未知模态: {name}"
                 time.sleep(0.1)
-                """
-                state = state_all.get("speech_recognition")
-                if state and state.recognition["text"]:
-                    current_text = state.recognition["text"]
-                    
-                    if current_text != last_recognized_text:
-                        last_recognized_text = current_text
-                        
-                        result_text = []
-                        if state.recognition["has_wake_word"]:
-                            result_text.append(f"[唤醒词: {state.recognition['wake_word']}]")
-                        if state.recognition["has_keyword"]:
-                            result_text.append(f"[关键词: {state.recognition['keyword']} 类别: {state.recognition['keyword_category']}]")
-                        if state.recognition["speaker_id"]:
-                            result_text.append(f"[说话人: {state.recognition['speaker_name']}]")
-                            
-                        result_header = " ".join(result_text)
-                        if result_header:
-                            print(f"\n{result_header}")
-                        print(f"识别结果: {current_text}")
-                        from individuation import Individuation
-                        Individuation.speech_individuation(current_text)
-                
-                import msvcrt
-                if msvcrt.kbhit():
-                    cmd = msvcrt.getch().decode('utf-8', errors='ignore').lower()
-                    print(f"\n输入命令: {cmd}")
-                    
-                    if cmd == 'r':
-                        name = input("请输入用户名: ")
-                        self.speech_modality.register_speaker(name)
-                    elif cmd == 'd':
-                        speakers = self.speech_modality.get_registered_speakers()
-                        if not speakers:
-                            print("没有已注册的声纹")
-                            continue
-                            
-                        print("已注册声纹:")
-                        for idx, (speaker_id, info) in enumerate(speakers.items()):
-                            print(f"  {idx+1}. {info['name']} (ID: {speaker_id})")
-                            
-                        choice = input("请输入要删除的声纹编号: ")
-                        try:
-                            idx = int(choice) - 1
-                            if 0 <= idx < len(speakers):
-                                speaker_id = list(speakers.keys())[idx]
-                                if self.speech_modality.delete_speaker(speaker_id):
-                                    print(f"已删除声纹 {speakers[speaker_id]['name']}")
-                            else:
-                                print("无效的编号")
-                        except ValueError:
-                            print("请输入有效的数字")
-                    elif cmd == 'w':
-                        enabled = self.speech_modality.toggle_wake_word()
-                        print(f"唤醒词功能已{'启用' if enabled else '关闭'}")
-                    elif cmd == 'a':
-                        wake_word = input("请输入要添加的唤醒词: ")
-                        if self.speech_modality.add_wake_word(wake_word):
-                            print(f"已添加唤醒词: {wake_word}")
-                    elif cmd == 'k':
-                        keyword = input("请输入要添加的关键词: ")
-                        category = input("请输入关键词类别: ")
-                        if self.speech_modality.add_keyword(keyword, category):
-                            print(f"已添加关键词: {keyword} -> {category}")
-                    elif cmd == 't':
-                        temp_speakers = self.speech_modality.get_temp_speakers()
-                        if not temp_speakers:
-                            print("没有临时声纹")
-                        else:
-                            print("临时声纹列表:")
-                            for temp_id, info in temp_speakers.items():
-                                print(f"  {info['name']} (ID: {temp_id}, 创建时间: {info.get('created', 'N/A')})")
-                                
-                            promote = input("是否提升某个临时声纹为正式声纹? (y/n): ").lower()
-                            if promote == 'y':
-                                temp_id = input("请输入临时声纹ID: ")
-                                if temp_id in temp_speakers:
-                                    name = input("请输入新的用户名 (直接回车使用原名): ")
-                                    name = name if name else None
-                                    new_id = self.speech_modality.promote_temp_speaker(temp_id, name)
-                                    if new_id:
-                                        print(f"临时声纹已提升为正式声纹，新ID: {new_id}")
-                                else:
-                                    print(f"临时声纹 {temp_id} 不存在")
-                    elif cmd == 's':
-                        speakers = self.speech_modality.get_registered_speakers()
-                        if not speakers:
-                            print("没有已注册的声纹")
-                        else:
-                            print("已注册声纹列表:")
-                            for speaker_id, info in speakers.items():
-                                print(f"  {info['name']} (ID: {speaker_id})")
-                    elif cmd == 'q':
-                        break
-                """
-                time.sleep(0.1)
-        
         except KeyboardInterrupt:
             print("\n检测到终止信号")
         finally:
