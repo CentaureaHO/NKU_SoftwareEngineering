@@ -11,6 +11,11 @@ import os
 import time
 import pygame
 
+
+# 在 Flask 运行时的任意地方调用这个接口
+import requests
+
+
 class Music:
     def __init__(self) -> None:
         pygame.mixer.init()

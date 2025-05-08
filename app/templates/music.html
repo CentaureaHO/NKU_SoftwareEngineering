@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>车载多模态系统</title>
+    <script>
+        function pollAction() {
+            fetch('/get_action')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.action) {
+                        console.log("🎯 检测到动作:", data.action);
+                        console.log("🚀 正在跳转到: /" + data.action);
+                        window.location.href = '/' + data.action;
+                    }
+                })
+                .catch(error => console.error('❌ 轮询错误:', error));
+        }
+    
+        setInterval(pollAction, 2000);  // 每 2 秒轮询一次
+    </script>
+    
+    
     <style>
         body {
             margin: 0;
@@ -299,6 +317,40 @@
 
         </script>
         
+        <!-- <script>
+            async function pollAction() {
+                try {
+                    const response = await fetch('/get_action');
+                    const data = await response.json();
+                    const action = data.action;
+        
+                    if (action) {
+                        console.log("触发动作: " + action);
+                        handleAction(action);  // 相当于模拟点击按钮
+                    }
+                } catch (error) {
+                    console.error('获取动作失败:', error);
+                }
+            }
+        
+            // 每 1 秒轮询一次
+            setInterval(pollAction, 1000);
+        
+            function handleAction(action) {
+                if (action === 'music') {
+                    window.location.href = '/music';
+                } else if (action === 'navigation') {
+                    window.location.href = '/navigation';
+                } else if (action === 'status') {
+                    window.location.href = '/status';
+                } else if (action === 'config') {
+                    window.location.href = '/config';
+                } else if (action === 'auto') {
+                    window.location.href = '/auto';
+                }
+            }
+        </script> -->
+        
         
         <!-- 控制按钮区 -->
         <div id="control-buttons">
@@ -382,41 +434,6 @@
             };
             reader.readAsDataURL(file);
         }
-
-        // function handleAction(action) {
-        //     alert("已选择功能：" + action);
-        // }
-
-        // function handleMusic(action) {
-        //     alert("已选择music操作：" + action);
-        //     <!--  我希望调用Application.schedule(Application.type.music,[])  -->
-        //     // 调用后端Application.schedule方法
-        //     fetch('/api/application/schedule', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({
-        //             type: 'music',
-        //             action: action,
-        //             args: []
-        //         })
-        //     })
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         console.log('应用调度成功:', data);
-        //         // 更新music信息显示
-        //         if(data.status === 'success') {
-        //             document.getElementById('music-info').value = data.message || '正在播放music...';
-        //         } else {
-        //             document.getElementById('music-info').value = 'music播放失败: ' + data.message;
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         console.error('应用调度错误:', error);
-        //         document.getElementById('music-info').value = '系统错误: 无法连接到music服务';
-        //     });
-        // }
 
     </script>
 </body>
