@@ -249,13 +249,12 @@
         <h2>音乐</h2>
         <h3>播放列表</h3>
         <div class="music-player" style="width: 100%; margin-bottom: 20px;">
-            <!-- 增加 textarea 的高度 -->
+            <!-- 显示传递过来的音乐信息 -->
             <textarea id="music-info" readonly style="width: 100%; height: 450px; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; resize: none; font-family: 'Segoe UI', sans-serif;">
-                当前无播放music
+                {{ music_info }}
             </textarea>
             <!-- 调整按钮容器 -->
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <!-- 可以调整按钮的 padding 或者 height -->
                 <button id="play-button" onclick="handleMusic('play')" style="margin: 0; padding: 10px 20px;">播放</button>
                 <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
             </div>

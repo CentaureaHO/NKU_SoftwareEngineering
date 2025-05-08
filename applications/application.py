@@ -16,7 +16,7 @@ from .navigation import Navigation
 from .vehicle_state import VehicleState
 
 class Application:
-    type = Enum("type", ["music","navigation","vehicle_state"])
+    type = Enum("type", ["music_getlist","music_play","navigation","vehicle_state"])
     
     def __init__(self) -> None:
         pass    
@@ -24,7 +24,10 @@ class Application:
     # TODO(): 应该考虑不同功能之间的冲突问题
     @classmethod
     def schedule(cls,application_type: Enum,args: List) -> str:
-        if application_type == Application.type.music:
+        if application_type == Application.type.music_getlist:
+            music = Music()
+            return music.getlist()
+        elif application_type == Application.type.music_play:
             music = Music()
             music.play("南开校歌")
         elif application_type == Application.type.navigation:
@@ -33,6 +36,7 @@ class Application:
         elif application_type == Application.type.vehicle_state:
             state = VehicleState()
             print(state.monitor(VehicleState.type.oil_quantity))
+        return None
 
     @classmethod
     def to_string(cls,application_type: Enum) -> str:

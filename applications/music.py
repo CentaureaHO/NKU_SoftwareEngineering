@@ -17,6 +17,12 @@ class Music:
         relative_path = "../database/music"
         self.dir_path = os.path.join(current_dir, relative_path)
 
+    def getlist(self) -> str:
+        musiclist = []
+        for file_name in os.listdir(self.dir_path):
+            musiclist.append(file_name)
+        return musiclist
+
     def find(self,music_name: str) -> str:
         for file_name in os.listdir(self.dir_path):
             if music_name not in file_name:
@@ -43,4 +49,5 @@ class Music:
 
 if __name__ == '__main__':
     music = Music()
-    music.play("南开校歌")
+    print(music.getlist())
+    # music.play("南开校歌")
