@@ -29,7 +29,7 @@ class Application:
             return music.getlist()
         elif application_type == Application.type.music_play:
             music = Music()
-            music.play("南开校歌")
+            music.play(args[0])
         elif application_type == Application.type.navigation:
             navigation = Navigation()
             navigation.show("南开大学津南校区","南开大学八里台校区")

@@ -1,6 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request  # 注意引入 request
 import sys
-sys.path.append(r'C:/2025spring/软件工程/小组作业/NKU_SoftwareEngineering')  # 加入项目根目录
+sys.path.append(r'C:/2025spring/软件工程/小组作业/NKU_SoftwareEngineering')
 from applications.application import Application
 
 app = Flask(__name__)
@@ -9,10 +9,21 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+def test(music_name):
+    print(f"播放音乐：{music_name}")
+    # 你可以在这里替换为调用播放器或 Application 的方法
+    Application.schedule(Application.type.music_play, [music_name])
+
+@app.route('/play_music', methods=['POST'])
+def play_music():
+    data = request.get_json()
+    music_name = data.get('music')
+    test(music_name)
+    return '', 204  # 无返回内容（No Content）
+
 @app.route('/music')
 def music():
-    # 生成的字符串，这里用示例字符串替代
-    music_info = Application.schedule(Application.type.music_getlist,[])
+    music_info = Application.schedule(Application.type.music_getlist, [])
     return render_template('music.html', music_info=music_info)
 
 @app.route('/navigation')
