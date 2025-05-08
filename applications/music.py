@@ -8,6 +8,7 @@ Module Description:
 """
 
 import os
+import time
 import pygame
 
 class Music:
@@ -16,6 +17,7 @@ class Music:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         relative_path = "../database/music"
         self.dir_path = os.path.join(current_dir, relative_path)
+        self.paused = False
 
     def getlist(self) -> str:
         musiclist = []
@@ -38,16 +40,42 @@ class Music:
         # TODO():异常处理
         pygame.mixer.music.load(file_path)  # 加载文件
         pygame.mixer.music.play()  # 开始播放
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
+        self.paused = False
+        #while pygame.mixer.music.get_busy():
+        #    pygame.time.Clock().tick(10)
 
-    def pause() -> None:
+    def pause(self) -> None:
+        print("pause")
+        if pygame.mixer.music.get_busy() == False:
+            self.paused = False
+            return
+        
         pygame.mixer.music.pause()
+        self.paused = True
 
-    def unpause() -> None:
+    def unpause(self) -> None:
+        print("unpause")
+        if self.paused == False:
+            return
+        
         pygame.mixer.music.unpause()
+        self.paused = False
+
+    def change_pause(self) -> None:
+        if self.paused == True:
+            self.unpause()
+        else:
+            self.pause()
+            
 
 if __name__ == '__main__':
     music = Music()
     print(music.getlist())
-    # music.play("南开校歌")
+    music.play("T1P2")
+    time.sleep(5)
+    music.change_pause()
+    time.sleep(5)
+    music.change_pause()
+    time.sleep(5)
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)

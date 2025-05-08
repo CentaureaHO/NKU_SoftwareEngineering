@@ -246,6 +246,30 @@
     <!-- 右侧控制功能区 -->
     <div class="controls">
     
+        <script>
+            function playMusic(musicName) {
+                fetch('/play_music', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ music: musicName })
+                }).catch(error => {
+                    console.error('播放失败:', error);
+                });
+            }
+        
+            function handleMusic(action) {
+                if (action === 'next') {
+                    fetch('/pause_music', {
+                        method: 'POST'
+                    }).catch(error => {
+                        console.error('暂停/继续失败:', error);
+                    });
+                }
+            }
+        </script>
+        
         <h2>音乐</h2>
         <h3>播放列表</h3>
         <div class="music-player" style="width: 100%; margin-bottom: 20px;">
@@ -257,23 +281,22 @@
                 {% endfor %}
             </div>
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <!-- <button id="play-button" onclick="handleMusic('play')" style="margin: 0; padding: 10px 20px;">播放</button> -->
                 <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
             </div>
         </div>
         
+        
         <script>
-        function playMusic(musicName) {
-            fetch('/play_music', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ music: musicName })
-            }).catch(error => {
-                console.error('调用失败:', error);
-            });
+        function handleMusic(action) {
+            if (action === 'next') {
+                fetch('/pause_music', {
+                    method: 'POST'
+                }).catch(error => {
+                    console.error('暂停/继续失败:', error);
+                });
+            }
         }
+
         </script>
         
         
@@ -288,6 +311,7 @@
     </div>
 
     <script>
+
         function createGauge(ctx, label, color) {
             return new Chart(ctx, {
                 type: 'doughnut',
@@ -363,36 +387,36 @@
         //     alert("已选择功能：" + action);
         // }
 
-        function handleMusic(action) {
-            alert("已选择music操作：" + action);
-            <!--  我希望调用Application.schedule(Application.type.music,[])  -->
-            // 调用后端Application.schedule方法
-            fetch('/api/application/schedule', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: 'music',
-                    action: action,
-                    args: []
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('应用调度成功:', data);
-                // 更新music信息显示
-                if(data.status === 'success') {
-                    document.getElementById('music-info').value = data.message || '正在播放music...';
-                } else {
-                    document.getElementById('music-info').value = 'music播放失败: ' + data.message;
-                }
-            })
-            .catch((error) => {
-                console.error('应用调度错误:', error);
-                document.getElementById('music-info').value = '系统错误: 无法连接到music服务';
-            });
-        }
+        // function handleMusic(action) {
+        //     alert("已选择music操作：" + action);
+        //     <!--  我希望调用Application.schedule(Application.type.music,[])  -->
+        //     // 调用后端Application.schedule方法
+        //     fetch('/api/application/schedule', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             type: 'music',
+        //             action: action,
+        //             args: []
+        //         })
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         console.log('应用调度成功:', data);
+        //         // 更新music信息显示
+        //         if(data.status === 'success') {
+        //             document.getElementById('music-info').value = data.message || '正在播放music...';
+        //         } else {
+        //             document.getElementById('music-info').value = 'music播放失败: ' + data.message;
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         console.error('应用调度错误:', error);
+        //         document.getElementById('music-info').value = '系统错误: 无法连接到music服务';
+        //     });
+        // }
 
     </script>
 </body>

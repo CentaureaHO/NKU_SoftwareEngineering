@@ -16,7 +16,8 @@ from .navigation import Navigation
 from .vehicle_state import VehicleState
 
 class Application:
-    type = Enum("type", ["music_getlist","music_play","navigation","vehicle_state"])
+    music = Music()
+    type = Enum("type", ["music_getlist","music_play","music_pause","music_unpause","music_change_pause","navigation","vehicle_state"])
     
     def __init__(self) -> None:
         pass    
@@ -25,11 +26,15 @@ class Application:
     @classmethod
     def schedule(cls,application_type: Enum,args: List) -> str:
         if application_type == Application.type.music_getlist:
-            music = Music()
-            return music.getlist()
+            return cls.music.getlist()
         elif application_type == Application.type.music_play:
-            music = Music()
-            music.play(args[0])
+            cls.music.play(args[0])
+        elif application_type == Application.type.music_pause:
+            cls.music.pause()
+        elif application_type == Application.type.music_unpause:
+            cls.music.unpause()
+        elif application_type == Application.type.music_change_pause:
+            cls.music.change_pause()
         elif application_type == Application.type.navigation:
             navigation = Navigation()
             navigation.show("南开大学津南校区","南开大学八里台校区")
