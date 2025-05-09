@@ -12,24 +12,15 @@ import time
 import argparse
 from Modality.core.modality_manager import ModalityManager
 from Modality.speech.speech_recognition import SpeechRecognition
-from Modality.core.error_codes import SUCCESS, get_error_message
+from Modality.core.error_codes import SUCCESS
 import cv2
-import time
-import argparse
-import os
 import mediapipe as mp
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 from Modality.core import ModalityManager
 from Modality.core.error_codes import SUCCESS
-import cv2
-import time
-import os
-import numpy as np
 import sys
-import argparse
-from PIL import Image, ImageDraw, ImageFont
 # 确保可以导入Modality模块
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from individuation import Individuation
@@ -37,6 +28,7 @@ from Modality import ModalityManager, GestureTracker
 from viewer.viewer import init_viewer
 import threading
 import webbrowser
+from applications.application import Application
 
 class MultimodalController:
     # TODO():这个函数负责启动时打开各个模态,目前还未实现视线跟踪模态
@@ -96,7 +88,7 @@ class MultimodalController:
 
         if args.register:
             name = args.register_name if args.register_name else "新用户"
-            self.speech_modality.register_speaker(name)
+            MultimodalController.speecher.register_speaker(name)
         
         self.last_recognized_text = ""
         print("语音系统初始化完成")
@@ -227,6 +219,7 @@ class MultimodalController:
         
         # 启动模态
         result = self.manager.start_modality("static_gesture_tracker")
+        
         if result != 0:
             print(f"错误: 启动手势识别模态失败，错误码: {result}")
             return
@@ -258,7 +251,6 @@ class MultimodalController:
 
 
     def control_headpose(self,state) -> None:
-        #from individuation import Individuation
         if state.detections['head_movement']['is_nodding']:
             print("点头")
             #Individuation.head_individuation("点头")
@@ -302,4 +294,8 @@ class MultimodalController:
 
 if __name__ == '__main__':
     controller = MultimodalController()
-    controller.control()
+    # controller.control()
+    
+    while True:
+        Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
+        time.sleep(10)

@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
 import sys
-# sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.8.21.00')
-sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
+sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.9.11.20')
+# sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 
 from applications.application import Application
 

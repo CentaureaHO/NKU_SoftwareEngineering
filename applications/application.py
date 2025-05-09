@@ -15,10 +15,15 @@ from .music import Music
 from .navigation import Navigation
 from .vehicle_state import VehicleState
 import requests
+from .abnormal import Abnormal
 
 class Application:
     music = Music()
-    type = Enum("type", ["music_getlist","music_play","music_pause","music_unpause","music_change_pause","navigation","vehicle_state"])
+    type = Enum("type", ["music_getlist","music_play","music_pause","music_unpause","music_change_pause",
+                         "navigation",
+                         "vehicle_state",
+                         "abnormal_distraction_reminder",
+                        ])
     
     def __init__(self) -> None:
         pass    
@@ -46,6 +51,9 @@ class Application:
         elif application_type == Application.type.vehicle_state:
             state = VehicleState()
             print(state.monitor(VehicleState.type.oil_quantity))
+        elif application_type == Application.type.abnormal_distraction_reminder:
+            assert(len(args) == 1)
+            Abnormal.distraction_reminder(args[0])
         return None
 
     @classmethod
