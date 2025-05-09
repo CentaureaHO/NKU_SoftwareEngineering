@@ -206,6 +206,16 @@ def gesture_page():
     dropdown_options = ["选项A", "选项B", "选项C"]
     
     return render_template('gesture.html', text_list=text_list, dropdown_options=dropdown_options)
+@viewer.route('/call_void', methods=['POST'])
+def call_void():
+    data = request.get_json()
+    status = data.get('status', '空')
+    void(status)
+    return '', 204  # 无返回内容
+
+def void(status):
+    # 空函数添加参数
+    print(f"🚗 收到车辆状态输入：{status}")
 
 if __name__ == '__main__':
     viewer.run(debug=True)
