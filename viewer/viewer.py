@@ -8,17 +8,17 @@ sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineerin
 from applications.application import Application
 
 viewer = Flask(__name__)
-# 初始的 gesture_data 和 text_list
-gesture_data = {
-    "左转": ["选项A", "选项B", "选项C"],
-    "右转": ["选项A", "选项B", "选项C"],
-    "停止": ["选项A", "选项B", "选项C"]
-}
+# # 初始的 gesture_data 和 text_list
+# gesture_data = {
+#     "左转": ["选项A", "选项B", "选项C"],
+#     "右转": ["选项A", "选项B", "选项C"],
+#     "停止": ["选项A", "选项B", "选项C"]
+# }
 
-text_list = {
-    '语音识别': ["开启", "关闭", "自动"],
-    '语音控制': ["开启", "关闭", "自动"]
-}
+# text_list = {
+#     '语音识别': ["开启", "关闭", "自动"],
+#     '语音控制': ["开启", "关闭", "自动"]
+# }
 
 @viewer.route('/')
 def index():
@@ -66,34 +66,34 @@ def navigation():
 def status():
     return render_template('status.html')
 
-@viewer.route('/update_config', methods=['POST'])
-def update_config():
-    global text_list, gesture_data
+# @viewer.route('/update_config', methods=['POST'])
+# def update_config():
+#     global text_list, gesture_data
 
-    text_list = {}
-    a = ["开启", "关闭", "自动"]
+#     text_list = {}
+#     a = ["开启", "关闭", "自动"]
     
 
-    # 从请求中获取新的 text_list 和 gesture_data
-    data = request.get_json()
-    x    = Application.get_application_name()
-    text_list = {x[i]: a for i in range(len(x))}
-    print(text_list)
-    # 如果提供了新的 text_list，就更新它
-    if 'text_list' in data:
-        text_list = data['text_list']
+#     # 从请求中获取新的 text_list 和 gesture_data
+#     data = request.get_json()
+#     x    = Application.get_application_name()
+#     text_list = {x[i]: a for i in range(len(x))}
+#     print(text_list)
+#     # 如果提供了新的 text_list，就更新它
+#     if 'text_list' in data:
+#         text_list = data['text_list']
     
-    # 如果提供了新的 gesture_data，就更新它
-    if 'gesture_data' in data:
-        gesture_data = data['gesture_data']
+#     # 如果提供了新的 gesture_data，就更新它
+#     if 'gesture_data' in data:
+#         gesture_data = data['gesture_data']
     
-    # 返回更新后的配置
-    return jsonify({
-        'status': 'ok',
-        'message': '配置已更新',
-        'text_list': text_list,
-        'gesture_data': gesture_data
-    })
+#     # 返回更新后的配置
+#     return jsonify({
+#         'status': 'ok',
+#         'message': '配置已更新',
+#         'text_list': text_list,
+#         'gesture_data': gesture_data
+#     })
 
 # @viewer.route('/config')
 # def config():
@@ -141,7 +141,7 @@ def config():
     print("x:", x)
     text_list_a = {x[i]: a for i in range(len(x))}
     print("gesture_names:", gesture_names)
-    gesture_data_a  = {x[i]: gesture_names for i in range(len(x))}
+    gesture_data_a  = {gesture_names[i]: x for i in range(len(gesture_names))}
     return render_template('config.html', text_list=text_list_a, gesture_data=gesture_data_a)
 
 @viewer.route('/auto')
