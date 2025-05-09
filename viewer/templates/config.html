@@ -289,35 +289,38 @@
         </script>
         
         <h2>个性化配置</h2>
-        <h3>配置页面</h3>
+        <div style="width: 100%;">
 
-        <h3>语音功能</h3>
-        <div>
-            {% for text, options in text_list.items() %}
-            <div style="margin-bottom: 10px;">
-                <span>{{ text }}</span>
-                <select>
-                    {% for option in options %}
-                        <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div>
-            <h3>手势功能</h3>
-            {% for gesture, options in gesture_data.items() %}
-                <div style="margin-bottom: 10px;">
-                    <span>{{ gesture }}</span>
-                    <select>
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
+                {% for text, options in text_list.items() %}
+                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="flex: 1; color: #ccc;">{{ text }}</span>
+                    <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
                         {% for option in options %}
                             <option value="{{ option }}">{{ option }}</option>
                         {% endfor %}
                     </select>
                 </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
+
+            <div>
+                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
+                {% for gesture, options in gesture_data.items() %}
+                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
+                    <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                        {% for option in options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+
         </div>
+
         <script>
         function handleMusic(action) {
             if (action === 'next') {
