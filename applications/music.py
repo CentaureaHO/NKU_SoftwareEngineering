@@ -40,7 +40,7 @@ class Music:
                 return file_path
         return ""
 
-    def play(self,music_name: str) -> None:
+    def play(self,music_name : str = "") -> None:
         file_path = self.find(music_name)
         # TODO():异常处理
         pygame.mixer.music.load(file_path)  # 加载文件

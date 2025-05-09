@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>车载多模态系统</title>
+    <script>
+        function pollAction() {
+            fetch('/get_action')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.action) {
+                        console.log("🎯 检测到动作:", data.action);
+                        console.log("🚀 正在跳转到: /" + data.action);
+                        window.location.href = '/' + data.action;
+                    }
+                })
+                .catch(error => console.error('❌ 轮询错误:', error));
+        }
+    
+        setInterval(pollAction, 2000);  // 每 2 秒轮询一次
+    </script>
+    
+    
     <style>
         body {
             margin: 0;
@@ -73,7 +91,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative; /* 添加这一行 */
+            
         }
 
         h2 {
@@ -99,36 +117,18 @@
             width: 80%;
         }
 
-
-        #control-buttons {
-            position: absolute; /* 从 fixed 改为 absolute 更方便内部布局 */
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: row; /* 横向排列按钮 */
-            gap: 12px;
-            background-color: rgba(24, 24, 24, 0.9);
-            padding: 12px 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            z-index: 1000;
-            width: 90%; /* 加宽容器 */
-            justify-content: center; /* 水平居中按钮组 */
-        }
-
-
-        #control-buttons button {
-            padding: 10px 15px;
-            font-size: 16px;
+        button {
+            margin-left: 10px;
+            padding: 6px 12px;
             background-color: #0ff;
-            color: #000;
             border: none;
-            border-radius: 5px;
+            color: #000;
             font-weight: bold;
             cursor: pointer;
+            border-radius: 5px;
         }
 
-        #control-buttons button:hover {
+        button:hover {
             background-color: #00c6c6;
         }
 
@@ -172,12 +172,37 @@
         }
 
         #control-buttons {
-            margin-top: 40px;
+            position: absolute; /* 保持绝对定位 */
+            bottom: 20px;
+            right: 0; /* 设置右边距离为 0，确保其靠右 */
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+            flex-direction: row; /* 横向排列按钮 */
+            gap: 12px;
+            background-color: rgba(24, 24, 24, 0.9);
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            z-index: 1000;
+            width: auto; /* 自适应宽度 */
+            justify-content: center; /* 水平居中按钮组 */
+            margin-right: 80px; /* 为了确保按钮组距离右边框20px */
         }
+
+        #control-buttons button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #0ff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #control-buttons button:hover {
+            background-color: #00c6c6;
+        }
+
     </style>
 
     <!-- 引入 Chart.js CDN -->
@@ -238,44 +263,95 @@
 
     <!-- 右侧控制功能区 -->
     <div class="controls">
-        <!-- 图像展示区域 
-        <div id="image-display">
-            <img id="preview-image" src="" alt="图像展示">
-            <span id="placeholder-text">暂无图像</span>
-        </div>
-
-        <h2>上传语音</h2>
-        <form action="/voice/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <button type="submit">上传语音</button>
-        </form>
-
-        <h2>上传图像</h2>
-        <form action="/vision/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" onchange="previewImage(event)">
-            <button type="submit">上传图像</button>
-        </form>
-
-        <h2>融合分析</h2>
-        <form id="fusion-form">
-            <input type="text" placeholder="语音识别结果" id="voiceText"><br>
-            <input type="text" placeholder="图像识别结果" id="visionText"><br>
-            <button type="button" onclick="submitFusion()">发送分析</button>
-        </form>
-
-        <p id="fusion-result"></p>-->
     
-        <h2>音乐</h2>
+        <script>
+            function playMusic(musicName) {
+                fetch('/play_music', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ music: musicName })
+                }).catch(error => {
+                    console.error('播放失败:', error);
+                });
+            }
+        
+            function handleMusic(action) {
+                if (action === 'next') {
+                    fetch('/pause_music', {
+                        method: 'POST'
+                    }).catch(error => {
+                        console.error('暂停/继续失败:', error);
+                    });
+                }
+            }
+        </script>
+        
+        <h2>个性化配置</h2>
         <h3>播放列表</h3>
         <div class="music-player" style="width: 100%; margin-bottom: 20px;">
-            <textarea id="music-info" readonly style="width: 100%; height: 100px; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; resize: none; font-family: 'Segoe UI', sans-serif;">当前无播放音乐</textarea>
+            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
+                {% for music_item in music_info %}
+                    <button onclick="playMusic('{{ music_item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
+                        {{ music_item }}
+                    </button>
+                {% endfor %}
+            </div>
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button id="play-button" onclick="handleMusic('play')" style="margin: 0;">播放</button>
-                <button onclick="handleMusic('next')" style="margin: 0;">暂停/继续</button>
+                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
             </div>
         </div>
+        
+        
+        <script>
+        function handleMusic(action) {
+            if (action === 'next') {
+                fetch('/pause_music', {
+                    method: 'POST'
+                }).catch(error => {
+                    console.error('暂停/继续失败:', error);
+                });
+            }
+        }
 
-
+        </script>
+        
+        <!-- <script>
+            async function pollAction() {
+                try {
+                    const response = await fetch('/get_action');
+                    const data = await response.json();
+                    const action = data.action;
+        
+                    if (action) {
+                        console.log("触发动作: " + action);
+                        handleAction(action);  // 相当于模拟点击按钮
+                    }
+                } catch (error) {
+                    console.error('获取动作失败:', error);
+                }
+            }
+        
+            // 每 1 秒轮询一次
+            setInterval(pollAction, 1000);
+        
+            function handleAction(action) {
+                if (action === 'music') {
+                    window.location.href = '/music';
+                } else if (action === 'navigation') {
+                    window.location.href = '/navigation';
+                } else if (action === 'status') {
+                    window.location.href = '/status';
+                } else if (action === 'config') {
+                    window.location.href = '/config';
+                } else if (action === 'auto') {
+                    window.location.href = '/auto';
+                }
+            }
+        </script> -->
+        
+        
         <!-- 控制按钮区 -->
         <div id="control-buttons">
             <button onclick="handleAction('music')">音乐</button>
@@ -287,6 +363,7 @@
     </div>
 
     <script>
+
         function createGauge(ctx, label, color) {
             return new Chart(ctx, {
                 type: 'doughnut',
@@ -356,41 +433,6 @@
                 document.getElementById('placeholder-text').style.display = 'none';
             };
             reader.readAsDataURL(file);
-        }
-
-        // function handleAction(action) {
-        //     alert("已选择功能：" + action);
-        // }
-
-        function handleMusic(action) {
-            alert("已选择音乐操作：" + action);
-            <!--  我希望调用Application.schedule(Application.type.music,[])  -->
-            // 调用后端Application.schedule方法
-            fetch('/api/application/schedule', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: 'music',
-                    action: action,
-                    args: []
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('应用调度成功:', data);
-                // 更新音乐信息显示
-                if(data.status === 'success') {
-                    document.getElementById('music-info').value = data.message || '正在播放音乐...';
-                } else {
-                    document.getElementById('music-info').value = '音乐播放失败: ' + data.message;
-                }
-            })
-            .catch((error) => {
-                console.error('应用调度错误:', error);
-                document.getElementById('music-info').value = '系统错误: 无法连接到音乐服务';
-            });
         }
 
     </script>

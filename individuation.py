@@ -7,11 +7,6 @@ Module Description:
     用于实现车载多模态智能交互系统的个性化功能
 """
 
-import os
-import threading
-from typing import List
-from enum import Enum
-from multimodal_controller import MultimodalController
 from applications.application import Application
 from logger import Logger
 
@@ -29,7 +24,7 @@ class Individuation:
     # TODO(): 个性化功能应该通过写入文件实现持久化
     logger = Logger()
     speech_individuation_dict = {
-        "播放音乐": Application.type.music,
+        "播放音乐": Application.type.music_play,
         "导航": Application.type.navigation,
         "车辆状态": Application.type.vehicle_state
     }
@@ -41,6 +36,10 @@ class Individuation:
         "摇头": Application.type.navigation,
     }
     """
+    # TODO(): 手势模态
+    gesture_individuation_dict = {
+        "0": Application.type.music_change_pause,
+    }
 
     def __init__(self) -> None:
         pass
@@ -55,6 +54,17 @@ class Individuation:
         else:
             print(f"无效语音命令: {speech_text}")
             cls.logger.Log(f"模态:语音 功能:无效功能 参数:{speech_text}")
+
+    @classmethod
+    # 手势个性化函数
+    def gesture_individuation(cls, gesture_text: str) -> None:
+        if gesture_text in cls.gesture_individuation_dict:
+            function_name = cls.gesture_individuation_dict[gesture_text]
+            Application.schedule(function_name,[])
+            cls.logger.Log(f"模态:手势 功能:{Application.to_string(function_name)} 参数:{gesture_text}")
+        else:
+            print(f"无效语音命令: {gesture_text}")
+            cls.logger.Log(f"模态:手势 功能:无效功能 参数:{gesture_text}")
 
     #@classmethod
     # 头部姿态个性化函数

@@ -115,8 +115,8 @@ def main():
                     if result_header:
                         print(f"\n{result_header}")
                     print(f"识别结果: {current_text}")
-                    from individuation import Individuation
-                    Individuation.speech_individuation(current_text)
+                    #from individuation import Individuation
+                    #Individuation.speech_individuation(current_text)
             
             import msvcrt
             if msvcrt.kbhit():

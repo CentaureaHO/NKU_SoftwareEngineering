@@ -32,17 +32,27 @@ import argparse
 from PIL import Image, ImageDraw, ImageFont
 # 确保可以导入Modality模块
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from individuation import Individuation
 from Modality import ModalityManager, GestureTracker
+from viewer.viewer import init_viewer
+import threading
+import webbrowser
 
 class MultimodalController:
-    # TODO():这个函数负责启动时打开各个模态,目前已做了语音
+    # TODO():这个函数负责启动时打开各个模态,目前还未实现视线跟踪模态
     def __init__(self) -> None:
         # 启动语音模态
         self.manager = ModalityManager()
         self.init_speecher()
         self.init_headpose()
         self.init_static_gesture()
+        self.init_ui()
+
+    def init_ui(self) -> None:
+        flask_thread = threading.Thread(target=init_viewer)
+        flask_thread.daemon = True  # 设置为守护线程，主线程退出时自动结束
+        flask_thread.start()
+        webbrowser.open("http://127.0.0.1:5000")
 
     def init_speecher(self) -> None:
         parser = argparse.ArgumentParser(description='智能座舱语音识别演示')
@@ -221,8 +231,8 @@ class MultimodalController:
             print(f"错误: 启动手势识别模态失败，错误码: {result}")
             return
         
+        self.last_gesture_name = None
         print("手势识别模态启动成功")
-        print("按ESC键退出")
 
     def control_speecher(self,state) -> None:
         if state and state.recognition["text"]:
@@ -261,7 +271,11 @@ class MultimodalController:
     def control_static_gesture(self,state) -> None:
         if state.detections["gesture"]["detected"]:
             name = state.detections["gesture"]["name"]
+            if name == self.last_gesture_name:
+                return
+            self.last_gesture_name = name
             print(f"手势: {name}")
+            Individuation.gesture_individuation(name)
             time.sleep(0.5)
     
     def control(self) -> None:

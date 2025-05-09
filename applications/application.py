@@ -14,6 +14,7 @@ from datetime import datetime
 from .music import Music
 from .navigation import Navigation
 from .vehicle_state import VehicleState
+import requests
 
 class Application:
     music = Music()
@@ -28,7 +29,11 @@ class Application:
         if application_type == Application.type.music_getlist:
             return cls.music.getlist()
         elif application_type == Application.type.music_play:
-            cls.music.play(args[0])
+            requests.post('http://127.0.0.1:5000/trigger_action', json={'action': 'music'})
+            if len(args) == 0:
+                cls.music.play()
+            else:
+                cls.music.play(args[0])
         elif application_type == Application.type.music_pause:
             cls.music.pause()
         elif application_type == Application.type.music_unpause:
@@ -45,8 +50,8 @@ class Application:
 
     @classmethod
     def to_string(cls,application_type: Enum) -> str:
-        if application_type == Application.type.music:
-            return "音乐"
+        if application_type == Application.type.music_play:
+            return "播放音乐"
         elif application_type == Application.type.navigation:
             return "导航"
         elif application_type == Application.type.vehicle_state:
