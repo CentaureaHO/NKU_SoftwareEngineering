@@ -125,11 +125,19 @@ def get_blinking():
     global blinking_enabled
     return jsonify({'blinking': blinking_enabled})
 # Flask 后端
+latest_message = "默认警告信息"
+
 @viewer.route('/update_string', methods=['POST'])
 def update_string():
-    input_string = request.json.get('message', '')
-    print(f"收到的字符串是: {input_string}")
-    return jsonify({'updated_message': input_string})
+    global latest_message
+    data = request.get_json()
+    latest_message = data.get('message', '无内容')
+    print(f"✅ 收到外部消息：{latest_message}")  # ✅ 终端输出确认
+    return jsonify({'updated_message': latest_message})
+
+@viewer.route('/get_latest_message', methods=['GET'])
+def get_latest_message():
+    return jsonify({'updated_message': latest_message})
 
 if __name__ == '__main__':
     viewer.run(debug=True)

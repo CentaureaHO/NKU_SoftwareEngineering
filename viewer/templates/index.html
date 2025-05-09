@@ -20,35 +20,36 @@
         setInterval(pollAction, 2000);  // 每 2 秒轮询一次
     </script>
     <script>
-        // 这个函数可以接收传入的字符串并设置到输入框中
         function updateAlertBox(message) {
             const inputBox = document.querySelector('.alert-box input[type="text"]');
-            inputBox.value = message;  // 将外部字符串设置为输入框的内容
+            if (inputBox) {
+                inputBox.value = message;
+            }
         }
 
-        // 调用后端接口并获取字符串
         function fetchAndUpdateString() {
-            fetch('/update_string', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: '这是一个外部传入的警告信息！' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateAlertBox(data.updated_message);  // 更新输入框内容
-            })
-            .catch(error => {
-                console.error('请求失败:', error);
-            });
+            fetch('/get_latest_message')
+                .then(response => response.json())
+                .then(data => {
+                    updateAlertBox(data.updated_message);
+                })
+                .catch(error => {
+                    console.error('请求失败:', error);
+                });
         }
 
-        // 调用 fetchAndUpdateString 函数更新文本框
-        fetchAndUpdateString();
-    </script>
+        // window.onload = () => {
+        //     fetchAndUpdateString(); // 初始加载
+        //     setInterval(fetchAndUpdateString, 2000);  // 每 2 秒轮询
+        // };
+        window.onload = () => {
+            fetchAndUpdateString();
+            checkBlinking();
+            setInterval(fetchAndUpdateString, 2000);
+            setInterval(checkBlinking, 2000);
+        };
 
-    
+    </script>
     <script>
         function checkBlinking() {
             fetch('/get_blinking')
@@ -68,8 +69,8 @@
         }
 
         // 初始化检查闪烁状态
-        window.onload = checkBlinking;
-        setInterval(checkBlinking, 2000); // 每 2 秒检查状态
+        // window.onload = checkBlinking;
+        // setInterval(checkBlinking, 2000); // 每 2 秒检查状态
 
     </script>
     
@@ -94,53 +95,34 @@
             border-right: 2px solid #333;
             padding: 20px 0;
         }
+    .alert-light {
+        width: 30px;
+        height: 30px;
+        position: absolute; /* 绝对定位 */
+        top: 20px; /* 距离容器顶部10px */
+        left: 390px; /* 距离容器左侧10px */
+        border-radius: 50%;
+        margin-right: 10px;
+    }
 
-        /* .alert-box {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    /* 闪烁状态：红色 */
+    .alert-light.blinking {
+        background-color: red;
+        box-shadow: 0 0 10px red;
+        animation: blink 1s infinite;
+    }
 
-        .alert-light {
-            width: 20px;
-            height: 20px;
-            background-color: red;
-            border-radius: 50%;
-            margin-right: 10px;
-            animation: blink 1s infinite;
-            box-shadow: 0 0 10px red;
-        }
+    /* 不闪烁状态：绿色 */
+    .alert-light.steady {
+        background-color: rgb(0, 255, 0);
+        box-shadow: 0 0 10px rgb(0, 255, 0);
+    }
 
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        } */
-        .alert-light {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        /* 闪烁状态：红色 */
-        .alert-light.blinking {
-            background-color: red;
-            box-shadow: 0 0 10px red;
-            animation: blink 1s infinite;
-        }
-
-        /* 不闪烁状态：绿色 */
-        .alert-light.steady {
-            background-color: rgb(0, 255, 0);
-            box-shadow: 0 0 10px rgb(0, 255, 0);
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.2; }
+        100% { opacity: 1; }
+    }
 
 
         .alert-box input[type="text"] {
@@ -148,7 +130,11 @@
             border: 1px solid #555;
             color: #fff;
             padding: 6px;
-            width: 200px;
+            width: 300px;
+            height: 50px;
+            position: absolute; /* 绝对定位 */
+            left: 260px; /* 距离容器左侧10px */
+            top: 60px; /* 距离容器顶部10px */
         }
 
         .gauge-row {
