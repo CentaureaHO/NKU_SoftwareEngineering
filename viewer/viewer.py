@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
 import sys
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.8.21.00')
+# sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.8.21.00')
+sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
+
 from applications.application import Application
 
 viewer = Flask(__name__)
@@ -105,6 +107,29 @@ def get_action():
 
 def init_viewer():
     viewer.run(debug=False)
+
+
+
+blinking_enabled = True  # 默认开启闪烁
+
+@viewer.route('/set_blinking', methods=['POST'])
+def set_blinking():
+    global blinking_enabled
+    data = request.get_json()
+    blinking_enabled = data.get('enabled', True)
+    print(f"🔴 闪烁状态设置为: {blinking_enabled}")
+    return jsonify({'status': 'ok', 'blinking': blinking_enabled})
+
+@viewer.route('/get_blinking', methods=['GET'])
+def get_blinking():
+    global blinking_enabled
+    return jsonify({'blinking': blinking_enabled})
+# Flask 后端
+@viewer.route('/update_string', methods=['POST'])
+def update_string():
+    input_string = request.json.get('message', '')
+    print(f"收到的字符串是: {input_string}")
+    return jsonify({'updated_message': input_string})
 
 if __name__ == '__main__':
     viewer.run(debug=True)

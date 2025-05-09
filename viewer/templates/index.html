@@ -19,6 +19,59 @@
     
         setInterval(pollAction, 2000);  // 每 2 秒轮询一次
     </script>
+    <script>
+        // 这个函数可以接收传入的字符串并设置到输入框中
+        function updateAlertBox(message) {
+            const inputBox = document.querySelector('.alert-box input[type="text"]');
+            inputBox.value = message;  // 将外部字符串设置为输入框的内容
+        }
+
+        // 调用后端接口并获取字符串
+        function fetchAndUpdateString() {
+            fetch('/update_string', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: '这是一个外部传入的警告信息！' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateAlertBox(data.updated_message);  // 更新输入框内容
+            })
+            .catch(error => {
+                console.error('请求失败:', error);
+            });
+        }
+
+        // 调用 fetchAndUpdateString 函数更新文本框
+        fetchAndUpdateString();
+    </script>
+
+    
+    <script>
+        function checkBlinking() {
+            fetch('/get_blinking')
+                .then(response => response.json())
+                .then(data => {
+                    const alertLight = document.querySelector('.alert-light');
+
+                    if (data.blinking) {
+                        alertLight.classList.remove('steady');
+                        alertLight.classList.add('blinking');
+                    } else {
+                        alertLight.classList.remove('blinking');
+                        alertLight.classList.add('steady');
+                    }
+                })
+                .catch(err => console.error('获取闪烁状态失败:', err));
+        }
+
+        // 初始化检查闪烁状态
+        window.onload = checkBlinking;
+        setInterval(checkBlinking, 2000); // 每 2 秒检查状态
+
+    </script>
     
     
     <style>
@@ -42,7 +95,7 @@
             padding: 20px 0;
         }
 
-        .alert-box {
+        /* .alert-box {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
@@ -62,7 +115,33 @@
             0% { opacity: 1; }
             50% { opacity: 0.2; }
             100% { opacity: 1; }
+        } */
+        .alert-light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
+
+        /* 闪烁状态：红色 */
+        .alert-light.blinking {
+            background-color: red;
+            box-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
+
+        /* 不闪烁状态：绿色 */
+        .alert-light.steady {
+            background-color: rgb(0, 255, 0);
+            box-shadow: 0 0 10px rgb(0, 255, 0);
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
 
         .alert-box input[type="text"] {
             background-color: #222;
@@ -316,41 +395,6 @@
         }
 
         </script>
-        
-        <!-- <script>
-            async function pollAction() {
-                try {
-                    const response = await fetch('/get_action');
-                    const data = await response.json();
-                    const action = data.action;
-        
-                    if (action) {
-                        console.log("触发动作: " + action);
-                        handleAction(action);  // 相当于模拟点击按钮
-                    }
-                } catch (error) {
-                    console.error('获取动作失败:', error);
-                }
-            }
-        
-            // 每 1 秒轮询一次
-            setInterval(pollAction, 1000);
-        
-            function handleAction(action) {
-                if (action === 'music') {
-                    window.location.href = '/music';
-                } else if (action === 'navigation') {
-                    window.location.href = '/navigation';
-                } else if (action === 'status') {
-                    window.location.href = '/status';
-                } else if (action === 'config') {
-                    window.location.href = '/config';
-                } else if (action === 'auto') {
-                    window.location.href = '/auto';
-                }
-            }
-        </script> -->
-        
         
         <!-- 控制按钮区 -->
         <div id="control-buttons">
