@@ -289,20 +289,37 @@
         </script>
         
         <h2>个性化配置</h2>
-        <h3>播放列表</h3>
-        <div class="music-player" style="width: 100%; margin-bottom: 20px;">
-            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
-                {% for music_item in music_info %}
-                    <button onclick="playMusic('{{ music_item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
-                        {{ music_item }}
-                    </button>
-                {% endfor %}
+        <h3>配置页面</h3>
+
+        <h3>语音功能</h3>
+        <div>
+            {% for text, options in text_list.items() %}
+            <div style="margin-bottom: 10px;">
+                <span>{{ text }}</span>
+                <select>
+                    {% for option in options %}
+                        <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
-            </div>
+            {% endfor %}
         </div>
-        
+
+        <div>
+            <h3>手势功能</h3>
+            {% for gesture, options in gesture_data.items() %}
+                <div style="margin-bottom: 10px;">
+                    <span>{{ gesture }}</span>
+                    <select>
+                        {% for option in options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
+        </div>
+
+
         
         <script>
         function handleMusic(action) {

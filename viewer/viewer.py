@@ -1,12 +1,23 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
 import sys
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.9.11.20')
-# sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
+# sys.path.append(r'..')
+sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 
 from applications.application import Application
 
 viewer = Flask(__name__)
+# 初始的 gesture_data 和 text_list
+gesture_data = {
+    "左转": ["选项A", "选项B", "选项C"],
+    "右转": ["选项A", "选项B", "选项C"],
+    "停止": ["选项A", "选项B", "选项C"]
+}
+
+text_list = {
+    '语音识别': ["开启", "关闭", "自动"],
+    '语音控制': ["开启", "关闭", "自动"]
+}
 
 @viewer.route('/')
 def index():
@@ -54,9 +65,48 @@ def navigation():
 def status():
     return render_template('status.html')
 
-@viewer.route('/config')
+@viewer.route('/update_config', methods=['POST'])
+def update_config():
+    global text_list, gesture_data
+    
+    # 从请求中获取新的 text_list 和 gesture_data
+    data = request.get_json()
+    
+    # 如果提供了新的 text_list，就更新它
+    if 'text_list' in data:
+        text_list = data['text_list']
+    
+    # 如果提供了新的 gesture_data，就更新它
+    if 'gesture_data' in data:
+        gesture_data = data['gesture_data']
+    
+    # 返回更新后的配置
+    return jsonify({
+        'status': 'ok',
+        'message': '配置已更新',
+        'text_list': text_list,
+        'gesture_data': gesture_data
+    })
+
+# @viewer.route('/config')
+# def config():
+#     # 定义一些测试数据，gesture_data 是一个字典
+#     gesture_data = {
+#         "左转": ["选项A", "选项B", "选项C"],
+#         "右转": ["选项A", "选项B", "选项C"],
+#         "停止": ["选项A", "选项B", "选项C"]
+#     }
+    
+#     # 定义 text_list 和其对应的选项
+#     text_list = {
+#         '语音识别': ["开启", "关闭", "自动"],
+#         '语音控制': ["开启", "关闭", "自动"]
+#     }
+    
+#     return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
+@viewer.route('/config', methods=['GET'])
 def config():
-    return render_template('config.html')
+    return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
 
 @viewer.route('/auto')
 def auto():
@@ -138,6 +188,24 @@ def update_string():
 @viewer.route('/get_latest_message', methods=['GET'])
 def get_latest_message():
     return jsonify({'updated_message': latest_message})
+
+
+
+@viewer.route('/voice', methods=['GET'])
+def voice_page():
+    # 假设你通过某个逻辑得到了以下测试列表：
+    text_list = ["请说出导航目的地", "请说出音乐类型", "请说出车辆状态请求"]
+    dropdown_options = ["选项A", "选项B", "选项C"]
+    
+    return render_template('voice.html', text_list=text_list, dropdown_options=dropdown_options)
+
+@viewer.route('/gesture', methods=['GET'])
+def gesture_page():
+    # Assume you get the following test list for gestures
+    text_list = ["请做出左转手势", "请做出右转手势", "请做出停止手势"]
+    dropdown_options = ["选项A", "选项B", "选项C"]
+    
+    return render_template('gesture.html', text_list=text_list, dropdown_options=dropdown_options)
 
 if __name__ == '__main__':
     viewer.run(debug=True)
