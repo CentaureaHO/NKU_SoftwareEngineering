@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
+from individuation import Individuation
 
 import sys
 # sys.path.append(r'..')
@@ -68,10 +69,16 @@ def status():
 @viewer.route('/update_config', methods=['POST'])
 def update_config():
     global text_list, gesture_data
+
+    text_list = {}
+    a = ["开启", "关闭", "自动"]
     
+
     # 从请求中获取新的 text_list 和 gesture_data
     data = request.get_json()
-    
+    x    = Application.get_application_name()
+    text_list = {x[i]: a for i in range(len(x))}
+    print(text_list)
     # 如果提供了新的 text_list，就更新它
     if 'text_list' in data:
         text_list = data['text_list']
@@ -106,7 +113,36 @@ def update_config():
 #     return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
 @viewer.route('/config', methods=['GET'])
 def config():
-    return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
+    # global text_list, gesture_data
+
+    # text_list = {}
+    # a = ["开启", "关闭", "自动"]
+    
+
+    # # 从请求中获取新的 text_list 和 gesture_data
+    # data = request.get_json()
+    # x    = Application.get_application_name()
+    # text_list = {x[i]: a for i in range(len(x))}
+    # print(text_list)
+    # # 如果提供了新的 text_list，就更新它
+    # if 'text_list' in data:
+    #     text_list = data['text_list']
+    
+    # # 如果提供了新的 gesture_data，就更新它
+    # if 'gesture_data' in data:
+    #     gesture_data = data['gesture_data']
+    gesture_names = Individuation.get_gesture_names()
+    text_list_a = {}
+    gesture_data_a = {}
+    print("text_list_a:", text_list_a)
+    #text_list['语音识别'] = ["开启", "关闭"]
+    a = ["开启", "关闭"]
+    x    = Application.get_application_name()
+    print("x:", x)
+    text_list_a = {x[i]: a for i in range(len(x))}
+    print("gesture_names:", gesture_names)
+    gesture_data_a  = {x[i]: gesture_names for i in range(len(x))}
+    return render_template('config.html', text_list=text_list_a, gesture_data=gesture_data_a)
 
 @viewer.route('/auto')
 def auto():

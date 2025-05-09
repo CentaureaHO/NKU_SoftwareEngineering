@@ -9,6 +9,7 @@ Module Description:
 
 from applications.application import Application
 from logger import Logger
+from typing import List
 
 # 模态包括:UI,语音,头部姿态,手势,视线
 # 给视线实现一个特定场景,作为创新功能/展示用
@@ -38,7 +39,9 @@ class Individuation:
     """
     # TODO(): 手势模态
     gesture_individuation_dict = {
-        "0": Application.type.music_change_pause,
+        "握拳": Application.type.music_change_pause,
+        "挥手": Application.type.music_change_pause,
+        "竖起大拇指":Application.type.music_change_pause
     }
 
     def __init__(self) -> None:
@@ -65,6 +68,13 @@ class Individuation:
         else:
             print(f"无效语音命令: {gesture_text}")
             cls.logger.Log(f"模态:手势 功能:无效功能 参数:{gesture_text}")
+
+    @classmethod
+    def get_gesture_names(cls) -> List[str]:
+        gesture_names = []
+        for gesture_name in cls.gesture_individuation_dict.keys():
+            gesture_names.append(gesture_name)
+        return gesture_names
 
     #@classmethod
     # 头部姿态个性化函数
