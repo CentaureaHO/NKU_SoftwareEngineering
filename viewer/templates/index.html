@@ -141,13 +141,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-top: 140px; /* 增加这个值可以让仪表整体向下 */
             margin-bottom: 20px;
+            position: relative; /* 不再使用 absolute，避免脱离文档流 */
         }
 
         .gauge-container {
             margin: 0 15px;
             text-align: center;
         }
+
 
         .controls {
             width: 50%;

@@ -17,4 +17,4 @@
 #     print('请求失败，状态码:', response.status_code)
 import requests
 
-requests.post('http://127.0.0.1:5000/update_string', json={'message': '🚨 外部发来的警告信息！'})
+requests.post('http://127.0.0.1:5000/update_string', json={'message': '111111'})
