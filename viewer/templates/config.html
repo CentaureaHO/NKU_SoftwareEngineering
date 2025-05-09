@@ -288,7 +288,7 @@
             }
         </script>
         
-        <h2>个性化配置</h2>
+        <!-- <h2>个性化配置</h2>
         <div style="width: 100%;">
 
             <div style="margin-bottom: 30px;">
@@ -319,9 +319,57 @@
                 {% endfor %}
             </div>
 
+        </div> -->
+    <h2>个性化配置</h2>
+    <div style="width: 100%;">
+
+        <!-- 语音功能 -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
+            {% for text, options in text_list.items() %}
+            <div style="margin: 10px 0;">
+                <label style="color: #ccc;">{{ text }}</label>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
+                        style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                    <button type="button" onclick="submitVoiceText({{ loop.index }})" 
+                        style="padding: 6px 12px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">确认</button>
+                </div>
+                <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
+            </div>
+            {% endfor %}
         </div>
 
+        <!-- 手势功能 -->
+        <div>
+            <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
+            {% for gesture, options in gesture_data.items() %}
+            <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
+                <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                    {% for option in options %}
+                        <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
         <script>
+            function submitVoiceText(index) {
+                const input = document.getElementById(`voice_input_${index}`).value.trim();
+                const resultDiv = document.getElementById(`voice_result_${index}`);
+                if (input) {
+                    resultDiv.textContent = `已设置为：${input}`;
+                } else {
+                    resultDiv.textContent = '';
+                }
+            }
+        </script>
+
+        <!-- <script>
         function handleMusic(action) {
             if (action === 'next') {
                 fetch('/pause_music', {
@@ -332,7 +380,7 @@
             }
         }
 
-        </script>
+        </script> -->
         
         <!-- <script>
             async function pollAction() {
