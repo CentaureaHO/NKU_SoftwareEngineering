@@ -29,16 +29,19 @@ from viewer.viewer import init_viewer
 import threading
 import webbrowser
 from applications.application import Application
+from utils.tools import speecher_player
 
 class MultimodalController:
     # TODO():这个函数负责启动时打开各个模态,目前还未实现视线跟踪模态
     def __init__(self) -> None:
-        # 启动语音模态
+        speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
+        speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
         self.init_speecher()
         self.init_headpose()
         self.init_static_gesture()
         self.init_ui()
+        self.last_model_state = {"语音": None, "头部姿态": None, "手势": None}
 
     def init_ui(self) -> None:
         flask_thread = threading.Thread(target=init_viewer)
@@ -228,6 +231,10 @@ class MultimodalController:
         print("手势识别模态启动成功")
 
     def control_speecher(self,state) -> None:
+        if state:
+            from individuation import Individuation
+            Individuation.speech_individuation(state)
+        """"
         if state and state.recognition["text"]:
             current_text = state.recognition["text"]
 
@@ -248,9 +255,11 @@ class MultimodalController:
                 print(f"识别结果: {current_text}")
                 from individuation import Individuation
                 Individuation.speech_individuation(current_text)
+        """
 
 
     def control_headpose(self,state) -> None:
+        """
         if state.detections['head_movement']['is_nodding']:
             print("点头")
             #Individuation.head_individuation("点头")
@@ -259,8 +268,13 @@ class MultimodalController:
             print("摇头")
             #Individuation.head_individuation("摇头")
             time.sleep(0.5)
+        """
 
     def control_static_gesture(self,state) -> None:
+        if state:
+            from individuation import Individuation
+            Individuation.gesture_individuation(state)
+        """
         if state.detections["gesture"]["detected"]:
             name = state.detections["gesture"]["name"]
             if name == self.last_gesture_name:
@@ -269,11 +283,51 @@ class MultimodalController:
             print(f"手势: {name}")
             Individuation.gesture_individuation(name)
             time.sleep(0.5)
+        """
     
+    def get_speecher_state(self) -> str:
+        state = self.manager.get_modality("speech_recognition").update()
+        update_all()
+
+    def get_model_state(self, str) -> dict[str,str]:
+        #self.last_model_state = {"语音": None, "头部姿态": None, "手势": None}
+        model_state = {"语音": None, "头部姿态": None, "手势": None}
+        states = self.manager.update_all()
+        for name, state in states.items():
+            # print(f"模态: {name}")
+            if name == "speech_recognition" :
+                if state and state.recognition["text"]:
+                    text = state.recognition["text"]
+                    if text != self.last_model_state["语音"]:
+                        model_state["语音"] = text
+                        self.last_model_state["语音"] = text
+                        print(f"识别结果: {text}")
+            elif name == "head_pose_tracker_gru":
+                if state.detections['head_movement']['is_nodding']:
+                    text = "点头"
+                elif state.detections['head_movement']['is_shaking']:
+                    text = "摇头"
+                # 更新状态
+                if text != self.last_model_state["头部姿态"]:
+                    model_state["头部姿态"] = text
+                    self.last_model_state["头部姿态"] = text
+                    print(f"头部姿态: {text}")
+            elif name == "static_gesture_tracker":
+                if state.detections["gesture"]["detected"]:
+                    text = state.detections["gesture"]["name"]
+                    gesture_dir = {"0": "握拳", "5": "竖起大拇指", "6": "摇手"}
+                    text = gesture_dir.get(text, text)
+                    # 更新状态
+                    if text != self.last_model_state["手势"]:
+                        model_state["手势"] = text
+                        self.last_model_state["手势"] = text
+                        print(f"手势: {text}")
+
     def control(self) -> None:
         try:
             while True:
-                states = self.manager.update_all()
+                states = self.get_model_state()
+                print(states)
                 for name, state in states.items():
                     # print(f"模态: {name}")
                     if name == "speech_recognition":
@@ -284,6 +338,17 @@ class MultimodalController:
                         self.control_static_gesture(state)
                     else:
                         assert False, f"未知模态: {name}"
+                # states = self.manager.update_all()
+                # for name, state in states.items():
+                #     # print(f"模态: {name}")
+                #     if name == "speech_recognition":
+                #         self.control_speecher(state)
+                #     elif name == "head_pose_tracker_gru":
+                #         self.control_headpose(state)
+                #     elif name == "static_gesture_tracker":
+                #         self.control_static_gesture(state)
+                #     else:
+                #         assert False, f"未知模态: {name}"
                 time.sleep(0.1)
         except KeyboardInterrupt:
             print("\n检测到终止信号")
@@ -294,8 +359,8 @@ class MultimodalController:
 
 if __name__ == '__main__':
     controller = MultimodalController()
-    # controller.control()
+    controller.control()
     
-    while True:
-        Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
-        time.sleep(10)
+    #while True:
+    #    Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
+    #    time.sleep(10)

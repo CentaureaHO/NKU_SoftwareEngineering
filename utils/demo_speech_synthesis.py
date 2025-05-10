@@ -3,7 +3,7 @@ import asyncio
 import sounddevice as sd
 import numpy as np
 import time
-from tools import speech_synthesize, speech_synthesize_sync
+from .tools import speech_synthesize, speech_synthesize_sync
 
 SAMPLE_RATE = 24000
 
@@ -50,5 +50,5 @@ def sync_main():
     print("同步合成测试完成")
 
 if __name__ == "__main__":
-    asyncio.run(async_main())
+    # asyncio.run(async_main())
     sync_main()
