@@ -320,42 +320,50 @@
             </div>
 
         </div> -->
-    <h2>个性化配置</h2>
-    <div style="width: 100%;">
+        <h2>个性化配置</h2>
+        <div style="width: 100%;"> 
 
-        <!-- 语音功能 -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
-            {% for text, options in text_list.items() %}
-            <div style="margin: 10px 0;">
-                <label style="color: #ccc;">{{ text }}</label>
-                <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
-                        style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
-                    <button type="button" onclick="submitVoiceText({{ loop.index }})" 
-                        style="padding: 6px 12px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">确认</button>
+            <!-- 语音功能 -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
+                {% for text, options in text_list.items() %}
+                <div style="margin: 10px 0;">
+                    <label style="color: #ccc;">{{ text }}</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
+                            style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                        <button type="button" onclick="submitVoiceText({{ loop.index }})" 
+                            style="padding: 6px 12px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">确认</button>
+                    </div>
+                    <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
                 </div>
-                <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
 
-        <!-- 手势功能 -->
-        <div>
-            <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
-            {% for gesture, options in gesture_data.items() %}
-            <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
-                <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
-                <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
-                    {% for option in options %}
-                        <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-                </select>
+            <!-- 手势功能 -->
+            <div>
+                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
+                {% for gesture, options in gesture_data.items() %}
+                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
+                    <select id="gesture_{{ loop.index }}" style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                        {% for option in options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
 
-    </div>
+            <!-- 保存按钮 -->
+            <div style="margin-top: 20px;">
+                <button type="button" onclick="saveConfig()" 
+                    style="padding: 8px 16px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">
+                    保存配置
+                </button>
+            </div>
+
+        </div>
 
         <script>
             function submitVoiceText(index) {
@@ -367,56 +375,43 @@
                     resultDiv.textContent = '';
                 }
             }
-        </script>
 
-        <!-- <script>
-        function handleMusic(action) {
-            if (action === 'next') {
-                fetch('/pause_music', {
-                    method: 'POST'
-                }).catch(error => {
-                    console.error('暂停/继续失败:', error);
+            // 保存配置
+            function saveConfig() {
+                const voiceInputs = {};
+                const gestureOptions = {};
+
+                // 获取所有语音输入框内容
+                {% for text, options in text_list.items() %}
+                voiceInputs["{{ text }}"] = document.getElementById(`voice_input_{{ loop.index }}`).value.trim();
+                {% endfor %}
+
+                // 获取所有手势选择的选项
+                {% for gesture, options in gesture_data.items() %}
+                gestureOptions["{{ gesture }}"] = document.getElementById(`gesture_{{ loop.index }}`).value;
+                {% endfor %}
+
+                // 发送保存请求到后端
+                fetch('/save_config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'voiceInputs': voiceInputs,
+                        'gestureOptions': gestureOptions
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('配置保存成功！');
+                })
+                .catch(error => {
+                    console.error('保存配置时出错:', error);
                 });
             }
-        }
+        </script>
 
-        </script> -->
-        
-        <!-- <script>
-            async function pollAction() {
-                try {
-                    const response = await fetch('/get_action');
-                    const data = await response.json();
-                    const action = data.action;
-        
-                    if (action) {
-                        console.log("触发动作: " + action);
-                        handleAction(action);  // 相当于模拟点击按钮
-                    }
-                } catch (error) {
-                    console.error('获取动作失败:', error);
-                }
-            }
-        
-            // 每 1 秒轮询一次
-            setInterval(pollAction, 1000);
-        
-            function handleAction(action) {
-                if (action === 'music') {
-                    window.location.href = '/music';
-                } else if (action === 'navigation') {
-                    window.location.href = '/navigation';
-                } else if (action === 'status') {
-                    window.location.href = '/status';
-                } else if (action === 'config') {
-                    window.location.href = '/config';
-                } else if (action === 'auto') {
-                    window.location.href = '/auto';
-                }
-            }
-        </script> -->
-        
-        
         <!-- 控制按钮区 -->
         <div id="control-buttons">
             <button onclick="handleAction('music')">音乐</button>

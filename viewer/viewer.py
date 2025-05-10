@@ -1,24 +1,24 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
-from individuation import Individuation
+
 
 import sys
 # sys.path.append(r'..')
 sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 
 from applications.application import Application
-
+from individuation import Individuation
 viewer = Flask(__name__)
 # # 初始的 gesture_data 和 text_list
-# gesture_data = {
-#     "左转": ["选项A", "选项B", "选项C"],
-#     "右转": ["选项A", "选项B", "选项C"],
-#     "停止": ["选项A", "选项B", "选项C"]
-# }
+gesture_data = {
+    "左转": ["选项A", "选项B", "选项C"],
+    "右转": ["选项A", "选项B", "选项C"],
+    "停止": ["选项A", "选项B", "选项C"]
+}
 
-# text_list = {
-#     '语音识别': ["开启", "关闭", "自动"],
-#     '语音控制': ["开启", "关闭", "自动"]
-# }
+text_list = {
+    '语音识别': ["开启", "关闭", "自动"],
+    '语音控制': ["开启", "关闭", "自动"]
+}
 
 @viewer.route('/')
 def index():
@@ -113,36 +113,56 @@ def status():
 #     return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
 @viewer.route('/config', methods=['GET'])
 def config():
-    # global text_list, gesture_data
-
-    # text_list = {}
-    # a = ["开启", "关闭", "自动"]
-    
-
-    # # 从请求中获取新的 text_list 和 gesture_data
-    # data = request.get_json()
-    # x    = Application.get_application_name()
-    # text_list = {x[i]: a for i in range(len(x))}
-    # print(text_list)
-    # # 如果提供了新的 text_list，就更新它
-    # if 'text_list' in data:
-    #     text_list = data['text_list']
-    
-    # # 如果提供了新的 gesture_data，就更新它
-    # if 'gesture_data' in data:
-    #     gesture_data = data['gesture_data']
+    # 获取手势名称
     gesture_names = Individuation.get_gesture_names()
-    text_list_a = {}
-    gesture_data_a = {}
-    print("text_list_a:", text_list_a)
-    #text_list['语音识别'] = ["开启", "关闭"]
-    a = ["开启", "关闭"]
-    x    = Application.get_application_name()
-    print("x:", x)
-    text_list_a = {x[i]: a for i in range(len(x))}
+
+    # 打印信息帮助调试
     print("gesture_names:", gesture_names)
-    gesture_data_a  = {gesture_names[i]: x for i in range(len(gesture_names))}
+
+    # 设置默认的 text_list
+    a = ["开启", "关闭"]
+    x = Application.get_application_name()
+
+    print("x:", x)
+
+    # 根据应用程序名称更新 text_list
+    text_list_a = {x[i]: a for i in range(len(x))}
+    print("Updated text_list_a:", text_list_a)
+
+    # 根据手势名称更新 gesture_data
+    gesture_data_a = {gesture_names[i]: ["选项A", "选项B", "选项C"] for i in range(len(gesture_names))}
+    print("Updated gesture_data_a:", gesture_data_a)
+
+    # 返回页面并渲染配置
     return render_template('config.html', text_list=text_list_a, gesture_data=gesture_data_a)
+@viewer.route('/save_config', methods=['POST'])
+def save_config():
+    data = request.get_json()
+    
+    # 获取语音输入框的内容
+    voice_inputs = data.get('voiceInputs', {})
+    print("保存的语音功能配置:")
+    for key, value in voice_inputs.items():
+        print(f"{key}: {value}")
+
+    # 获取手势功能的选择
+    gesture_options = data.get('gestureOptions', {})
+    print("保存的手势功能配置:")
+    for key, value in gesture_options.items():
+        print(f"{key}: {value}")
+
+    return jsonify({'status': 'ok', 'message': '配置已保存'})
+
+@viewer.route('/trigger_action', methods=['POST'])
+def trigger_action():
+    data = request.get_json()
+    action = data.get('action')
+    if action in ['music', 'navigation', 'status', 'config', 'auto']:
+        print(f"✅ 收到 POST 请求：{action}")
+        return redirect(url_for(action))  # 自动跳转到对应的页面
+    else:
+        return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
+
 
 @viewer.route('/auto')
 def auto():
@@ -160,30 +180,6 @@ last_action = None
 
 
 
-# @viewer.route('/trigger_action', methods=['POST'])
-# def trigger_action():
-#     global last_action
-#     data = request.get_json()
-#     action = data.get('action')
-#     if action == 'music':
-#         print("✅ 收到 POST 请求：music")  # 清晰可见的终端日志
-#         last_action = 'music'
-#         return jsonify({'status': 'ok', 'message': 'Music action triggered'})
-#     else:
-#         print("⚠️ 收到未知 action：", action)
-#         return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
-@viewer.route('/trigger_action', methods=['POST'])
-def trigger_action():
-    global last_action
-    data = request.get_json()
-    action = data.get('action')
-    if action in ['music', 'navigation', 'status', 'config', 'auto']:
-        last_action = action
-        print(f"✅ 收到 POST 请求：{action}")
-        return redirect(url_for(action))  # 自动跳转到对应的页面
-    else:
-        return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
-    
 @viewer.route('/get_action')
 def get_action():
     global last_action
