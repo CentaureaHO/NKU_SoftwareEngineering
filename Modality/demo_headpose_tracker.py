@@ -125,12 +125,12 @@ def main():
         state = states['head_pose_tracker_gru']
         if state.detections['head_movement']['is_nodding']:
             print("点头")
-            Individuation.head_individuation("点头")
+            #Individuation.head_individuation("点头")
         else:
             print("未检测到点头")
         if state.detections['head_movement']['is_shaking']:
             print("摇头")
-            Individuation.head_individuation("摇头")
+            #Individuation.head_individuation("摇头")
         else:
             print("未检测到摇头")
 

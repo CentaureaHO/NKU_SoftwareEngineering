@@ -8,23 +8,48 @@ Module Description:
 """
 
 import os
-from typing import List
-from enum import Enum
-from datetime import datetime
+import logging
 
 class Logger:
-    # type = Enum("type", ["music","navigation","vehicle_state"])
     def __init__(self) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        relative_path = "database/log/Log.txt"
-        self.log_path = os.path.join(current_dir, relative_path)
+        relative_path = "database/log/Log.log"
+        
+        # 确保日志目录存在
+        log_dir = os.path.join(current_dir, "database/log")
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+            
+        log_path = os.path.join(current_dir, relative_path)
+        self.logger = logging.getLogger("Log")
+        self.logger.setLevel(logging.DEBUG)
+        
+        # 创建文件处理器和控制台处理器
+        file_handler = logging.FileHandler(log_path, encoding='utf-8')
+        console_handler = logging.StreamHandler()
+        
+        # 创建Formatter（日志格式）
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        )
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+        
+        # 将Handler添加到Logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
-    # TODO():暂定格式为 时间 模态 功能 参数 
-    def Log(self,log: str) -> None:
-        current_time = datetime.now()
-        time_string = current_time.strftime("[%Y-%m-%d %H:%M:%S]")
-        print(log)
-        with open(self.log_path, 'a+' ,encoding='utf-8') as file:
-            file.write(time_string)
-            file.write(log)
-            file.write("\n")
+    def Log(self, log: str) -> None:
+        """
+        记录日志信息
+        
+        Args:
+            log: 日志消息
+        """
+        self.logger.info(log)
+
+logger = Logger()
+
+if __name__ == '__main__':
+    # 测试日志功能
+    logger.Log("系统初始化")

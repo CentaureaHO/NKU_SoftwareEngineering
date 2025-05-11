@@ -8,3 +8,7 @@ webrtcvad==2.0.10
 pypinyin==0.54.0
 funasr==1.2.6
 pygame==2.6.1
+soundfile==0.13.1
+thinc==8.3.4
+spacy==3.8.5
+kokoro>=0.9.4

@@ -559,3 +559,18 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             logger.error(f"关闭头部姿态跟踪器失败: {str(e)}")
             return RUNTIME_ERROR
         
+    def get_key_info(self) -> str:
+        """
+        获取模态的关键信息
+
+        Returns:
+            str: 模态的关键信息
+        """
+        key_info = None
+        state = self.update()
+        if state.detections['head_movement']['is_nodding']:
+            key_info = "点头"
+        elif state.detections['head_movement']['is_shaking']:
+            key_info = "摇头"
+        print(f"key_info: {key_info}")
+        return key_info

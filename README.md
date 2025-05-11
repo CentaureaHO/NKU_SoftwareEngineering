@@ -51,3 +51,10 @@
 ```bash
    pip install modelscope[audio] -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
 ```
+6. **安装Kokoro Zh**
+
+   用于语音合成的Kokoro库的中文语音合成需额外安装：
+
+```bash
+   pip install misaki[zh]
+```
