@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify,redirect, url_for
 import sys
 # sys.path.append(r'..')
 sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
-
+from individuation import Individuation
 from applications.application import Application
 from individuation import Individuation
 viewer = Flask(__name__)
