@@ -19,7 +19,6 @@ mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 from Modality.core import ModalityManager
-from Modality.core.error_codes import SUCCESS
 import sys
 # 确保可以导入Modality模块
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -30,18 +29,19 @@ import threading
 import webbrowser
 from applications.application import Application
 from utils.tools import speecher_player
+from setting import Setting
 
 class MultimodalController:
     # TODO():这个函数负责启动时打开各个模态,目前还未实现视线跟踪模态
     def __init__(self) -> None:
-        speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
-        speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
+        #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
+        #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
         self.init_speecher()
-        self.init_headpose()
-        self.init_static_gesture()
+        #self.init_headpose()
+        #self.init_static_gesture()
         self.init_viewer()
-        # self.last_model_state = {"语音": None, "头部姿态": None, "手势": None}
+        #self.work_flag = True
 
     def init_viewer(self) -> None:
         flask_thread = threading.Thread(target=init_viewer)
@@ -238,8 +238,9 @@ class MultimodalController:
                 for name, key_info in key_info.items():
                     # print(f"模态: {name}")
                     if name == "speech_recognition" :
-                        print(f"语音识别结果: {key_info}")
-                        individuation.speech_individuation(key_info)
+                        pass
+                        #print(f"语音识别结果: {key_info}")
+                        #individuation.speech_individuation(key_info)
                     elif name == "head_pose_tracker_gru":
                         print(f"头部识别结果: {key_info}")
                     elif name == "static_gesture_tracker":
@@ -248,7 +249,8 @@ class MultimodalController:
                     else:
                         assert False, f"未知模态: {name}"
 
-                    time.sleep(1)
+                    time.sleep(5)
+            #self.work_flag = True
         except KeyboardInterrupt:
             print("\n检测到终止信号")
         finally:
@@ -256,15 +258,14 @@ class MultimodalController:
             self.manager.shutdown_all()
             print("系统已关闭")
 
+controller = MultimodalController()
+setting = Setting(controller.speech_modality)
+
 if __name__ == '__main__':
-    controller = MultimodalController()
-    
     # while True:
     #     controller.get_model_state()
     #     time.sleep(3)
-    
     controller.control()
-    
     #while True:
     #    Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
     #    time.sleep(10)

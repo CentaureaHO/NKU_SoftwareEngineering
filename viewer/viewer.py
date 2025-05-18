@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
-
 import sys
 # sys.path.append(r'..')
 # sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.11.19.00')
-
+sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.18.16.30')
 from applications.application import Application
 from individuation import individuation
 viewer = Flask(__name__)
@@ -160,9 +158,28 @@ def trigger_action():
         return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
 
 
-@viewer.route('/auto')
-def auto():
-    return render_template('auto.html')
+@viewer.route('/settings')
+def settings():
+    print(" 已跳转到权限设置页面")
+    try:
+        from multimodal_controller import setting
+        music_info = setting.get_voiceprints()
+        driver_info = setting.get_driver()
+    except Exception as e:
+        print(f"获取声纹列表/驾驶员失败: {e}")
+        music_info = []
+        driver_info = None
+
+    if not driver_info:
+        driver_info = "无"
+    print("music_info:", music_info)
+    print("driver_info:", driver_info)
+    return render_template('settings.html', music_info=music_info, driver_info=driver_info)
+
+
+# @viewer.route('/auto')
+# def auto():
+#     return render_template('auto.html')
 
 def exopen_music():
     render_template("auto.html", target_url="http://127.0.0.1:5000/music")
@@ -231,19 +248,44 @@ def voice_page():
 def gesture_page():
     # Assume you get the following test list for gestures
     text_list = ["请做出左转手势", "请做出右转手势", "请做出停止手势"]
-    dropdown_options = ["选项A", "选项B", "选项C"]
-    
+    dropdown_options = ["选项A", "选项B", "选项C"]    
     return render_template('gesture.html', text_list=text_list, dropdown_options=dropdown_options)
+
 @viewer.route('/call_void', methods=['POST'])
 def call_void():
+    print("调用了call_void")
     data = request.get_json()
     status = data.get('status', '空')
-    void(status)
+    enter_voiceprint(status)
     return '', 204  # 无返回内容
 
-def void(status):
-    # 空函数添加参数
-    print(f"🚗 收到车辆状态输入：{status}")
+def enter_voiceprint(username):
+    print(f"开始录入声纹,用户名为\"{username}\"")
+    #from multimodal_controller import controller
+    #controller.work_flag = False
+    from multimodal_controller import setting
+    setting.register_voiceprint(username)
+    setting.view_registered_voiceprints()
+
+@viewer.route('/call_delete_user', methods=['POST'])
+def delete_user():
+    data = request.get_json()
+    username = data.get('username', '空')
+    print(f"删除用户,用户名为\"{username}\"")
+    from multimodal_controller import setting
+    setting.delete_voiceprint(username)
+    return '', 204
+
+@viewer.route('/call_set_driver', methods=['POST'])
+def set_driver():
+    data = request.get_json()
+    driver_name = data.get('drivername', None)
+    print(f"设置驾驶员,用户名为\"{driver_name}\"")
+    from multimodal_controller import setting
+    setting.set_driver(driver_name)
+    return '', 204
+
+
 
 if __name__ == '__main__':
     viewer.run(debug=True)

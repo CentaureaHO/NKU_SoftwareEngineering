@@ -289,74 +289,19 @@
         </script>
         
         <h2>车辆状态监测</h2>
-
-        <!-- 文本输入框 -->
-        <input type="text" id="statusInput" placeholder="请输入车辆状态" />
-        <button onclick="callVoidFunction()">执行空函数</button>
-
-        <!-- 显示所有输入内容 -->
-        <div id="statusResult" style="margin-top: 10px;"></div>
-
-        <script>
-            function callVoidFunction() {
-                const input = document.getElementById("statusInput").value;
-                if (!input.trim()) return; // 避免空输入
-
-                fetch('/call_void', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: input })
-                }).then(response => {
-                    if (response.ok) {
-                        console.log("✅ 成功调用空函数");
-
-                        const container = document.getElementById("statusResult");
-
-                        // 创建一个新的 div 元素（表示一条状态项）
-                        const newItem = document.createElement("div");
-                        newItem.textContent = "输入内容: " + input;
-                        newItem.style.marginBottom = "5px";
-                        newItem.style.display = "flex";
-                        newItem.style.alignItems = "center";
-
-                        // 删除按钮 🔧 新增代码
-                        const deleteBtn = document.createElement("button");
-                        deleteBtn.textContent = "删除";
-                        deleteBtn.style.marginLeft = "10px";
-                        deleteBtn.onclick = function () {
-                            container.removeChild(newItem);
-                        };
-
-                        // 设置按钮 🔧 新增代码
-                        const setBtn = document.createElement("button");
-                        setBtn.textContent = "设置";
-                        setBtn.style.marginLeft = "5px";
-                        setBtn.onclick = function () {
-                            newItem.style.backgroundColor = "lightgreen";
-                        };
-
-                        // 添加按钮到状态项中 🔧 新增代码
-                        newItem.appendChild(deleteBtn);
-                        newItem.appendChild(setBtn);
-
-                        // 添加状态项到页面
-                        container.appendChild(newItem);
-
-                        // 清空输入框
-                        document.getElementById("statusInput").value = "";
-                    } else {
-                        console.error("❌ 调用失败");
-                    }
-                }).catch(error => {
-                    console.error('❌ 请求错误:', error);
-                });
-            }
-        </script>
-
-
-
+        <h3>播放列表</h3>
+        <div class="music-player" style="width: 100%; margin-bottom: 20px;">
+            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
+                {% for music_item in music_info %}
+                    <button onclick="playMusic('{{ music_item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
+                        {{ music_item }}
+                    </button>
+                {% endfor %}
+            </div>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
+            </div>
+        </div>
         
         
         <script>
@@ -413,7 +358,7 @@
             <button onclick="handleAction('navigation')">导航</button>
             <button onclick="handleAction('status')">车辆状态监测</button>
             <button onclick="handleAction('config')">个性化配置</button>
-            <button onclick="handleAction('auto')">AUTO</button>
+            <button onclick="handleAction('settings')">权限设置</button>
         </div>
     </div>
 

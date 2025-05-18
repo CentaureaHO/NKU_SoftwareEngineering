@@ -1039,6 +1039,7 @@ class SpeechRecognition(BaseModality):
             logger.warning("声纹识别功能未开启")
             return False
             
+        print("进入声纹注册模式，请说话...")
         logger.info("进入声纹注册模式，请说话...")
         self.is_enrolling = True
         self.audio_segments = []
