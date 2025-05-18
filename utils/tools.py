@@ -1,5 +1,5 @@
 import asyncio
-from .speech_synthesis.kokoro_synthesis import KokoroSynthesis as SpeechSyn
+from speech_synthesis.kokoro_synthesis import KokoroSynthesis as SpeechSyn
 
 synth = SpeechSyn()
 
