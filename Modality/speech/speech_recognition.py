@@ -59,7 +59,10 @@ DEFAULT_CONFIG = {
         "打开空调": "ac_control",
         "关闭空调": "ac_control"
     },
-    "exit_keywords": ["再见", "拜拜", "结束", "关闭"]  # 退出聆听状态的关键词
+    "exit_keywords": ["再见", "拜拜", "结束", "关闭"],  # 退出聆听状态的关键词
+    "enable_streaming_recognition": True,       # 是否启用周期性流式识别
+    "streaming_interval_seconds": 1.0,          # 流式识别尝试的最小时间间隔(秒)
+    "min_streaming_duration_seconds": 1.5       # 进行流式识别所需的最小音频时长(秒)
 }
 
 class SpeechState(ModalityState):
@@ -144,7 +147,8 @@ class SpeechRecognition(BaseModality):
         self.audio_queue = Queue()
         self.audio_segments = []
         self.last_voice_time = time.time()
-        
+        self.last_streaming_recognition_time = time.time()  # 用于追踪上次流式识别的时间
+    
         # 模型
         self.asr_model = None
         self.sv_model = None
@@ -536,12 +540,63 @@ class SpeechRecognition(BaseModality):
             self.audio_segments.append(audio_chunk)
             self.last_voice_time = time.time()
 
-            if not self.is_listening and self.config["enable_wake_word"] and len(self.audio_segments) == 1:
+            if self.config.get("enable_streaming_recognition", False) and \
+               (self.is_listening or not self.config["enable_wake_word"]):
+                
+                current_audio_duration = len(b''.join(self.audio_segments)) / (RATE * CHANNELS * 2)
+                if current_audio_duration >= self.config.get("min_streaming_duration_seconds", 1.5) and \
+                   (time.time() - self.last_streaming_recognition_time) >= self.config.get("streaming_interval_seconds", 1.0):
+                    
+                    self._perform_streaming_recognition()
+                    self.last_streaming_recognition_time = time.time()
+
+            elif not self.is_listening and self.config["enable_wake_word"] and len(self.audio_segments) == 1:
                 logger.debug("检测到声音，等待唤醒词...")
         else:
             if self.audio_segments and (time.time() - self.last_voice_time) > SILENCE_THRESHOLD:
                 self._process_audio_segments()
-                
+                self.last_streaming_recognition_time = time.time()
+            
+    def _perform_streaming_recognition(self):
+        """执行周期性的流式识别，更新部分状态（主要是文本和关键词）"""
+        if not self.audio_segments:
+            return
+
+        current_audio_data = b''.join(self.audio_segments)
+        if (len(current_audio_data) / (RATE * CHANNELS * 2)) < self.config.get("min_streaming_duration_seconds", 1.5):
+            return
+
+        stream_temp_file = os.path.join(self.output_dir, "stream_temp_audio.wav")
+        try:
+            self._save_audio(current_audio_data, stream_temp_file)
+
+            logger.debug(f"执行流式识别，音频时长: {len(current_audio_data) / (RATE * CHANNELS * 2):.2f}s.")
+            text = self._recognize_speech(stream_temp_file)
+
+            if text:
+                with self._state_lock:
+                    self._latest_state.recognition["text"] = text
+                    
+                    keyword, category = self._detect_keyword(text)
+                    if keyword:
+                        self._latest_state.recognition["keyword"] = keyword
+                        self._latest_state.recognition["keyword_category"] = category
+                        self._latest_state.recognition["has_keyword"] = True
+                    else:
+                        self._latest_state.recognition["keyword"] = ""
+                        self._latest_state.recognition["keyword_category"] = ""
+                        self._latest_state.recognition["has_keyword"] = False
+                    
+                    self._latest_state.timestamp = time.time()
+        except Exception as e:
+            logger.error(f"流式识别出错: {e}")
+        finally:
+            if os.path.exists(stream_temp_file):
+                try:
+                    os.remove(stream_temp_file)
+                except Exception as e:
+                    logger.warning(f"无法删除流式临时文件 {stream_temp_file}: {e}")
+        
     def _recognize_speech(self, audio_file: str) -> str:
         """
         使用SenceVoice识别语音内容
@@ -1329,4 +1384,3 @@ class SpeechRecognition(BaseModality):
         self.is_listening = False
         logger.info("已禁用聆听状态")
         return True
-    
