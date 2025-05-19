@@ -7,44 +7,13 @@ sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.18.16.30')
 from applications.application import Application
 from individuation import individuation
 viewer = Flask(__name__)
-# # 初始的 gesture_data 和 text_list
-gesture_data = {
-    "左转": ["选项A", "选项B", "选项C"],
-    "右转": ["选项A", "选项B", "选项C"],
-    "停止": ["选项A", "选项B", "选项C"]
-}
 
-text_list = {
-    '语音识别': ["开启", "关闭", "自动"],
-    '语音控制': ["开启", "关闭", "自动"]
-}
-
+# 渲染索引页
 @viewer.route('/')
 def index():
     return render_template('index.html')
 
-# 播放音乐：调用 music_play 接口
-def test(music_name):
-    print(f"播放音乐：{music_name}")
-    Application.schedule(Application.type.music_play, [music_name])
-
-@viewer.route('/play_music', methods=['POST'])
-def play_music():
-    data = request.get_json()
-    music_name = data.get('music')
-    test(music_name)
-    return '', 204  # No Content
-
-# 暂停/继续：调用 music_change_pause 接口
-@viewer.route('/pause_music', methods=['POST'])
-def pause_music():
-    pause_music_handler()
-    return '', 204
-
-def pause_music_handler():
-    print("暂停或继续播放音乐")
-    Application.schedule(Application.type.music_change_pause, [])
-
+# 渲染音乐页面
 @viewer.route('/music')
 def music():
     print("🎵 已跳转到 music 页面")
@@ -54,62 +23,26 @@ def music():
         print(f"❌ 获取音乐列表失败: {e}")
         music_info = []
     print("🎵 已跳转到 music 页面2")
-    # render_template("auto.html", target_url="http://127.0.0.1:5000/music")
     return render_template('music.html', music_info=music_info)
 
+# 渲染导航页面
 @viewer.route('/navigation')
 def navigation():
-    return render_template('navigation.html')
+    print("已跳转到导航页面")
+    info = Application.schedule(Application.type.navigation_getlist, [])
+    return render_template('navigation.html', info=info)
 
+# 渲染车辆状态监测页面
 @viewer.route('/status')
 def status():
-    return render_template('status.html')
+    status_info = Application.schedule(Application.type.vehicle_state, [])
+    oil_quantity = status_info[0]
+    tire_pressure = status_info[1]
+    mileage = status_info[2]
+    #print("status_info:", status_info)
+    return render_template('status.html', oil_quantity = oil_quantity,tire_pressure = tire_pressure,mileage = mileage)
 
-# @viewer.route('/update_config', methods=['POST'])
-# def update_config():
-#     global text_list, gesture_data
-
-#     text_list = {}
-#     a = ["开启", "关闭", "自动"]
-    
-
-#     # 从请求中获取新的 text_list 和 gesture_data
-#     data = request.get_json()
-#     x    = Application.get_application_name()
-#     text_list = {x[i]: a for i in range(len(x))}
-#     print(text_list)
-#     # 如果提供了新的 text_list，就更新它
-#     if 'text_list' in data:
-#         text_list = data['text_list']
-    
-#     # 如果提供了新的 gesture_data，就更新它
-#     if 'gesture_data' in data:
-#         gesture_data = data['gesture_data']
-    
-#     # 返回更新后的配置
-#     return jsonify({
-#         'status': 'ok',
-#         'message': '配置已更新',
-#         'text_list': text_list,
-#         'gesture_data': gesture_data
-#     })
-
-# @viewer.route('/config')
-# def config():
-#     # 定义一些测试数据，gesture_data 是一个字典
-#     gesture_data = {
-#         "左转": ["选项A", "选项B", "选项C"],
-#         "右转": ["选项A", "选项B", "选项C"],
-#         "停止": ["选项A", "选项B", "选项C"]
-#     }
-    
-#     # 定义 text_list 和其对应的选项
-#     text_list = {
-#         '语音识别': ["开启", "关闭", "自动"],
-#         '语音控制': ["开启", "关闭", "自动"]
-#     }
-    
-#     return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
+# 渲染个性化配置页面
 @viewer.route('/config', methods=['GET'])
 def config():
     # 获取手势名称
@@ -126,6 +59,53 @@ def config():
     print("gesture_data:", gesture_data)
     # 返回页面并渲染配置
     return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
+
+# 渲染权限设置页面
+@viewer.route('/settings')
+def settings():
+    print(" 已跳转到权限设置页面")
+    try:
+        from multimodal_controller import setting
+        music_info = setting.get_voiceprints()
+        driver_info = setting.get_driver()
+    except Exception as e:
+        print(f"获取声纹列表/驾驶员失败: {e}")
+        music_info = []
+        driver_info = None
+
+    if not driver_info:
+        driver_info = "无"
+    print("music_info:", music_info)
+    print("driver_info:", driver_info)
+    return render_template('settings.html', music_info=music_info, driver_info=driver_info)
+
+# 播放音乐
+@viewer.route('/play_music', methods=['POST'])
+def play_music():
+    data = request.get_json()
+    music_name = data.get('music')
+    print(f"播放音乐：{music_name}")
+    Application.schedule(Application.type.music_play, [music_name])
+    return '', 204  # No Content
+
+# 暂停/继续播放音乐
+@viewer.route('/pause_music', methods=['POST'])
+def pause_music():
+    print("暂停或继续播放音乐")
+    Application.schedule(Application.type.music_change_pause, [])
+    return '', 204
+
+# 导航
+@viewer.route('/call_navigate', methods=['POST'])
+def navigate():
+    print("进行导航")
+    data = request.get_json()
+    name = data.get('name')
+    print(f"导航到: {name}")
+    navigation_path = Application.schedule(Application.type.navigation, [name])
+    print(f"导航路径: {navigation_path}")
+    return navigation_path, 204
+
 
 @viewer.route('/save_config', methods=['POST'])
 def save_config():
@@ -158,23 +138,7 @@ def trigger_action():
         return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
 
 
-@viewer.route('/settings')
-def settings():
-    print(" 已跳转到权限设置页面")
-    try:
-        from multimodal_controller import setting
-        music_info = setting.get_voiceprints()
-        driver_info = setting.get_driver()
-    except Exception as e:
-        print(f"获取声纹列表/驾驶员失败: {e}")
-        music_info = []
-        driver_info = None
 
-    if not driver_info:
-        driver_info = "无"
-    print("music_info:", music_info)
-    print("driver_info:", driver_info)
-    return render_template('settings.html', music_info=music_info, driver_info=driver_info)
 
 
 # @viewer.route('/auto')
@@ -284,8 +248,6 @@ def set_driver():
     from multimodal_controller import setting
     setting.set_driver(driver_name)
     return '', 204
-
-
 
 if __name__ == '__main__':
     viewer.run(debug=True)

@@ -27,6 +27,17 @@ class Navigation:
         with Image.open(file_path) as img:
             img.show()
 
+    def getlist(self) -> str:
+        navigation_list = os.listdir(self.dir_path)
+        navigation_list = [file for file in navigation_list if file.endswith('.jpg') and file != "None.jpg"] 
+        navigation_list = [file[:-4] for file in navigation_list]
+        print("获取导航列表:", navigation_list)
+        return navigation_list
+    
+    def navigate(self,name) -> str:
+        print(f"开始导航到 {name}")
+        return name
+
 if __name__ == '__main__':
     navigation = Navigation()
     navigation.show("南开大学津南校区","南开大学八里台校区")

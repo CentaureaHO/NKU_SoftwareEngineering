@@ -11,11 +11,6 @@ class Setting:
         with open(self.file_path, 'r' , encoding = "utf-8" ) as file:
             self.driver = file.read()
 
-        # print("  r - 注册新的声纹")
-        # print("  d - 删除声纹")
-        # print("  t - 查看临时声纹列表")
-        # print("  s - 查看注册声纹列表")
-
     def register_voiceprint(self, username):
         print(f"注册新的声纹，用户名为：{username}")
         self.speecher.register_speaker(username)
@@ -67,10 +62,3 @@ class Setting:
         print("驾驶员信息:", self.driver)
         return self.driver
 
-# # setting = Setting()
-
-# if __name__ == '__main__':
-#     # #speecher = SpeechRecognition(name="speech_recognition")
-#     # setting.view_registered_voiceprints()
-#     # setting.register_voiceprint("LYD")
-#     # setting.view_registered_voiceprints()

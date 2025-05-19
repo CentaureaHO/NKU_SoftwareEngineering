@@ -203,6 +203,11 @@
             background-color: #00c6c6;
         }
 
+        .item-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
     </style>
 
     <!-- 引入 Chart.js CDN -->
@@ -289,17 +294,18 @@
         </script>
         
         <h2>车辆状态监测</h2>
-        <h3>播放列表</h3>
         <div class="music-player" style="width: 100%; margin-bottom: 20px;">
-            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
-                {% for music_item in music_info %}
-                    <button onclick="playMusic('{{ music_item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
-                        {{ music_item }}
-                    </button>
-                {% endfor %}
+            <div class="item-container">
+                <div class="user-item">当前剩余油量为</div>
+                <input style="margin-left: auto; width: 100px;" type="text" value={{oil_quantity}} readonly>
             </div>
-            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
+            <div class="item-container">
+                <div class="user-item">当前胎压状态为</div>
+                <input style="margin-left: auto; width: 100px;" type="text" value={{tire_pressure}} readonly>
+            </div>
+            <div class="item-container">
+                <div class="user-item">当前行驶里程为</div>
+                <input style="margin-left: auto; width: 100px;" type="text" value={{mileage}} readonly>
             </div>
         </div>
         
@@ -315,42 +321,7 @@
             }
         }
 
-        </script>
-        
-        <!-- <script>
-            async function pollAction() {
-                try {
-                    const response = await fetch('/get_action');
-                    const data = await response.json();
-                    const action = data.action;
-        
-                    if (action) {
-                        console.log("触发动作: " + action);
-                        handleAction(action);  // 相当于模拟点击按钮
-                    }
-                } catch (error) {
-                    console.error('获取动作失败:', error);
-                }
-            }
-        
-            // 每 1 秒轮询一次
-            setInterval(pollAction, 1000);
-        
-            function handleAction(action) {
-                if (action === 'music') {
-                    window.location.href = '/music';
-                } else if (action === 'navigation') {
-                    window.location.href = '/navigation';
-                } else if (action === 'status') {
-                    window.location.href = '/status';
-                } else if (action === 'config') {
-                    window.location.href = '/config';
-                } else if (action === 'auto') {
-                    window.location.href = '/auto';
-                }
-            }
-        </script> -->
-        
+        </script>        
         
         <!-- 控制按钮区 -->
         <div id="control-buttons">

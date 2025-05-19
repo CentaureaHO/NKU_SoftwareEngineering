@@ -20,7 +20,7 @@ from .abnormal import Abnormal
 class Application:
     music = Music()
     type = Enum("type", ["music_getlist","music_play","music_pause","music_unpause","music_change_pause",
-                         "navigation",
+                         "navigation_getlist","navigation",
                          "vehicle_state",
                          "abnormal_distraction_reminder",
                         ])
@@ -33,6 +33,7 @@ class Application:
         type.music_pause: "暂停音乐",
         type.music_unpause: "继续播放音乐",
         type.music_change_pause: "切换播放状态",
+        type.navigation_getlist: "获取导航列表",
         type.navigation: "导航",
         type.vehicle_state: "车辆状态监测",
         type.abnormal_distraction_reminder: "异常分心提醒",
@@ -69,12 +70,17 @@ class Application:
             cls.music.unpause()
         elif application_type == Application.type.music_change_pause:
             cls.music.change_pause()
+        elif application_type == Application.type.navigation_getlist:
+            navigation = Navigation()
+            return navigation.getlist()
         elif application_type == Application.type.navigation:
             navigation = Navigation()
-            navigation.show("南开大学津南校区","南开大学八里台校区")
+            #navigation.show("南开大学津南校区","南开大学八里台校区")
+            return navigation.navigate(args[0])
         elif application_type == Application.type.vehicle_state:
             state = VehicleState()
-            print(state.monitor(VehicleState.type.oil_quantity))
+            return state.monitor()
+            #print(state.monitor(VehicleState.type.oil_quantity))
         elif application_type == Application.type.abnormal_distraction_reminder:
             assert(len(args) == 1)
             Abnormal.distraction_reminder(args[0])
