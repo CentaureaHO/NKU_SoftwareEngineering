@@ -21,7 +21,8 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from Modality.visual.gaze_direction_tracker import (
-    DIRECTION_CENTER, DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN
+    DIRECTION_CENTER, DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN,
+    DIRECTION_UP_LEFT, DIRECTION_UP_RIGHT, DIRECTION_DOWN_LEFT, DIRECTION_DOWN_RIGHT
 )
 from Modality.core import ModalityManager
 from Modality.core.error_codes import SUCCESS, get_error_message
@@ -32,6 +33,8 @@ COLOR_BLUE = (255, 0, 0)
 COLOR_YELLOW = (0, 255, 255)
 COLOR_WHITE = (255, 255, 255)
 COLOR_BLACK = (0, 0, 0)
+COLOR_PURPLE = (255, 0, 255)
+COLOR_ORANGE = (0, 165, 255)
 
 def put_chinese_text(img, text, position, font_size=30, color=(0, 255, 0)):
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -83,9 +86,12 @@ def draw_direction_indicator(frame, direction, confidence):
     
     arrow_length = int(radius * 0.8)
     arrow_thickness = 2
+    diagonal_length = int(arrow_length * 0.7)  # 对角线箭头长度为主箭头的70%
     
+    # 中心点
     cv2.circle(frame, (center_x, center_y), 5, COLOR_GREEN if direction == DIRECTION_CENTER else COLOR_WHITE, -1)
     
+    # 上方
     cv2.arrowedLine(
         frame, 
         (center_x, center_y), 
@@ -94,6 +100,7 @@ def draw_direction_indicator(frame, direction, confidence):
         arrow_thickness
     )
     
+    # 下方
     cv2.arrowedLine(
         frame, 
         (center_x, center_y), 
@@ -102,6 +109,7 @@ def draw_direction_indicator(frame, direction, confidence):
         arrow_thickness
     )
     
+    # 左方
     cv2.arrowedLine(
         frame, 
         (center_x, center_y), 
@@ -110,11 +118,48 @@ def draw_direction_indicator(frame, direction, confidence):
         arrow_thickness
     )
     
+    # 右方
     cv2.arrowedLine(
         frame, 
         (center_x, center_y), 
         (center_x + arrow_length, center_y), 
         COLOR_RED if direction == DIRECTION_RIGHT else COLOR_WHITE, 
+        arrow_thickness
+    )
+    
+    # 左上
+    cv2.arrowedLine(
+        frame, 
+        (center_x, center_y), 
+        (center_x - diagonal_length, center_y - diagonal_length), 
+        COLOR_PURPLE if direction == DIRECTION_UP_LEFT else COLOR_WHITE, 
+        arrow_thickness
+    )
+    
+    # 右上
+    cv2.arrowedLine(
+        frame, 
+        (center_x, center_y), 
+        (center_x + diagonal_length, center_y - diagonal_length), 
+        COLOR_PURPLE if direction == DIRECTION_UP_RIGHT else COLOR_WHITE, 
+        arrow_thickness
+    )
+    
+    # 左下
+    cv2.arrowedLine(
+        frame, 
+        (center_x, center_y), 
+        (center_x - diagonal_length, center_y + diagonal_length), 
+        COLOR_PURPLE if direction == DIRECTION_DOWN_LEFT else COLOR_WHITE, 
+        arrow_thickness
+    )
+    
+    # 右下
+    cv2.arrowedLine(
+        frame, 
+        (center_x, center_y), 
+        (center_x + diagonal_length, center_y + diagonal_length), 
+        COLOR_PURPLE if direction == DIRECTION_DOWN_RIGHT else COLOR_WHITE, 
         arrow_thickness
     )
     
@@ -233,12 +278,17 @@ def main():
             (args.width, args.height)
         )
     
+    # 更新方向名称字典以包含所有方向
     direction_names = {
         DIRECTION_CENTER: "中央",
         DIRECTION_LEFT: "左侧",
         DIRECTION_RIGHT: "右侧",
         DIRECTION_UP: "上方",
-        DIRECTION_DOWN: "下方"
+        DIRECTION_DOWN: "下方",
+        DIRECTION_UP_LEFT: "左上",
+        DIRECTION_UP_RIGHT: "右上",
+        DIRECTION_DOWN_LEFT: "左下",
+        DIRECTION_DOWN_RIGHT: "右下"
     }
     
     try:
