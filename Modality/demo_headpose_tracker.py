@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument("--record", type=str, default="", help="录制结果到视频文件")
     parser.add_argument("--debug", action="store_true", help="开启调试模式，显示更详细信息")
     parser.add_argument("--method", type=str, default="gru", choices=["geom", "gru"], help="选择方法 (默认为gru)")
+    parser.add_argument("--show-gaze", action="store_true", help="显示视线方向信息（需GRU模型）")
     return parser.parse_args()
 
 def draw_face_mesh(image, results):
@@ -60,6 +61,48 @@ def draw_face_mesh(image, results):
                 )
             except Exception as e:
                 logger.error(f"绘制面部网格时出错: {str(e)}")
+    
+    return image
+
+def draw_gaze_direction(image, gaze_data):
+    """绘制视线方向指示器"""
+    if not gaze_data:
+        return image
+    
+    h, w, _ = image.shape
+    direction = gaze_data["direction"]
+    confidence = gaze_data["confidence"]
+    h_ratio = gaze_data["horizontal_ratio"]
+    v_ratio = gaze_data["vertical_ratio"]
+    
+    left_eye_landmarks = gaze_data["left_eye"]["eye_landmarks"]
+    right_eye_landmarks = gaze_data["right_eye"]["eye_landmarks"]
+    
+    for point in left_eye_landmarks:
+        cv2.circle(image, (int(point[0]), int(point[1])), 1, (0, 255, 0), -1)
+    for point in right_eye_landmarks:
+        cv2.circle(image, (int(point[0]), int(point[1])), 1, (0, 255, 0), -1)
+    
+    center_x, center_y = w - 120, 130
+    radius = 30
+    
+    cv2.circle(image, (center_x, center_y), radius, (30, 30, 30), -1)
+    cv2.circle(image, (center_x, center_y), radius, (255, 255, 255), 1)
+    
+    line_length = int(radius * 0.8)
+    end_x = center_x + int(h_ratio * line_length)
+    end_y = center_y + int(v_ratio * line_length)
+
+    cv2.line(image, (center_x, center_y), (end_x, end_y), (0, 255, 255), 2)
+    cv2.circle(image, (end_x, end_y), 3, (0, 0, 255), -1)
+    
+    direction_text = f"Gaze: {direction}"
+    cv2.putText(image, direction_text, (w - 240, 170), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1)
+    
+    ratio_text = f"H: {h_ratio:.2f}, V: {v_ratio:.2f}"
+    cv2.putText(image, ratio_text, (w - 240, 190), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
     
     return image
 
@@ -144,8 +187,11 @@ def main():
                     head_pose = driver_state.detections["head_pose"]
                     head_movement = driver_state.detections["head_movement"]
                     
+                    # 获取视线方向数据（如果使用GRU模型）
+                    gaze_direction = driver_state.detections.get("gaze_direction", None)
+                    
                     h, w = display_frame.shape[:2]
-                    info_panel_height = 120  # 增加高度以显示额外信息
+                    info_panel_height = 120
                     info_panel = np.ones((info_panel_height, w, 3), dtype=np.uint8) * 240
                     
                     # 显示头部姿态
@@ -181,6 +227,8 @@ def main():
                         
                     cv2.putText(display_frame, f"Status: {movement_status}", (w - 250, 40), 
                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
+
+                    display_frame = draw_gaze_direction(display_frame, gaze_direction)
 
                     combined_frame = np.vstack((display_frame, info_panel))
                     
