@@ -19,8 +19,51 @@
     
         setInterval(pollAction, 2000);  // 每 2 秒轮询一次
     </script>
+
+    <script>
+        function updateAlertBox(message) {
+            const inputBox = document.querySelector('.alert-box input[type="text"]');
+            if (inputBox) { inputBox.value = message; }
+        }
+
+        function fetchAndUpdateString() {
+            fetch('/get_latest_message')
+                .then(response => response.json())
+                .then(data => { updateAlertBox(data.updated_message); })
+                .catch(error => { console.error('请求失败:', error); });
+        }
+
+        window.onload = () => {
+            fetchAndUpdateString();
+            checkBlinking();
+            setInterval(fetchAndUpdateString, 2000);
+            setInterval(checkBlinking, 2000);
+        };
+    </script>
     
-    
+    <script>
+        function checkBlinking() {
+            fetch('/get_blinking')
+            .then(response => response.json())
+            .then(data => {
+                const alertLight = document.querySelector('.alert-light');
+                const blinkingStatus = data.blinking; // 假设后端返回 blinking: 'green' 或 'red' 或 boolean（需根据实际接口调整）
+
+                // 清除所有现有类
+                alertLight.classList.remove('blinking', 'steady', 'green-blinking');
+
+                if (blinkingStatus === 'green') { // 绿色闪烁（新增状态）
+                    alertLight.classList.add('green-blinking');
+                } else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁（原逻辑）
+                    alertLight.classList.add('blinking');
+                } else { // 常亮（绿色）
+                    alertLight.classList.add('steady');
+                }
+            })
+            .catch(err => console.error('获取闪烁状态失败:', err));
+        }
+    </script>
+
     <style>
         body {
             margin: 0;
@@ -33,7 +76,7 @@
 
         .dashboard {
             width: 50%;
-            background-color: #1e1e1e;
+            background-color: #000000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -42,20 +85,34 @@
             padding: 20px 0;
         }
 
+    /* 容器横向排列：灯 + 文本框 */
         .alert-box {
             display: flex;
+            flex-direction: row;
             align-items: center;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
 
+        /* 灯泡样式 */
         .alert-light {
-            width: 20px;
-            height: 20px;
-            background-color: red;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            margin-right: 10px;
-            animation: blink 1s infinite;
+            margin-bottom: 10px;
+            margin-right: 20px;
+        }
+
+        /* 闪烁状态 */
+        .alert-light.blinking {
+            background-color: red;
             box-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
+
+        /* 常亮状态 */
+        .alert-light.steady {
+            background-color: rgb(0, 255, 0);
+            box-shadow: 0 0 10px rgb(0, 255, 0);
         }
 
         @keyframes blink {
@@ -64,12 +121,14 @@
             100% { opacity: 1; }
         }
 
+        /* 提示框样式 */
         .alert-box input[type="text"] {
             background-color: #222;
             border: 1px solid #555;
             color: #fff;
             padding: 6px;
-            width: 200px;
+            width: 300px;
+            height: 50px;
         }
 
         .gauge-row {
@@ -172,9 +231,10 @@
         }
 
         #control-buttons {
-            position: absolute; /* 保持绝对定位 */
+            /* 位置:绝对定位,水平居中,离底部20px */
+            position: absolute;
+            justify-content: center; /* 水平居中按钮组 */
             bottom: 20px;
-            right: 0; /* 设置右边距离为 0，确保其靠右 */
             display: flex;
             flex-direction: row; /* 横向排列按钮 */
             gap: 12px;
@@ -184,8 +244,6 @@
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
             z-index: 1000;
             width: auto; /* 自适应宽度 */
-            justify-content: center; /* 水平居中按钮组 */
-            margin-right: 80px; /* 为了确保按钮组距离右边框20px */
         }
 
         #control-buttons button {
@@ -236,28 +294,30 @@
             }
         });
     </script>
+    <style>
+    .alert-text {
+        padding: 5px 10px;
+        border: 1px solid #c59393;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;  /* 关键：保留换行 */
+        background-color: #c32222;
+    }
+    </style>
+
 </head>
+
 <body>
-    <!-- 左侧动态仪表盘 -->
+    <!-- 左侧仪表盘 -->
     <div class="dashboard">
         <div class="alert-box">
             <div class="alert-light"></div>
             <input type="text" placeholder="警告信息">
         </div>
 
-        <div class="gauge-row">
-            <div class="gauge-container">
-                <canvas id="speedGauge" width="160" height="160"></canvas>
-                <p>速度</p>
-            </div>
-            <div class="gauge-container">
-                <canvas id="rpmGauge" width="160" height="160"></canvas>
-                <p>转速</p>
-            </div>
-        </div>
-        <div class="gauge-container">
-            <canvas id="fuelGauge" width="160" height="160"></canvas>
-            <p>油量</p>
+        <div class="alert-image">
+            <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
         </div>
     </div>
 
@@ -287,58 +347,23 @@
                 }
             }
         </script>
-        
-        <!-- <h2>个性化配置</h2>
-        <div style="width: 100%;">
-
-            <div style="margin-bottom: 30px;">
-                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
-                {% for text, options in text_list.items() %}
-                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="flex: 1; color: #ccc;">{{ text }}</span>
-                    <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
-                        {% for option in options %}
-                            <option value="{{ option }}">{{ option }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div>
-                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
-                {% for gesture, options in gesture_data.items() %}
-                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
-                    <select style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
-                        {% for option in options %}
-                            <option value="{{ option }}">{{ option }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endfor %}
-            </div>
-
-        </div> -->
         <h2>个性化配置</h2>
         <div style="width: 100%;"> 
 
             <!-- 语音功能 -->
             <div style="margin-bottom: 30px;">
-                <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
-                {% for text, options in text_list.items() %}
-                <div style="margin: 10px 0;">
-                    <label style="color: #ccc;">{{ text }}</label>
-                    <div style="display: flex; gap: 10px; margin-top: 5px;">
-                        <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
-                            style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
-                        <button type="button" onclick="submitVoiceText({{ loop.index }})" 
-                            style="padding: 6px 12px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">确认</button>
-                    </div>
-                    <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
-                </div>
-                {% endfor %}
+            <h3 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
+            {% for text, options in text_list.items() %}
+            <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
+                <label style="color: #ccc; white-space: nowrap; width: 150px;">{{ text }}</label>
+                <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
+                style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
             </div>
+            <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
+            {% endfor %}
+            </div>
+
+
 
             <!-- 手势功能 -->
             <div>
@@ -356,16 +381,19 @@
             </div>
 
             <!-- 保存按钮 -->
-            <div style="margin-top: 20px;">
+            
+            <div style="margin-top: 60px; position: relative; width: 100%;">
                 <button type="button" onclick="saveConfig()" 
-                    style="padding: 8px 16px; background-color: #0ff; color: #000; border: none; border-radius: 5px;">
-                    保存配置
+                    style="padding: 8px 16px; background-color: #0ff; color: #000; border: none; border-radius: 8px; position: absolute; right: 22vw;">
+                    保存全部配置
                 </button>
             </div>
 
         </div>
 
         <script>
+            document.querySelector('.alert-text').innerHTML = "警\n告信息".replace(/\n/g, "<br>");
+
             function submitVoiceText(index) {
                 const input = document.getElementById(`voice_input_${index}`).value.trim();
                 const resultDiv = document.getElementById(`voice_result_${index}`);
@@ -412,48 +440,19 @@
             }
         </script>
 
-        <!-- 控制按钮区 -->
+        <!-- 跳转按钮区 -->
         <div id="control-buttons">
             <button onclick="handleAction('music')">音乐</button>
             <button onclick="handleAction('navigation')">导航</button>
             <button onclick="handleAction('status')">车辆状态监测</button>
             <button onclick="handleAction('config')">个性化配置</button>
             <button onclick="handleAction('settings')">权限设置</button>
+            <button onclick="handleAction('')">退出</button>
         </div>
     </div>
 
     <script>
-
-        function createGauge(ctx, label, color) {
-            return new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: [label, '剩余'],
-                    datasets: [{
-                        data: [50, 50],
-                        backgroundColor: [color, '#333'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    rotation: -90,
-                    circumference: 180,
-                    cutout: '70%',
-                    plugins: {
-                        tooltip: { enabled: false },
-                        legend: { display: false }
-                    }
-                },
-                plugins: ['gaugeTicks']
-            });
-        }
-
-        const speedChart = createGauge(document.getElementById('speedGauge'), '速度', '#0ff');
-        const rpmChart = createGauge(document.getElementById('rpmGauge'), '转速', '#0f0');
-        const fuelChart = createGauge(document.getElementById('fuelGauge'), '油量', '#f00');
-        function handleAction(action) {
-            window.location.href = '/' + action;
-        }
+        function handleAction(action) { window.location.href = '/' + action; }
 
         setInterval(() => {
             const updateValue = (chart) => {

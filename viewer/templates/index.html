@@ -9,69 +9,58 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.action) {
-                        console.log("🎯 检测到动作:", data.action);
-                        console.log("🚀 正在跳转到: /" + data.action);
+                        console.log("检测到动作:", data.action);
+                        console.log("正在跳转到: /" + data.action);
                         window.location.href = '/' + data.action;
                     }
                 })
                 .catch(error => console.error('❌ 轮询错误:', error));
         }
-    
         setInterval(pollAction, 2000);  // 每 2 秒轮询一次
     </script>
+
     <script>
         function updateAlertBox(message) {
             const inputBox = document.querySelector('.alert-box input[type="text"]');
-            if (inputBox) {
-                inputBox.value = message;
-            }
+            if (inputBox) { inputBox.value = message; }
         }
 
         function fetchAndUpdateString() {
             fetch('/get_latest_message')
                 .then(response => response.json())
-                .then(data => {
-                    updateAlertBox(data.updated_message);
-                })
-                .catch(error => {
-                    console.error('请求失败:', error);
-                });
+                .then(data => { updateAlertBox(data.updated_message); })
+                .catch(error => { console.error('请求失败:', error); });
         }
 
-        // window.onload = () => {
-        //     fetchAndUpdateString(); // 初始加载
-        //     setInterval(fetchAndUpdateString, 2000);  // 每 2 秒轮询
-        // };
         window.onload = () => {
             fetchAndUpdateString();
             checkBlinking();
             setInterval(fetchAndUpdateString, 2000);
             setInterval(checkBlinking, 2000);
         };
-
     </script>
+
     <script>
         function checkBlinking() {
             fetch('/get_blinking')
-                .then(response => response.json())
-                .then(data => {
-                    const alertLight = document.querySelector('.alert-light');
+            .then(response => response.json())
+            .then(data => {
+                const alertLight = document.querySelector('.alert-light');
+                const blinkingStatus = data.blinking; // 假设后端返回 blinking: 'green' 或 'red' 或 boolean（需根据实际接口调整）
 
-                    if (data.blinking) {
-                        alertLight.classList.remove('steady');
-                        alertLight.classList.add('blinking');
-                    } else {
-                        alertLight.classList.remove('blinking');
-                        alertLight.classList.add('steady');
-                    }
-                })
-                .catch(err => console.error('获取闪烁状态失败:', err));
+                // 清除所有现有类
+                alertLight.classList.remove('blinking', 'steady', 'green-blinking');
+
+                if (blinkingStatus === 'green') { // 绿色闪烁（新增状态）
+                    alertLight.classList.add('green-blinking');
+                } else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁（原逻辑）
+                    alertLight.classList.add('blinking');
+                } else { // 常亮（绿色）
+                    alertLight.classList.add('steady');
+                }
+            })
+            .catch(err => console.error('获取闪烁状态失败:', err));
         }
-
-        // 初始化检查闪烁状态
-        // window.onload = checkBlinking;
-        // setInterval(checkBlinking, 2000); // 每 2 秒检查状态
-
     </script>
     
     
@@ -87,7 +76,7 @@
 
         .dashboard {
             width: 50%;
-            background-color: #1e1e1e;
+            background-color: #000000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -95,36 +84,43 @@
             border-right: 2px solid #333;
             padding: 20px 0;
         }
-    .alert-light {
-        width: 30px;
-        height: 30px;
-        position: absolute; /* 绝对定位 */
-        top: 20px; /* 距离容器顶部10px */
-        left: 390px; /* 距离容器左侧10px */
-        border-radius: 50%;
-        margin-right: 10px;
-    }
+    /* 容器横向排列：灯 + 文本框 */
+        .alert-box {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: 20px;
+        }
 
-    /* 闪烁状态：红色 */
-    .alert-light.blinking {
-        background-color: red;
-        box-shadow: 0 0 10px red;
-        animation: blink 1s infinite;
-    }
+        /* 灯泡样式 */
+        .alert-light {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            margin-right: 20px;
+        }
 
-    /* 不闪烁状态：绿色 */
-    .alert-light.steady {
-        background-color: rgb(0, 255, 0);
-        box-shadow: 0 0 10px rgb(0, 255, 0);
-    }
+        /* 闪烁状态 */
+        .alert-light.blinking {
+            background-color: red;
+            box-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
 
-    @keyframes blink {
-        0% { opacity: 1; }
-        50% { opacity: 0.2; }
-        100% { opacity: 1; }
-    }
+        /* 常亮状态 */
+        .alert-light.steady {
+            background-color: rgb(0, 255, 0);
+            box-shadow: 0 0 10px rgb(0, 255, 0);
+        }
 
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
 
+        /* 提示框样式 */
         .alert-box input[type="text"] {
             background-color: #222;
             border: 1px solid #555;
@@ -132,9 +128,6 @@
             padding: 6px;
             width: 300px;
             height: 50px;
-            position: absolute; /* 绝对定位 */
-            left: 260px; /* 距离容器左侧10px */
-            top: 60px; /* 距离容器顶部10px */
         }
 
         .gauge-row {
@@ -160,6 +153,13 @@
             flex-direction: column;
             align-items: center;
             
+        }
+
+        h1 {
+            color: #0ff;
+            padding-bottom: 10px;
+            width: 100%;
+            text-align: center;
         }
 
         h2 {
@@ -240,9 +240,10 @@
         }
 
         #control-buttons {
-            position: absolute; /* 保持绝对定位 */
+            /* 位置:绝对定位,水平居中,离底部20px */
+            position: absolute;
+            justify-content: center; /* 水平居中按钮组 */
             bottom: 20px;
-            right: 0; /* 设置右边距离为 0，确保其靠右 */
             display: flex;
             flex-direction: row; /* 横向排列按钮 */
             gap: 12px;
@@ -252,8 +253,6 @@
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
             z-index: 1000;
             width: auto; /* 自适应宽度 */
-            justify-content: center; /* 水平居中按钮组 */
-            margin-right: 80px; /* 为了确保按钮组距离右边框20px */
         }
 
         #control-buttons button {
@@ -270,7 +269,39 @@
         #control-buttons button:hover {
             background-color: #00c6c6;
         }
+        /* 绿色闪烁状态 */
+        .alert-light.green-blinking {
+            background-color: green;
+            box-shadow: 0 0 10px green;
+            animation: green-blink 1s infinite; /* 引用新动画 */
+        }
 
+        /* 绿色闪烁动画定义 */
+        @keyframes green-blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        .name-grid {
+            display: flex;
+            justify-content: center;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        .name-column {
+            flex: 0 0 auto;
+            width: 150px;
+            padding: 10px 20px;
+            box-sizing: border-box;
+        }
+
+        .name-item {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 25px;
+        }
     </style>
 
     <!-- 引入 Chart.js CDN -->
@@ -306,26 +337,14 @@
     </script>
 </head>
 <body>
-    <!-- 左侧动态仪表盘 -->
+    <!-- 左侧仪表盘 -->
     <div class="dashboard">
         <div class="alert-box">
             <div class="alert-light"></div>
             <input type="text" placeholder="警告信息">
         </div>
-
-        <div class="gauge-row">
-            <div class="gauge-container">
-                <canvas id="speedGauge" width="160" height="160"></canvas>
-                <p>速度</p>
-            </div>
-            <div class="gauge-container">
-                <canvas id="rpmGauge" width="160" height="160"></canvas>
-                <p>转速</p>
-            </div>
-        </div>
-        <div class="gauge-container">
-            <canvas id="fuelGauge" width="160" height="160"></canvas>
-            <p>油量</p>
+        <div class="alert-image">
+            <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
         </div>
     </div>
 
@@ -356,74 +375,37 @@
             }
         </script>
         
-        <h2>索引页</h2>
-        <h3>播放列表</h3>
-        <div class="music-player" style="width: 100%; margin-bottom: 20px;">
-            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
-                {% for music_item in music_info %}
-                    <button onclick="playMusic('{{ music_item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
-                        {{ music_item }}
-                    </button>
-                {% endfor %}
+        <h1>车载多模态智能交互系统</h1>
+        <div class="alert-image">
+            <img style="width: 200px; height: 200px;" src="{{ url_for('static', filename='image/logo.jpg') }}" alt="校徽" id="alert-image">
+        </div>
+
+        <div class="name-grid">
+            <div class="name-column">
+                <div class="name-item">林逸典</div>
+                <div class="name-item">姜宇</div>
+                <div class="name-item">郭笑语</div>
+                <div class="name-item">何畅</div>
             </div>
-            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
+            <div class="name-column">
+                <div class="name-item">唐显达</div>
+                <div class="name-item">刘芳宜</div>
+                <div class="name-item">王禹衡</div>
+                <div class="name-item">董珺</div>
             </div>
         </div>
-        
-        
-        <script>
-        function handleMusic(action) {
-            if (action === 'next') {
-                fetch('/pause_music', {
-                    method: 'POST'
-                }).catch(error => {
-                    console.error('暂停/继续失败:', error);
-                });
-            }
-        }
-
-        </script>
-        
-        <!-- 控制按钮区 -->
+        <!-- 跳转按钮区 -->
         <div id="control-buttons">
             <button onclick="handleAction('music')">音乐</button>
             <button onclick="handleAction('navigation')">导航</button>
             <button onclick="handleAction('status')">车辆状态监测</button>
             <button onclick="handleAction('config')">个性化配置</button>
             <button onclick="handleAction('settings')">权限设置</button>
+            <button onclick="handleAction('')">退出</button>
         </div>
     </div>
 
     <script>
-
-        function createGauge(ctx, label, color) {
-            return new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: [label, '剩余'],
-                    datasets: [{
-                        data: [50, 50],
-                        backgroundColor: [color, '#333'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    rotation: -90,
-                    circumference: 180,
-                    cutout: '70%',
-                    plugins: {
-                        tooltip: { enabled: false },
-                        legend: { display: false }
-                    }
-                },
-                plugins: ['gaugeTicks']
-            });
-        }
-
-        const speedChart = createGauge(document.getElementById('speedGauge'), '速度', '#0ff');
-        const rpmChart = createGauge(document.getElementById('rpmGauge'), '转速', '#0f0');
-        const fuelChart = createGauge(document.getElementById('fuelGauge'), '油量', '#f00');
         function handleAction(action) {
             window.location.href = '/' + action;
         }

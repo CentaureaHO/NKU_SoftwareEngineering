@@ -37,11 +37,53 @@ class MultimodalController:
         #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
         #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
-        self.init_speecher()
+        #self.init_speecher()
         #self.init_headpose()
         #self.init_static_gesture()
-        self.init_viewer()
-        #self.work_flag = True
+        #self.init_viewer()
+        self.init_gazer()
+
+    def init_gazer(self) -> None:
+        parser = argparse.ArgumentParser(description='视线方向跟踪演示')
+        parser.add_argument('--camera', type=int, default=0, help='摄像头设备ID (默认: 0)')
+        parser.add_argument('--width', type=int, default=640, help='摄像头图像宽度 (默认: 640)')
+        parser.add_argument('--height', type=int, default=480, help='摄像头图像高度 (默认: 480)')
+        parser.add_argument('--min-detection-confidence', type=float, default=0.5, help='检测置信度阈值 (默认: 0.5)')
+        parser.add_argument('--min-tracking-confidence', type=float, default=0.5, help='跟踪置信度阈值 (默认: 0.5)')
+        parser.add_argument('--min-consensus', type=int, default=6, help='达成共识所需的最小样本数 (默认: 6)')
+        parser.add_argument('--video', type=str, default='', help='使用视频文件而不是摄像头')
+        parser.add_argument('--record', type=str, default='', help='录制结果到视频文件')
+        parser.add_argument('--debug', action='store_true', help='开启调试模式')
+
+        args = parser.parse_args()
+        if args.debug:
+            os.environ['MODALITY_DEBUG'] = '1'
+        else:
+            os.environ['MODALITY_DEBUG'] = '0'
+
+        source = args.video if args.video else args.camera
+    
+        from Modality.visual import GazeDirectionTracker
+
+        gaze_tracker = GazeDirectionTracker(
+            name="gaze_direction_tracker",
+            source=source,
+            width=args.width,
+            height=args.height,
+            min_detection_confidence=args.min_detection_confidence,
+            min_tracking_confidence=args.min_tracking_confidence,
+            debug=args.debug
+        )
+
+        result = self.manager.register_modality(gaze_tracker)
+        if result != SUCCESS:
+            print(f"错误: 注册视线方向跟踪器失败，错误码: {result}")
+            return
+    
+        result = self.manager.start_modality("gaze_direction_tracker")
+        if result != SUCCESS:
+            print(f"错误: 启动视线方向跟踪器失败，错误码: {result}")
+            return
 
     def init_viewer(self) -> None:
         flask_thread = threading.Thread(target=init_viewer)
@@ -246,10 +288,12 @@ class MultimodalController:
                     elif name == "static_gesture_tracker":
                         print(f"手势识别结果: {key_info}")
                         individuation.gesture_individuation(key_info)
+                    elif name == "gaze_direction_tracker":
+                        print(f"视线方向识别结果: {key_info}")
                     else:
                         assert False, f"未知模态: {name}"
 
-                    time.sleep(5)
+                    time.sleep(1)
             #self.work_flag = True
         except KeyboardInterrupt:
             print("\n检测到终止信号")
@@ -259,7 +303,7 @@ class MultimodalController:
             print("系统已关闭")
 
 controller = MultimodalController()
-setting = Setting(controller.speech_modality)
+#setting = Setting(controller.speech_modality)
 
 if __name__ == '__main__':
     # while True:

@@ -1,11 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#_author = 'Fangyi Liu'
+
+"""
+实现后端和后端路由控制
+"""
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
 import sys
-# sys.path.append(r'..')
-# sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.18.16.30')
+sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.19.14.00')
+#sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 from applications.application import Application
 from individuation import individuation
+
 viewer = Flask(__name__)
 
 # 渲染索引页
@@ -169,7 +176,7 @@ def init_viewer():
 
 
 
-blinking_enabled = True  # 默认开启闪烁
+blinking_enabled = False  # 默认开启闪烁
 
 @viewer.route('/set_blinking', methods=['POST'])
 def set_blinking():
@@ -183,6 +190,7 @@ def set_blinking():
 def get_blinking():
     global blinking_enabled
     return jsonify({'blinking': blinking_enabled})
+
 # Flask 后端
 latest_message = "默认警告信息"
 
