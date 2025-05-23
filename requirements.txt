@@ -1,0 +1,14 @@
+numpy==1.26.4
+mediapipe==0.10.21
+opencv-contrib-python==4.11.0.86
+tensorflow==2.19.0
+scikit-learn==1.5.1
+pyaudio==0.2.14
+webrtcvad==2.0.10
+pypinyin==0.54.0
+funasr==1.2.6
+pygame==2.6.1
+soundfile==0.13.1
+thinc==8.3.4
+spacy==3.8.5
+kokoro>=0.9.4

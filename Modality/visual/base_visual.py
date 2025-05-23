@@ -89,23 +89,35 @@ class BaseVisualModality(BaseModality):
             Optional[VisualState]: 处理后的视觉状态
         """
         if not self._is_running or self.capture is None:
+            logging.error(f"视频源未运行或未初始化 - is_running: {self._is_running}, capture: {self.capture is not None}")
             return None
         
-        ret, frame = self.capture.read()
-        
-        if not ret and self.is_file_source and self.loop_video:
-            self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        try:
             ret, frame = self.capture.read()
-        
-        if not ret:
+            
+            if not ret:
+                if self.is_file_source:
+                    if self.loop_video:
+                        logging.info("视频文件已结束，正在循环播放")
+                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        ret, frame = self.capture.read()
+                    else:
+                        logging.info("视频文件已结束，不循环播放")
+                
+                if not ret:
+                    logging.error("无法读取视频帧")
+                    return None
+            
+            self.last_frame = frame
+            
+            state = self._process_frame(frame)
+            self._last_state = state
+            
+            return state
+            
+        except Exception as e:
+            logging.error(f"读取视频帧时出错: {str(e)}")
             return None
-        
-        self.last_frame = frame
-        
-        state = self._process_frame(frame)
-        self._last_state = state
-        
-        return state
     
     def _process_frame(self, frame: np.ndarray) -> VisualState:
         """

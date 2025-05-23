@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>车载多模态系统</title>
+    <script>
+        function pollAction() {
+            fetch('/get_action')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.action) {
+                        console.log("🎯 检测到动作:", data.action);
+                        console.log("🚀 正在跳转到: /" + data.action);
+                        window.location.href = '/' + data.action;
+                    }
+                })
+                .catch(error => console.error('❌ 轮询错误:', error));
+        }
+        setInterval(pollAction, 2000);  // 每 2 秒轮询一次
+    </script>
+
+    <script>
+        function updateAlertBox(message) {
+            const inputBox = document.querySelector('.alert-box input[type="text"]');
+            if (inputBox) { inputBox.value = message; }
+        }
+
+        function fetchAndUpdateString() {
+            fetch('/get_latest_message')
+                .then(response => response.json())
+                .then(data => { updateAlertBox(data.updated_message); })
+                .catch(error => { console.error('请求失败:', error); });
+        }
+
+        window.onload = () => {
+            fetchAndUpdateString();
+            checkBlinking();
+            setInterval(fetchAndUpdateString, 2000);
+            setInterval(checkBlinking, 2000);
+        };
+    </script>
+    
+    <script>
+        function checkBlinking() {
+            fetch('/get_blinking')
+            .then(response => response.json())
+            .then(data => {
+                const alertLight = document.querySelector('.alert-light');
+                const blinkingStatus = data.blinking; // 假设后端返回 blinking: 'green' 或 'red' 或 boolean（需根据实际接口调整）
+
+                // 清除所有现有类
+                alertLight.classList.remove('blinking', 'steady', 'green-blinking');
+
+                if (blinkingStatus === 'green') { // 绿色闪烁（新增状态）
+                    alertLight.classList.add('green-blinking');
+                } else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁（原逻辑）
+                    alertLight.classList.add('blinking');
+                } else { // 常亮（绿色）
+                    alertLight.classList.add('steady');
+                }
+            })
+            .catch(err => console.error('获取闪烁状态失败:', err));
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            height: 100vh;
+        }
+
+        .dashboard {
+            width: 50%;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-right: 2px solid #333;
+            padding: 20px 0;
+        }
+
+    /* 容器横向排列：灯 + 文本框 */
+        .alert-box {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        /* 灯泡样式 */
+        .alert-light {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            margin-right: 20px;
+        }
+
+        /* 闪烁状态 */
+        .alert-light.blinking {
+            background-color: red;
+            box-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
+
+        /* 常亮状态 */
+        .alert-light.steady {
+            background-color: rgb(0, 255, 0);
+            box-shadow: 0 0 10px rgb(0, 255, 0);
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        /* 提示框样式 */
+        .alert-box input[type="text"] {
+            background-color: #222;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px;
+            width: 300px;
+            height: 50px;
+        }
+
+        .gauge-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .gauge-container {
+            margin: 0 15px;
+            text-align: center;
+        }
+
+        .controls {
+            width: 50%;
+            padding: 40px;
+            background-color: #181818;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            
+        }
+
+        h2 {
+            color: #0ff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            width: 100%;
+        }
+
+        form {
+            margin-bottom: 30px;
+            width: 100%;
+            text-align: center;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            background-color: #222;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px;
+            margin-bottom: 8px;
+            width: 80%;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 6px 12px;
+            background-color: #0ff;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #00c6c6;
+        }
+
+        canvas {
+            margin: 15px 0;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        #fusion-result {
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        /* 图像展示区域 */
+        #image-display {
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000; /* 黑色背景 */
+            border-radius: 10px;
+            box-shadow: 0 0 10px #333;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #image-display img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #0ff;
+        }
+
+        #placeholder-text {
+            position: absolute;
+            color: #888;
+            font-size: 18px;
+        }
+
+        #control-buttons {
+            /* 位置:绝对定位,水平居中,离底部20px */
+            position: absolute;
+            justify-content: center; /* 水平居中按钮组 */
+            bottom: 20px;
+            display: flex;
+            flex-direction: row; /* 横向排列按钮 */
+            gap: 12px;
+            background-color: rgba(24, 24, 24, 0.9);
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            z-index: 1000;
+            width: auto; /* 自适应宽度 */
+        }
+
+        #control-buttons button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #0ff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #control-buttons button:hover {
+            background-color: #00c6c6;
+        }
+
+    </style>
+    <style>
+        .alert-text {
+            padding: 5px 10px;
+            border: 1px solid #c59393;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;  /* 关键：保留换行 */
+            background-color: #c32222;
+        }
+    </style>
+    <!-- 引入 Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        Chart.register({
+            id: 'gaugeTicks',
+            beforeDraw(chart) {
+                const {ctx, chartArea} = chart;
+                const dataset = chart.data.datasets[0];
+                const angleStep = Math.PI / 10;
+                const radius = (chart.outerRadius + chart.innerRadius) / 2;
+                const cx = chartArea.left + chart.width / 2;
+                const cy = chartArea.top + chart.height;
+
+                ctx.save();
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 2;
+                for (let i = 0; i <= 10; i++) {
+                    const angle = Math.PI + i * angleStep;
+                    const x1 = cx + Math.cos(angle) * (radius - 10);
+                    const y1 = cy + Math.sin(angle) * (radius - 10);
+                    const x2 = cx + Math.cos(angle) * (radius + 10);
+                    const y2 = cy + Math.sin(angle) * (radius + 10);
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- 左侧动态仪表盘 -->
+    <div class="dashboard">
+        <div class="alert-box">
+            <div class="alert-light"></div>
+            <input type="text" placeholder="警告信息">
+        </div>
+        <div class="alert-image">
+            <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
+        </div>
+    </div>
+
+    <!-- 右侧控制功能区 -->
+    <div class="controls">
+    
+        <script>
+            function navigate(name) {
+                fetch('/call_navigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name : name })
+                })    .then(response => response.text()) // 将响应转换为文本
+                .then(text => {
+                    console.log(text);
+                    updateRouteImage(text);
+                })
+                .catch(error => {
+                    console.error('导航失败:', error);
+                });
+            }
+        </script>
+        
+        <h2>导航</h2>
+        <h3>导航列表</h3>
+        <div class="music-player" style="width: 100%; margin-bottom: 20px;">
+            <div id="music-info" style="width: 100%; background-color: #222; color: #fff; border: 1px solid #555; padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
+                {% for item in info %}
+                    <button onclick="navigate('{{ item }}')" style="background-color: #444; color: #fff; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
+                        {{ item }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 添加导航路线图片 -->
+        <div style="width: 50%; background-color: #222; border: 1px solid #555; padding: 10px; border-radius: 5px;">
+            <img id="route-image" src=""
+                alt="导航路线图" 
+                style="width: 100%; height: 250px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);">
+        </div>
+
+        <script>
+            // 页面加载完成后设置初始图片
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('route-image').src = currentRoutePath;
+            });
+        </script>
+
+        <!-- 在scripts部分的开头添加一个变量 -->
+        <script>
+            // 定义一个变量来存储当前显示的导航图片路径
+            let currentRoutePath = "static/None.jpg";
+            
+            function navigate(name) {
+                fetch('/call_navigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name : name })
+                })
+                .then(response => response.text())
+                .then(text => {
+                    console.log(text);
+                    
+                    // 更新导航图片路径
+                    updateRouteImage(name);
+                })
+                .catch(error => {
+                    console.error('导航失败:', error);
+                });
+            }
+            
+            // 添加一个更新图片的函数
+            function updateRouteImage(routeName) {
+                // 根据路线名称构建图片路径
+                currentRoutePath = "static/" + routeName + ".jpg";
+                
+                // 更新图片元素的src属性
+                document.getElementById('route-image').src = currentRoutePath;
+                
+                // 添加错误处理逻辑
+                document.getElementById('route-image').onerror = function() {
+                    // 创建一个包含错误提示的图像
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 600;
+                    canvas.height = 400;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 绘制白色背景
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 添加错误提示文字
+                    ctx.fillStyle = '#ff0000';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('无法加载导航路线图片', canvas.width/2, canvas.height/2 - 20);
+                    ctx.font = '18px Arial';
+                    ctx.fillText('请检查路线名称或网络连接', canvas.width/2, canvas.height/2 + 20);
+                    
+                    // 将Canvas转换为图像
+                    this.src = canvas.toDataURL('image/png');
+                    
+                    console.warn('导航图片加载失败，显示错误提示');
+                };
+            }
+        </script>
+
+        <script>
+        function handleMusic(action) {
+            if (action === 'next') {
+                fetch('/pause_music', {
+                    method: 'POST'
+                }).catch(error => {
+                    console.error('暂停/继续失败:', error);
+                });
+            }
+        }
+        </script>
+
+
+        <!-- 跳转按钮区 -->
+        <div id="control-buttons">
+            <button onclick="handleAction('music')">音乐</button>
+            <button onclick="handleAction('navigation')">导航</button>
+            <button onclick="handleAction('status')">车辆状态监测</button>
+            <button onclick="handleAction('config')">个性化配置</button>
+            <button onclick="handleAction('settings')">权限设置</button>
+            <button onclick="handleAction('')">退出</button>
+        </div>
+    </div>
+
+    <script>
+        function handleAction(action) { window.location.href = '/' + action; }
+
+        setInterval(() => {
+            const updateValue = (chart) => {
+                const val = Math.floor(Math.random() * 100);
+                chart.data.datasets[0].data[0] = val;
+                chart.data.datasets[0].data[1] = 100 - val;
+                chart.update();
+            };
+            updateValue(speedChart);
+            updateValue(rpmChart);
+            updateValue(fuelChart);
+        }, 2000);
+
+        function submitFusion() {
+            const voice = document.getElementById('voiceText').value;
+            const vision = document.getElementById('visionText').value;
+            fetch('/fusion/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: voice, vision: vision })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('fusion-result').innerText = '融合结果：' + data.decision;
+            })
+            .catch(() => {
+                document.getElementById('fusion-result').innerText = '融合失败，请检查后端接口';
+            });
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview-image').src = e.target.result;
+                document.getElementById('placeholder-text').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+    </script>
+</body>
+</html>
