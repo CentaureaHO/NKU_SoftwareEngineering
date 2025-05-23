@@ -240,7 +240,7 @@
             background-color: rgba(24, 24, 24, 0.9);
             padding: 12px 20px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 242, 0.046);
             z-index: 1000;
             width: auto; /* 自适应宽度 */
         }
@@ -303,6 +303,62 @@
             }
         });
     </script>
+    <style>
+        /* Adjusted canvas style to only affect gauges */
+        .gauge-container canvas {
+            margin: 15px 0;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        /* Styles for start and end location input fields */
+        #start-location,
+        #end-location {
+            background-color: #333; /* Darker background */
+            color: #eee; /* Light gray text */
+            border: 1px solid #555;
+        }
+
+        /* Styles for dropdown menu */
+        .amap-sug-result {
+            background-color: #444 !important;
+            border: 1px solid #666 !important;
+            color: #eee !important;
+        }
+
+        .amap-sug-item {
+            background-color: #444 !important;
+            color: #eee !important;
+            border-bottom: 1px solid #666 !important;
+        }
+
+        .amap-sug-item:hover {
+            background-color: rgba(85, 85, 85, 0.7) !important;
+        }
+
+        .amap-sug-item.amap-sug-item-selected {
+            background-color: rgba(85, 85, 85, 0.7) !important;
+        }
+
+        /* 新增：直接针对高德地图的下拉菜单样式 */
+        .amap-sug-result .amap-sug-item {
+            background-color: #444 !important;
+            color: #eee !important;
+        }
+
+        .amap-sug-result .amap-sug-item:hover,
+        .amap-sug-result .amap-sug-item.amap-sug-item-selected {
+            background-color: rgba(85, 85, 85, 0.7) !important;
+        }
+
+        /* 新增：确保下拉菜单容器样式 */
+        .amap-sug-result {
+            background-color: #444 !important;
+            border: 1px solid #666 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        }
+
+    </style>
     <script src="https://webapi.amap.com/loader.js"></script> <!-- Add Amap API Loader -->
     <script>
         window._AMapSecurityConfig = {
