@@ -303,6 +303,12 @@
             }
         });
     </script>
+    <script src="https://webapi.amap.com/loader.js"></script> <!-- Add Amap API Loader -->
+    <script>
+        window._AMapSecurityConfig = {
+            securityJsCode: 'cda7d0c4de555f21cf0eae4c7481ab89', // Your security key
+        }
+    </script>
 </head>
 <body>
     <!-- 左侧动态仪表盘 -->
@@ -320,20 +326,121 @@
     <div class="controls">
     
         <script>
+            // 定义一个变量来存储地图实例
+            let map = null;
+            let driving = null; // Variable to hold the Driving plugin instance
+
             function navigate(name) {
+                // This function will now handle navigation from input fields
+                // The navigation list buttons can be modified to populate the input fields
+            }
+
+            function searchAndNavigate() {
+                const startLocation = document.getElementById('start-location').value;
+                const endLocation = document.getElementById('end-location').value;
+
+                if (!startLocation || !endLocation) {
+                    console.warn('请填写出发地和目的地');
+                    return;
+                }
+
+                if (!map) {
+                    console.error('地图未初始化');
+                    return;
+                }
+
+                // Clear previous route if any
+                if (driving) {
+                    driving.clear();
+                }
+
                 fetch('/call_navigate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name : name })
-                })    .then(response => response.text()) // 将响应转换为文本
-                .then(text => {
-                    console.log(text);
-                    updateRouteImage(text);
+                    body: JSON.stringify({ start: startLocation, end: endLocation })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('后端返回的路线数据:', data);
+
+                    if (data.route && data.route.paths && data.route.paths.length > 0) {
+                        // Use Amap Driving plugin to display the route
+                         if (!driving) {
+                            // Initialize Driving plugin if not already done
+                            AMap.plugin('AMap.Driving', function () {
+                                driving = new AMap.Driving({
+                                    map: map,
+                                    panel: 'panel' // 可以添加一个div来显示文字导航详情
+                                });
+                                // 搜索并显示路线
+                                driving.search([
+                                    {keyword: startLocation, city: '全国'}, // Using keyword search
+                                    {keyword: endLocation, city: '全国'}
+                                ], function(status, result) {
+                                    if (status === 'complete' && result.routes) {
+                                        console.log('🚗 路线规划完成');
+                                        // The plugin automatically draws the route
+                                    } else {
+                                        console.error('❌ 路线规划失败:', result);
+                                        alert('路线规划失败：' + result);
+                                    }
+                                });
+                            });
+                        } else {
+                             // If plugin is already initialized, just search
+                             driving.search([
+                                {keyword: startLocation, city: '全国'},
+                                {keyword: endLocation, city: '全国'}
+                            ], function(status, result) {
+                                if (status === 'complete' && result.routes) {
+                                    console.log('🚗 路线规划完成');
+                                    // The plugin automatically draws the route
+                                } else {
+                                    console.error('❌ 路线规划失败:', result);
+                                     alert('路线规划失败：' + result);
+                                }
+                            });
+                        }
+
+                    } else {
+                        console.error('后端未返回有效的路线数据或路线不存在');
+                        alert('未找到导航路线，请检查地点名称是否正确。');
+                    }
                 })
                 .catch(error => {
-                    console.error('导航失败:', error);
+                    console.error('请求后端失败:', error);
+                    alert('请求导航失败，请检查网络或后端服务。');
                 });
             }
+
+            // Initialize the map when the Amap API is loaded
+            AMapLoader.load({
+                key: "2c8fcb2c866c5d8273625885aaad9255", // Your Key
+                version: "2.0",
+                plugins: ['AMap.Driving', 'AMap.AutoComplete'] // Required plugins
+            }).then((AMap) => {
+                map = new AMap.Map('map-container', {
+                    viewMode: '3D',
+                    zoom: 11,
+                    center: [116.397428, 39.90918] // Default center (e.g., Beijing)
+                });
+                console.log('🗺️ 地图初始化成功');
+
+                // Optional: Add AutoComplete to input fields
+                const autoOptions = { city: '全国', input: "start-location" }; // Bind to start-location input
+                const startAutoComplete = new AMap.AutoComplete(autoOptions);
+                // startAutoComplete.on('select', function (e) { document.getElementById('start-location').value = e.poi.name; }); // Keep select event if needed
+                // startAutoComplete.bindOnInput('start-location'); // REMOVED
+
+                const autoOptionsEnd = { city: '全国', input: "end-location" }; // Bind to end-location input
+                const endAutoComplete = new AMap.AutoComplete(autoOptionsEnd);
+                // endAutoComplete.on('select', function (e) { document.getElementById('end-location').value = e.poi.name; }); // Keep select event if needed
+                // endAutoComplete.bindOnInput('end-location'); // REMOVED
+
+
+            }).catch((e) => {
+                console.error('❌ 地图初始化失败:', e);
+            });
         </script>
         
         <h2>导航</h2>
@@ -348,78 +455,20 @@
             </div>
         </div>
         
-        <!-- 添加导航路线图片 -->
-        <div style="width: 50%; background-color: #222; border: 1px solid #555; padding: 10px; border-radius: 5px;">
-            <img id="route-image" src=""
-                alt="导航路线图" 
-                style="width: 100%; height: 250px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);">
+        <!-- 添加导航路线图片 - Adjusted Size -->
+        <div style="width: 80%; background-color: #222; border: 1px solid #555; padding: 10px; border-radius: 5px; margin-top: 20px;"> <!-- Increased width and added margin -->
+            <div id="map-container" style="width: 100%; height: 400px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);"></div> <!-- Increased height -->
         </div>
 
-        <script>
-            // 页面加载完成后设置初始图片
-            document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('route-image').src = currentRoutePath;
-            });
-        </script>
+        <!-- 添加出发地和目的地输入框及导航按钮 -->
+        <div style="margin-top: 20px; width: 100%; text-align: center;">
+            <input type="text" id="start-location" placeholder="出发地" style="width: 35%; margin-right: 10px;">
+            <input type="text" id="end-location" placeholder="目的地" style="width: 35%;">
+            <button onclick="searchAndNavigate()">搜索导航</button>
+        </div>
 
-        <!-- 在scripts部分的开头添加一个变量 -->
-        <script>
-            // 定义一个变量来存储当前显示的导航图片路径
-            let currentRoutePath = "static/None.jpg";
-            
-            function navigate(name) {
-                fetch('/call_navigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name : name })
-                })
-                .then(response => response.text())
-                .then(text => {
-                    console.log(text);
-                    
-                    // 更新导航图片路径
-                    updateRouteImage(name);
-                })
-                .catch(error => {
-                    console.error('导航失败:', error);
-                });
-            }
-            
-            // 添加一个更新图片的函数
-            function updateRouteImage(routeName) {
-                // 根据路线名称构建图片路径
-                currentRoutePath = "static/" + routeName + ".jpg";
-                
-                // 更新图片元素的src属性
-                document.getElementById('route-image').src = currentRoutePath;
-                
-                // 添加错误处理逻辑
-                document.getElementById('route-image').onerror = function() {
-                    // 创建一个包含错误提示的图像
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 600;
-                    canvas.height = 400;
-                    const ctx = canvas.getContext('2d');
-                    
-                    // 绘制白色背景
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // 添加错误提示文字
-                    ctx.fillStyle = '#ff0000';
-                    ctx.font = 'bold 24px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('无法加载导航路线图片', canvas.width/2, canvas.height/2 - 20);
-                    ctx.font = '18px Arial';
-                    ctx.fillText('请检查路线名称或网络连接', canvas.width/2, canvas.height/2 + 20);
-                    
-                    // 将Canvas转换为图像
-                    this.src = canvas.toDataURL('image/png');
-                    
-                    console.warn('导航图片加载失败，显示错误提示');
-                };
-            }
-        </script>
+        <!-- Optional: Add a div to display text route details -->
+        <div id="panel" style="width: 100%; margin-top: 20px; color: #fff;"></div>
 
         <script>
         function handleMusic(action) {

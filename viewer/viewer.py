@@ -12,8 +12,40 @@ sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.19.14.00')
 #sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 from applications.application import Application
 from individuation import individuation
+import json
+import os
+import time
+import requests # Import the requests library
 
 viewer = Flask(__name__)
+
+# Your Amap Web Service API Key
+# Make sure this Key has permissions for Geocoding and Driving Route Planning
+AMAP_WEB_SERVICE_KEY = "3479b328113102a27c20e818c3bc143c"
+
+# Base URLs for Amap Web Service APIs
+GEOCODE_API_URL = "https://restapi.amap.com/v3/geocode/geo"
+DRIVING_API_URL = "https://restapi.amap.com/v3/direction/driving"
+
+def get_coords(address):
+    """Helper function to get coordinates from address using Amap Geocoding API."""
+    params = {
+        'address': address,
+        'key': AMAP_WEB_SERVICE_KEY
+    }
+    try:
+        response = requests.get(GEOCODE_API_URL, params=params)
+        response.raise_for_status() # Raise an exception for bad status codes
+        result = response.json()
+        if result and result['status'] == '1' and result['geocodes']:
+            # Return the location string (longitude,latitude)
+            return result['geocodes'][0]['location']
+        else:
+            print(f"Geocoding failed for {address}: {result.get('info', 'Unknown error')}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error calling Geocoding API for {address}: {e}")
+        return None
 
 # 渲染索引页
 @viewer.route('/')
@@ -105,14 +137,46 @@ def pause_music():
 # 导航
 @viewer.route('/call_navigate', methods=['POST'])
 def navigate():
-    print("进行导航")
     data = request.get_json()
-    name = data.get('name')
-    print(f"导航到: {name}")
-    navigation_path = Application.schedule(Application.type.navigation, [name])
-    print(f"导航路径: {navigation_path}")
-    return navigation_path, 204
+    start_location = data.get('start')
+    end_location = data.get('end')
 
+    if not start_location or not end_location:
+        return jsonify({"error": "Please provide start and end locations"}), 400 # Bad Request
+
+    # Get coordinates for start and end locations
+    start_coords = get_coords(start_location)
+    end_coords = get_coords(end_location)
+
+    if not start_coords:
+        return jsonify({"error": f"Could not geocode start location: {start_location}"}), 404
+    if not end_coords:
+        return jsonify({"error": f"Could not geocode end location: {end_location}"}), 404
+
+    # Call Amap Driving Route Planning API
+    driving_params = {
+        'origin': start_coords,
+        'destination': end_coords,
+        'key': AMAP_WEB_SERVICE_KEY,
+        'extensions': 'all' # Request detailed route information
+    }
+
+    try:
+        driving_response = requests.get(DRIVING_API_URL, params=driving_params)
+        driving_response.raise_for_status()
+        driving_result = driving_response.json()
+
+        if driving_result and driving_result['status'] == '1' and driving_result['route']:
+            # Return the route data to the frontend
+            return jsonify(driving_result)
+        else:
+            error_info = driving_result.get('info', 'Unknown route planning error')
+            print(f"Driving route planning failed: {error_info}")
+            return jsonify({"error": f"Driving route planning failed: {error_info}"}), 500 # Internal Server Error
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error calling Driving API: {e}")
+        return jsonify({"error": f"Error calling Driving API: {e}"}), 500
 
 @viewer.route('/save_config', methods=['POST'])
 def save_config():
