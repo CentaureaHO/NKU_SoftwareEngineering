@@ -1,9 +1,16 @@
 import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import asyncio
 import sounddevice as sd
 import numpy as np
 import time
-from tools import speech_synthesize, speech_synthesize_sync
+from utils.tools import speech_synthesize, speech_synthesize_sync
 
 SAMPLE_RATE = 24000
 
