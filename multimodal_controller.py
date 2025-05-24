@@ -37,11 +37,11 @@ class MultimodalController:
         #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
         #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
-        #self.init_speecher()
+        self.init_speecher()
         #self.init_headpose()
         #self.init_static_gesture()
-        #self.init_viewer()
-        self.init_gazer()
+        self.init_viewer()
+        #self.init_gazer()
 
     def init_gazer(self) -> None:
         parser = argparse.ArgumentParser(description='视线方向跟踪演示')
@@ -303,7 +303,7 @@ class MultimodalController:
             print("系统已关闭")
 
 controller = MultimodalController()
-#setting = Setting(controller.speech_modality)
+setting = Setting(controller.speech_modality)
 
 if __name__ == '__main__':
     # while True:

@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>车载多模态系统</title>
+    <title>车载多模态智能交互系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+    
     <script>
         function pollAction() {
             fetch('/get_action')
@@ -65,125 +68,11 @@
     
     
     <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            display: flex;
-            height: 100vh;
-        }
-
-        .dashboard {
-            width: 40%;
-            background-color: #000000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            border-right: 2px solid #333;
-            padding: 20px 0;
-        }
-    /* 容器横向排列：灯 + 文本框 */
-        .alert-box {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        /* 灯泡样式 */
-        .alert-light {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-            margin-right: 20px;
-        }
-
-        /* 闪烁状态 */
-        .alert-light.blinking {
-            background-color: red;
-            box-shadow: 0 0 10px red;
-            animation: blink 1s infinite;
-        }
-
-        /* 常亮状态 */
-        .alert-light.steady {
-            background-color: rgb(0, 255, 0);
-            box-shadow: 0 0 10px rgb(0, 255, 0);
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        }
-
-        /* 提示框样式 */
-        .alert-box input[type="text"] {
-            background-color: #222;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 6px;
-            width: 300px;
-            height: 50px;
-        }
-
-        .gauge-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 140px; /* 增加这个值可以让仪表整体向下 */
-            margin-bottom: 20px;
-            position: relative; /* 不再使用 absolute，避免脱离文档流 */
-        }
-
-        .gauge-container {
-            margin: 0 15px;
-            text-align: center;
-        }
-
-
-        .controls {
-            width: 60%;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* 添加相对定位创建定位上下文 */
-            position: relative;
-            /* 防止内容溢出 */
-            overflow: hidden;
-        }
-
-        /* 创建背景图片层 */
-        .controls::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            background-image: url("{{ url_for('static', filename='image/background4.jpg') }}");
-            background-position: center bottom; /* 图片置于底部 */
-            background-size: cover;
-            opacity: 1; /* 降低不透明度使其不干扰前景内容 */
-            z-index: -1; /* 确保背景在内容之下 */
-        }
-
         h1 {
             color: #0ff;
             padding-bottom: 10px;
             width: 100%;
             text-align: center;
-        }
-
-        h2 {
-            color: #0ff;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-            width: 100%;
         }
 
         form {
@@ -200,21 +89,6 @@
             padding: 6px;
             margin-bottom: 8px;
             width: 80%;
-        }
-
-        button {
-            margin-left: 10px;
-            padding: 6px 12px;
-            background-color: #0ff;
-            border: none;
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background-color: #00c6c6;
         }
 
         canvas {
@@ -256,36 +130,6 @@
             font-size: 18px;
         }
 
-        #control-buttons {
-            /* 位置:绝对定位,水平居中,离底部20px */
-            position: absolute;
-            justify-content: center; /* 水平居中按钮组 */
-            bottom: 20px;
-            display: flex;
-            flex-direction: row; /* 横向排列按钮 */
-            gap: 12px;
-            background-color: rgba(24, 24, 24, 0.9);
-            padding: 12px 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            z-index: 1000;
-            width: auto; /* 自适应宽度 */
-        }
-
-        #control-buttons button {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #0ff;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #control-buttons button:hover {
-            background-color: #00c6c6;
-        }
         /* 绿色闪烁状态 */
         .alert-light.green-blinking {
             background-color: green;
@@ -318,6 +162,33 @@
             margin-bottom: 10px;
             text-align: center;
             font-size: 25px;
+        }
+
+        
+        /* 添加到已有的CSS中 */
+        #datetime-display .time-large {
+            font-size: 60px;  /* 大号时间显示 */
+            font-weight: bold;
+            line-height: 1;
+            display: block;
+            
+        }
+
+        #datetime-display .date-small {
+            font-size: 18px;
+        }
+
+        /* 更新datetime-display的基础样式 */
+        #datetime-display {
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            margin-top: 80px;
+            padding: 15px 25px;
+            background-color: rgba(10, 25, 47, 0); /* 深蓝色半透明背景 */
+            color: #ffffff; /* 白色文字 */
+            /*border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);*/
+            display: inline-block;
         }
     </style>
 
@@ -353,15 +224,30 @@
         });
     </script>
 </head>
+
 <body>
-    <!-- 左侧仪表盘 -->
-    <div class="dashboard">
-        <div class="alert-box">
-            <div class="alert-light"></div>
-            <input type="text" placeholder="警告信息">
+    <!-- 左侧区域 -->
+    <div class="leftbody">
+        <!-- 左上侧仪表盘 -->
+        <div class="dashboard">
+            <div class="alert-box">
+                <div class="alert-light"></div>
+                <input type="text" placeholder="警告信息">
+            </div>
+
+            <div class="alert-image">
+                <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
+            </div>
         </div>
-        <div class="alert-image">
-            <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
+        <!-- 左下侧摄像头 -->
+        <div class="camera-container">
+            <div class="camera-feed">
+                <video id="frontCamera" autoplay playsinline muted controls width="100%" height="100%"></video>
+                <div class="camera-overlay">
+                    <div class="camera-status">●</div>
+                    <span>实时画面</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -391,33 +277,22 @@
             }
         </script>
         
-        <h1>车载多模态智能交互系统</h1>
-        <div class="alert-image">
-            <img style="width: 200px; height: 200px;" src="{{ url_for('static', filename='image/logo.jpg') }}" alt="校徽" id="alert-image">
-        </div>
+        <div id="datetime-display"></div>
 
-        <div class="name-grid">
-            <div class="name-column">
-                <div class="name-item">林逸典</div>
-                <div class="name-item">姜宇</div>
-                <div class="name-item">郭笑语</div>
-                <div class="name-item">何畅</div>
-            </div>
-            <div class="name-column">
-                <div class="name-item">唐显达</div>
-                <div class="name-item">刘芳宜</div>
-                <div class="name-item">王禹衡</div>
-                <div class="name-item">董珺</div>
-            </div>
-        </div>
         <!-- 跳转按钮区 -->
         <div id="control-buttons">
-            <button onclick="handleAction('music')">音乐</button>
-            <button onclick="handleAction('navigation')">导航</button>
-            <button onclick="handleAction('status')">车辆状态监测</button>
-            <button onclick="handleAction('config')">个性化配置</button>
-            <button onclick="handleAction('settings')">权限设置</button>
-            <button onclick="handleAction('')">退出</button>
+            <button onclick="handleAction('music')" class="image-button" 
+                style="background-image: url('static/image/音乐按钮.jpg');"></button>
+            <button onclick="handleAction('navigation')" class="image-button" 
+                style="background-image: url('static/image/导航按钮.jpg');"></button>
+            <button onclick="handleAction('status')" class="image-button" 
+                style="background-image: url('static/image/状态按钮.jpg');"></button>
+            <button onclick="handleAction('config')" class="image-button" 
+                style="background-image: url('static/image/设置按钮.png');"></button>
+            <button onclick="handleAction('settings')" class="image-button" 
+                style="background-image: url('static/image/权限按钮.jpg');"></button>
+            <button onclick="handleAction('')" class="image-button" 
+                style="background-image: url('static/image/退出按钮.jpg');"></button>
         </div>
     </div>
 
@@ -467,5 +342,40 @@
         }
 
     </script>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+ 
+            // 获取时间（时:分:秒）
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            //const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;//:${seconds}`;
+ 
+            // 获取日期（年-月-日）
+            //const year = now.getFullYear();
+            const month = String(now.getMonth() + 1); // 月份从0开始
+            const day = String(now.getDate()).padStart(2, '0');
+            //const dateString = `${year}-${month}-${day}`;
+            const dateString = `${month}月${day}日`;
+ 
+            // 获取星期
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekday = weekdays[now.getDay()];
+ 
+            // 更新页面显示
+            document.getElementById('datetime-display').innerHTML = 
+                `<span class="time-large">${timeString}</span>
+                <span class="date-small">${dateString} ${weekday}</span>`;
+        }
+ 
+        // 初始加载时显示
+        updateDateTime();
+ 
+        // 每秒更新一次
+        setInterval(updateDateTime, 1000);
+    </script>  
+
 </body>
 </html>

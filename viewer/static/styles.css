@@ -1,0 +1,242 @@
+/* 整体页面 */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #120d2d;
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左部页面 */
+.leftbody {
+    width: 39.25%;
+    height: 98.5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin-top: 0.5%;
+    margin-bottom: 0.5%;
+    margin-left: 0.5%;
+    margin-right: 0.25%;
+}
+
+/* 仪表盘 */
+.dashboard {
+    width: 100%;
+    height: 54.75%;
+    background-color: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 15px;
+    margin-bottom: 0.25%;
+    overflow: hidden;
+}
+
+/* (提示灯 + 文本框)的容器 */
+.alert-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0px;
+}
+
+/* 提示灯样式 */
+.alert-light {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-left: 10%;
+    margin-right: 20px;
+    /*margin-bottom: 10px;*/
+}
+
+/* 闪烁状态 */
+.alert-light.blinking {
+    background-color: red;
+    box-shadow: 0 0 10px red;
+    animation: blink 1s infinite;
+}
+
+/* 常亮状态 */
+.alert-light.steady {
+    background-color: rgb(0, 255, 0);
+    box-shadow: 0 0 10px rgb(0, 255, 0);
+}
+
+/* 闪烁动画 */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1; }
+}
+
+/* 提示框样式 */
+.alert-box input[type="text"] {
+    background-color: #222;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 6px;
+    margin-top: 10px;
+    width: 300px;
+    height: 50px;
+}
+
+/* 摄像头容器样式 */
+.camera-container {
+    width: 100%;
+    height: 44.75%;
+    margin-top: 0.25%;
+    border: 2px solid #ffffff;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+}
+
+/* 摄像头画面样式 */
+.camera-feed {
+    width: 100%;
+    height: 100%;
+}
+
+#frontCamera {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 摄像头覆盖层 - 添加状态指示器和标签 */
+.camera-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 5px 10px;
+    border-radius: 15px;
+    color: white;
+    font-size: 12px;
+}
+
+.camera-status {
+    color: #0f0;
+    margin-right: 5px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+.controls {
+    height: 98%;
+    width: 59.25%;
+    margin-top: 0.5%;
+    margin-bottom: 0.5%;
+    margin-left: 0.25%;
+    margin-right: 0.5%;
+    border: 2px solid #ffffff;
+    border-radius: 15px;
+    overflow: hidden;
+
+    padding-left: 40px;
+    padding-right: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+/* 创建旋转动画 */
+@keyframes rotateBackground {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 创建旋转背景层 */
+.controls::before {
+    content: "";
+    position: absolute;
+    left: -5%; 
+    right: -5%;
+    bottom: -5%;
+    top: -5%;            
+    background-image: url("image/background6.jpg");
+    background-position: center;
+    background-size: cover;
+    opacity: 1;
+    z-index: -2;
+    animation: rotateBackground 60s linear infinite;
+    transform-origin: center center;
+}
+
+button {
+    border: 2px solid #ffffff;
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white; 
+    margin: 0; 
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+button:hover { transform: scale(1.05); }
+
+#control-buttons {
+    /* 位置:绝对定位,水平居中,离底部20px */
+    position: absolute;
+    justify-content: center; /* 水平居中按钮组 */
+    bottom: 20px;
+    display: flex;
+    flex-direction: row; /* 横向排列按钮 */
+    gap: 12px;
+    background-color: rgba(255, 255, 255, 0.5); /* 白色半透明 */
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    z-index: 1000;
+    width: auto; /* 自适应宽度 */
+    /* 添加过渡效果 */
+    transition: transform 0.4s ease-out, opacity 0.3s ease;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 添加隐藏时的样式 */
+#control-buttons.hidden { transform: translateY(75px); }
+
+.image-button {
+    width: 50px;
+    height: 50px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    text-indent: -9999px;
+    border-radius: 10px;
+}
+
+.image-button:hover { transform: scale(1.3); }
+
+h2 {
+    color: white;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    margin-top: 5%;
+    width: 100%;
+    font-size: 30px;
+}
+
+h3 {
+    margin-top: 1%;
+    color: white;
+    font-weight: 500;
+    font-size: 25px;
+}

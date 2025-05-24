@@ -2,21 +2,23 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>车载多模态系统</title>
+    <title>车载多模态智能交互系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+
     <script>
         function pollAction() {
             fetch('/get_action')
                 .then(response => response.json())
                 .then(data => {
                     if (data.action) {
-                        console.log("🎯 检测到动作:", data.action);
-                        console.log("🚀 正在跳转到: /" + data.action);
+                        console.log("检测到动作:", data.action);
+                        console.log("正在跳转到: /" + data.action);
                         window.location.href = '/' + data.action;
                     }
                 })
-                .catch(error => console.error('❌ 轮询错误:', error));
+                .catch(error => console.error('轮询错误:', error));
         }
-    
         setInterval(pollAction, 2000);  // 每 2 秒轮询一次
     </script>
 
@@ -25,7 +27,7 @@
             const inputBox = document.querySelector('.alert-box input[type="text"]');
             if (inputBox) { inputBox.value = message; }
         }
-
+        // 从后端读取提示框信息,并调用updateAlertBox函数更新
         function fetchAndUpdateString() {
             fetch('/get_latest_message')
                 .then(response => response.json())
@@ -52,268 +54,17 @@
                 // 清除所有现有类
                 alertLight.classList.remove('blinking', 'steady', 'green-blinking');
 
-                if (blinkingStatus === 'green') { // 绿色闪烁（新增状态）
-                    alertLight.classList.add('green-blinking');
-                } else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁（原逻辑）
+                if (blinkingStatus === 'green') { alertLight.classList.add('green-blinking'); } // 绿色闪烁（新增状态）
+                else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁
                     alertLight.classList.add('blinking');
-                } else { // 常亮（绿色）
-                    alertLight.classList.add('steady');
-                }
+                } 
+                else { alertLight.classList.add('steady'); } // 常亮（绿色）
             })
             .catch(err => console.error('获取闪烁状态失败:', err));
         }
     </script>
     
     <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #120d2d;
-            /*background-color: rgb(20, 15, 45);*/
-            color: #ffffff;
-            display: flex;
-            height: 100vh;
-            padding: 0;
-        }
-        /* 创建背景图片层 
-        body::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;            
-            background-image: url("{{ url_for('static', filename='image/background6.jpg') }}");
-            background-position: center bottom;
-            background-size: cover;
-            opacity: 1;
-            z-index: -1;
-        }*/
-
-        .leftbody {
-            width: 39.25%;
-            height: 98.5%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0;
-            margin-top: 0.5%;
-            margin-bottom: 0.5%;
-            margin-left: 0.5%;
-            margin-right: 0.25%;
-        }
-        
-        .dashboard {
-            width: 100%;
-            height: 54.75%;
-            background-color: #000000;
-            /* 添加边框和圆角 */
-            border: 2px solid #ffffff;
-            border-radius: 15px;
-            /* 添加微妙的发光效果 */
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1), 
-                        inset 0 0 15px rgba(0, 0, 0, 0.8);
-            /* 确保与右侧区域有一定间距 */
-            margin-bottom: 0.25%;
-            /* 防止内容溢出圆角 */
-            overflow: hidden;
-        }
-
-        /* 容器横向排列：灯 + 文本框 */
-        .alert-box {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-top: 0px;
-        }
-
-        /* 灯泡样式 */
-        .alert-light {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-            margin-left: 10%;
-            margin-right: 20px;
-        }
-
-        /* 闪烁状态 */
-        .alert-light.blinking {
-            background-color: red;
-            box-shadow: 0 0 10px red;
-            animation: blink 1s infinite;
-        }
-
-        /* 常亮状态 */
-        .alert-light.steady {
-            background-color: rgb(0, 255, 0);
-            box-shadow: 0 0 10px rgb(0, 255, 0);
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        }
-
-        /* 提示框样式 */
-        .alert-box input[type="text"] {
-            background-color: #222;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 6px;
-            margin-top: 10px;
-            width: 300px;
-            height: 50px;
-        }
-
-        .gauge-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .gauge-container {
-            margin: 0 15px;
-            text-align: center;
-        }
-
-        /* 摄像头容器样式 */
-        .camera-container {
-            width: 100%;
-            height: 44.75%;
-            margin-top: 20px;
-            margin-bottom: 0px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* 添加边框和圆角 */
-            border: 2px solid #ffffff;
-            border-radius: 15px;
-            /* 添加微妙的发光效果 */
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1), 
-                        inset 0 0 15px rgba(0, 0, 0, 0.8);
-            /* 确保与右侧区域有一定间距 */
-            margin-top: 0.25%;
-            /* 防止内容溢出圆角 */
-            overflow: hidden;
-        }
-
-        .camera-container h3 {
-            color: #0ff;
-            margin-bottom: 10px;
-            font-weight: 500;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-        }
-
-        /* 摄像头画面样式 */
-        .camera-feed {
-            width: 100%;
-            height: 100%;
-            background-color: #111;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-            border: 1px solid #333;
-        }
-
-        #frontCamera {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* 摄像头覆盖层 - 添加状态指示器和标签 */
-        .camera-overlay {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            display: flex;
-            align-items: center;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-        }
-
-        .camera-status {
-            color: #0f0;
-            margin-right: 5px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-
-        .controls {
-            height: 98%;
-            width: 59.25%;
-            padding-left: 40px;
-            padding-right: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            
-            /* 添加相对定位创建定位上下文 */
-            position: relative;
-            /* 防止内容溢出 */
-            overflow: hidden;
-            /* 添加边框和圆角 */
-            border: 2px solid #ffffff;
-            border-radius: 15px;
-            /* 添加微妙的发光效果 */
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1), 
-                        inset 0 0 15px rgba(0, 0, 0, 0.8);
-            /* 确保与右侧区域有一定间距 */
-            margin-top: 0.5%;
-            margin-bottom: 0.5%;
-            margin-left: 0.25%;
-            margin-right: 0.5%;
-            /* 防止内容溢出圆角 */
-            overflow: hidden;
-        }
-
-        /* 创建旋转动画 */
-        @keyframes rotateBackground {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* 创建旋转背景层 */
-        .controls::before {
-            content: "";
-            position: absolute;
-            left: -5%; /* 稍微扩大范围，防止旋转时露出边缘 */
-            right: -5%;
-            bottom: -5%;
-            top: -5%;            
-            background-image: url("{{ url_for('static', filename='image/background6.jpg') }}");
-            background-position: center;
-            background-size: cover;
-            opacity: 1;
-            z-index: -2; /* 降低层级 */
-            animation: rotateBackground 60s linear infinite;
-            transform-origin: center center;
-        }
-
-        h2 {
-            color: #0ff;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-            width: 100%;
-        }
-
-        h3 {
-            margin-top: 10%;
-            font-weight: 500;
-        }
-
         form {
             margin-bottom: 30px;
             width: 100%;
@@ -331,19 +82,18 @@
         }
 
         button {
-            margin-left: 10px;
-            padding: 6px 12px;
-            background-color: #0ff;
-            border: none;
-            color: #000;
-            font-weight: bold;
+            border: 2px solid #ffffff;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white; 
+            margin: 0; 
+            padding: 10px 20px;
+            font-size: 20px;
             cursor: pointer;
             border-radius: 5px;
+            font-weight: bold;
         }
 
-        button:hover {
-            background-color: #00c6c6;
-        }
+        button:hover { transform: scale(1.05); }
 
         canvas {
             margin: 15px 0;
@@ -382,50 +132,6 @@
             position: absolute;
             color: #888;
             font-size: 18px;
-        }
-
-        #control-buttons {
-            /* 位置:绝对定位,水平居中,离底部20px */
-            position: absolute;
-            justify-content: center; /* 水平居中按钮组 */
-            bottom: 20px;
-            display: flex;
-            flex-direction: row; /* 横向排列按钮 */
-            gap: 12px;
-            background-color: rgba(255, 255, 255, 0.5); /* 白色半透明 */
-            padding: 12px 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            z-index: 1000;
-            width: auto; /* 自适应宽度 */
-        }
-
-        #control-buttons button {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #0ff;
-            color: #000;
-            border: none;
-            /*border-radius: 5px;*/
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #control-buttons button:hover {
-            background-color: #00c6c6;
-        }
-
-        .image-button {
-            width: 50px; /* 设置按钮的宽度 */
-            height: 50px; /* 设置按钮的高度 */
-            background-size: cover; /* 确保图片覆盖整个按钮 */
-            background-repeat: no-repeat; /* 防止图片重复 */
-            background-position: center; /* 居中图片 */
-            border: none; /* 移除默认边框 */
-            cursor: pointer; /* 鼠标悬停时显示指针 */
-            overflow: hidden; /* 隐藏溢出内容 */
-            text-indent: -9999px; /* 将文本推到屏幕外，使其不可见 */
-            border-radius: 10px;
         }
     </style>
 
@@ -503,6 +209,7 @@
             initFrontCamera();
         });
     </script>
+
 </head>
 
 
@@ -532,8 +239,6 @@
         </div>
     </div>
 
-
-
     <!-- 右侧控制功能区 -->
     <div class="controls">
         <script>
@@ -560,18 +265,23 @@
             }
         </script>
         
+        <h2>音乐</h2>
         <h3>播放列表</h3>
         <div class="music-player" style="width: 100%; margin-bottom: 20px;">
             <!-- background-color: rgba(255, 255, 255, 0.5); border: 1px solid #555;-->
             <div id="music-info" style="width: 100%; color: #fff;  padding: 10px; margin-bottom: 10px; font-family: 'Segoe UI', sans-serif;">
                 {% for music_item in music_info %}
-                    <button onclick="playMusic('{{ music_item }}')" style="background-color: rgba(255, 255, 255, 0.7); color: #000; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left;">
+                    <button onclick="playMusic('{{ music_item }}')" style="background-color: rgba(255, 255, 255, 0.7); color: #000; border: none; padding: 10px; margin: 5px; width: 100%; text-align: left; font-size: 16px;">
                         {{ music_item }}
                     </button>
                 {% endfor %}
             </div>
-            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <button onclick="handleMusic('next')" style="margin: 0; padding: 10px 20px;">暂停/继续</button>
+            <div style="color: #fff; display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                <button onclick="handleMusic('next')" style="border: 2px solid #ffffff;background-color: rgba(255, 255, 255, 0.3);color: white; margin: 0; padding: 10px 20px;font-size: 20px;">暂停/继续</button>
+                
+                <!--<button class="image-button" 
+                    style="border: 2px;background-color: rgba(0, 0, 0, 0);width: 100px;height: 100px;
+                           border-radius: 50%;background-image: url('static/image/暂停.png');"></button>-->
             </div>
         </div>
 
