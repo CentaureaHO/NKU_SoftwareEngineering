@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union, Generator, Callable, Tuple, Any
 from threading import Lock
 from kokoro import KModel, KPipeline
-# 替换 modelscope 为 huggingface_hub
 from huggingface_hub import snapshot_download as hf_snapshot_download
 
 logging.basicConfig(
@@ -66,7 +65,6 @@ class KokoroSynthesis(metaclass=Singleton):
             model_dir: 模型目录路径，默认为utils/models/kokoro
             config_path: 配置文件路径，默认在model_dir下
         """
-        # 设置模型目录
         if model_dir is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.model_dir = os.path.join(base_dir, "models", "kokoro")
@@ -76,28 +74,23 @@ class KokoroSynthesis(metaclass=Singleton):
         self.voices_dir = os.path.join(self.model_dir, "voices")
         self.model_cache_dir = os.path.join(self.model_dir, "model_cache")
         
-        # 创建必要的目录
         os.makedirs(self.model_dir, exist_ok=True)
         os.makedirs(self.voices_dir, exist_ok=True)
         os.makedirs(self.model_cache_dir, exist_ok=True)
 
-        # 设置配置文件路径
         if config_path is None:
             self.config_path = os.path.join(self.model_dir, "synthesis_config.json")
         else:
             self.config_path = config_path
             
-        # 加载配置
         self.config = self._load_config()
         
-        # 初始化模型和管道相关变量
         self.zh_model = None
         self.zh_pipeline = None
         self.en_pipeline = None
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.is_initialized = False
         
-        # 当前话者
         self.current_voice = self.config.get("default_voice", DEFAULT_VOICE)
         
     def _load_config(self) -> dict:
@@ -114,17 +107,14 @@ class KokoroSynthesis(metaclass=Singleton):
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                
-                # 确保所有必要的配置项都存在
+
                 for key, value in DEFAULT_CONFIG.items():
                     if key not in config:
                         config[key] = value
                         
-                # 更新voices_dir
                 if not config.get("voices_dir"):
                     config["voices_dir"] = self.voices_dir
                 
-            # 保存更新后的配置
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
                 
@@ -214,7 +204,6 @@ class KokoroSynthesis(metaclass=Singleton):
                 
             try:
                 logger.info(f"正在从Hugging Face下载模型: {model_id} {model_version if model_version else ''}")
-                # 使用huggingface_hub的snapshot_download函数
                 model_path = hf_snapshot_download(
                     repo_id=model_id, 
                     revision=model_version,
@@ -300,7 +289,6 @@ class KokoroSynthesis(metaclass=Singleton):
         """
         base_speed = self.config.get("speed_factor", 1.0)
         
-        # 简单的分段线性函数，随着文本长度增加减慢语速
         if len_ps <= 83:
             speed = 1
         elif len_ps < 183:
@@ -319,13 +307,10 @@ class KokoroSynthesis(metaclass=Singleton):
         try:
             logger.info(f"正在初始化Kokoro语音合成模型，使用设备: {self.device}")
             
-            # 下载或加载模型
             try:
                 model_path = self._download_and_cache_model(REPO_ID)
                 
-                # 设置模型和配置路径
                 if model_path:
-                    # 处理huggingface下载的文件路径
                     model_dir = model_path
                     model_files = [f for f in os.listdir(model_dir) if f.endswith('.pth')]
                     config_files = [f for f in os.listdir(model_dir) if f == 'config.json']
@@ -339,14 +324,11 @@ class KokoroSynthesis(metaclass=Singleton):
                     model_file_path = os.path.join(model_dir, model_files[0])
                     config_file_path = os.path.join(model_dir, config_files[0])
                     
-                    # 保存模型路径到配置
                     self.config["model_path"] = model_file_path
                     self._save_config()
                     
-                    # 复制声音文件到voices目录
                     self._copy_voices_from_repo(model_dir)
                     
-                    # 加载模型
                     self.zh_model = KModel(
                         repo_id=REPO_ID,
                         config=config_file_path,
@@ -359,7 +341,6 @@ class KokoroSynthesis(metaclass=Singleton):
                     
             except Exception as e:
                 logger.error(f"模型下载或加载失败: {e}")
-                # 尝试从本地加载已保存的模型路径
                 if self.config.get("model_path") and os.path.exists(self.config["model_path"]):
                     model_dir = os.path.dirname(self.config["model_path"])
                     config_file_path = os.path.join(model_dir, CONFIG_NAME)
@@ -375,11 +356,9 @@ class KokoroSynthesis(metaclass=Singleton):
                 else:
                     raise
             
-            # 初始化管道
             self.en_pipeline = KPipeline(lang_code='a', repo_id=REPO_ID, model=False)
             en_callable = self._create_en_callable()
-            
-            # 初始化中文管道
+
             self.zh_pipeline = KPipeline(
                 lang_code='z', 
                 repo_id=REPO_ID, 
@@ -387,7 +366,6 @@ class KokoroSynthesis(metaclass=Singleton):
                 en_callable=en_callable
             )
             
-            # 检查语音文件
             self._ensure_voices_exist()
             
             self.is_initialized = True
@@ -410,7 +388,6 @@ class KokoroSynthesis(metaclass=Singleton):
                 if model_path:
                     self._copy_voices_from_repo(model_path)
                     
-                    # 检查是否成功复制声音文件
                     voices = self.get_available_voices()
                     if not voices:
                         logger.error("声音文件下载失败")
@@ -442,12 +419,10 @@ class KokoroSynthesis(metaclass=Singleton):
         if not self.is_initialized:
             raise RuntimeError("语音合成系统初始化失败")
             
-        # 确定使用的声音
         voice_name = voice or self.current_voice
         if voice_name != self.current_voice:
             self.set_current_voice(voice_name)
             
-        # 确定语音文件路径
         voice_path = os.path.join(self.voices_dir, f"{voice_name}.pt")
         if not os.path.exists(voice_path):
             available_voices = self.get_available_voices()
@@ -457,7 +432,6 @@ class KokoroSynthesis(metaclass=Singleton):
             voice_path = os.path.join(self.voices_dir, f"{voice_name}.pt")
             logger.warning(f"指定的声音文件不存在，使用可用的第一个声音: {voice_name}")
             
-        # 处理语速
         speed_callable = None
         if speed is not None:
             speed_callable = lambda _: speed
@@ -490,7 +464,6 @@ class KokoroSynthesis(metaclass=Singleton):
         audio_data = await self.synthesize(text, voice, speed)
         
         try:
-            # 确保输出目录存在
             output_dir = os.path.dirname(output_file)
             if output_dir:
                 os.makedirs(output_dir, exist_ok=True)
@@ -569,7 +542,6 @@ class KokoroSynthesis(metaclass=Singleton):
         self.config["custom_pronunciations"][word] = pronunciation
         success = self._save_config()
         
-        # 更新英文发音回调
         if success and self.is_initialized:
             en_callable = self._create_en_callable()
             self.zh_pipeline.en_callable = en_callable
@@ -594,7 +566,6 @@ class KokoroSynthesis(metaclass=Singleton):
         del self.config["custom_pronunciations"][word]
         success = self._save_config()
         
-        # 更新英文发音回调
         if success and self.is_initialized:
             en_callable = self._create_en_callable()
             self.zh_pipeline.en_callable = en_callable
@@ -644,12 +615,10 @@ class KokoroSynthesis(metaclass=Singleton):
             return True
             
         try:
-            # 释放模型资源
             self.zh_model = None
             self.zh_pipeline = None
             self.en_pipeline = None
             
-            # 触发垃圾回收
             import gc
             gc.collect()
             
