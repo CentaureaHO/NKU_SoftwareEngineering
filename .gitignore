@@ -13,4 +13,5 @@ ml_training/headpose/models
 
 Modality/models/speech
 
-utils/models
+
+!utils/__pycache__

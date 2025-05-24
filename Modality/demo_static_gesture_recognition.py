@@ -4,16 +4,19 @@
 这个示例展示了如何使用Modality库中的手势识别模态来检测和识别手势
 """
 
+import sys
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import cv2
 import time
-import os
 import numpy as np
-import sys
 import argparse
 from PIL import Image, ImageDraw, ImageFont
-
-# 确保可以导入Modality模块
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Modality import ModalityManager, GestureTracker
 
@@ -245,4 +248,4 @@ def main():
         print("程序已退出")
 
 if __name__ == "__main__":
-    main() 
+    main()
