@@ -55,7 +55,10 @@ async function initFrontCamera() {
     try {
         // 请求摄像头访问权限，指定使用前置摄像头
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user" },
+            video: { 
+                facingMode: "user",
+                advanced: [{ exclusive: false }]
+            },
             audio: false
         });
                 
@@ -78,3 +81,55 @@ async function initFrontCamera() {
         
 // 页面加载完成后初始化摄像头
 window.addEventListener('DOMContentLoaded', () => { initFrontCamera(); });
+
+// 设置提示框和提示灯
+function updateAlertBox(message) {
+    const inputBox = document.querySelector('.alert-box input[type="text"]');
+    if (inputBox) { inputBox.value = message; }
+}
+
+function fetchAndUpdateString() {
+    fetch('/get_note')
+        .then(response => response.json())
+        .then(data => { updateAlertBox(data.updated_message); })
+        .catch(error => { console.error('请求失败:', error); });
+}
+
+function get_light() {
+    fetch('/get_light')
+    .then(response => response.json())
+    .then(data => {
+        const alertLight = document.querySelector('.alert-light');
+        const color = data.color;
+        const blink = data.blink;
+
+        // 清除所有现有状态并设置新状态
+        alertLight.classList.remove('red', 'green', 'blinking');
+        if (blink === true) { alertLight.classList.add('blinking'); }
+        if (color === 'red') { alertLight.classList.add('red'); }
+        else if (color === 'green') { alertLight.classList.add('green');  }
+    })
+    .catch(err => console.error('获取闪烁状态失败:', err));
+}
+
+// 页面跳转
+function pollAction() {
+    fetch('/get_action')
+    .then(response => response.json())
+    .then(data => {
+    if (data.action) {
+        console.log("🎯 检测到动作:", data.action);
+        console.log("🚀 正在跳转到: /" + data.action);
+        window.location.href = '/' + data.action;
+        }
+    })
+    .catch(error => console.error('❌ 轮询错误:', error));
+}
+
+window.onload = () => {
+    fetchAndUpdateString();
+    get_light();
+    setInterval(fetchAndUpdateString, 2000);
+    setInterval(get_light, 2000);
+    setInterval(pollAction, 2000);
+};

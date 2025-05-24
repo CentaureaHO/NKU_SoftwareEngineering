@@ -6,81 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='common.js') }}"></script>
     
-    <script>
-        function pollAction() {
-            fetch('/get_action')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.action) {
-                        console.log("检测到动作:", data.action);
-                        console.log("正在跳转到: /" + data.action);
-                        window.location.href = '/' + data.action;
-                    }
-                })
-                .catch(error => console.error('❌ 轮询错误:', error));
-        }
-        setInterval(pollAction, 2000);  // 每 2 秒轮询一次
-    </script>
-
-    <script>
-        function updateAlertBox(message) {
-            const inputBox = document.querySelector('.alert-box input[type="text"]');
-            if (inputBox) { inputBox.value = message; }
-        }
-
-        function fetchAndUpdateString() {
-            fetch('/get_latest_message')
-                .then(response => response.json())
-                .then(data => { updateAlertBox(data.updated_message); })
-                .catch(error => { console.error('请求失败:', error); });
-        }
-
-        window.onload = () => {
-            fetchAndUpdateString();
-            checkBlinking();
-            setInterval(fetchAndUpdateString, 2000);
-            setInterval(checkBlinking, 2000);
-        };
-    </script>
-
-    <script>
-        function checkBlinking() {
-            fetch('/get_blinking')
-            .then(response => response.json())
-            .then(data => {
-                const alertLight = document.querySelector('.alert-light');
-                const blinkingStatus = data.blinking; // 假设后端返回 blinking: 'green' 或 'red' 或 boolean（需根据实际接口调整）
-
-                // 清除所有现有类
-                alertLight.classList.remove('blinking', 'steady', 'green-blinking');
-
-                if (blinkingStatus === 'green') { // 绿色闪烁（新增状态）
-                    alertLight.classList.add('green-blinking');
-                } else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁（原逻辑）
-                    alertLight.classList.add('blinking');
-                } else { // 常亮（绿色）
-                    alertLight.classList.add('steady');
-                }
-            })
-            .catch(err => console.error('获取闪烁状态失败:', err));
-        }
-    </script>
-    
-    
     <style>
-        h1 {
-            color: #0ff;
-            padding-bottom: 10px;
-            width: 100%;
-            text-align: center;
-        }
-
-        form {
-            margin-bottom: 30px;
-            width: 100%;
-            text-align: center;
-        }
-
         input[type="file"],
         input[type="text"] {
             background-color: #222;
@@ -130,99 +56,26 @@
             font-size: 18px;
         }
 
-        /* 绿色闪烁状态 */
-        .alert-light.green-blinking {
-            background-color: green;
-            box-shadow: 0 0 10px green;
-            animation: green-blink 1s infinite; /* 引用新动画 */
-        }
-
-        /* 绿色闪烁动画定义 */
-        @keyframes green-blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        }
-
-        .name-grid {
-            display: flex;
-            justify-content: center;
-            width: 80%;
-            margin: 20px auto;
-        }
-
-        .name-column {
-            flex: 0 0 auto;
-            width: 150px;
-            padding: 10px 20px;
-            box-sizing: border-box;
-        }
-
-        .name-item {
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 25px;
-        }
-
-        
-        /* 添加到已有的CSS中 */
+        /* 日期时间显示 */
         #datetime-display .time-large {
             font-size: 60px;  /* 大号时间显示 */
             font-weight: bold;
             line-height: 1;
             display: block;
-            
         }
 
-        #datetime-display .date-small {
-            font-size: 18px;
-        }
+        #datetime-display .date-small { font-size: 18px;}
 
-        /* 更新datetime-display的基础样式 */
         #datetime-display {
             font-family: 'Segoe UI', sans-serif;
             text-align: center;
             margin-top: 80px;
             padding: 15px 25px;
-            background-color: rgba(10, 25, 47, 0); /* 深蓝色半透明背景 */
-            color: #ffffff; /* 白色文字 */
-            /*border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);*/
+            background-color: rgba(10, 25, 47, 0);
+            color: #ffffff;
             display: inline-block;
         }
     </style>
-
-    <!-- 引入 Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        Chart.register({
-            id: 'gaugeTicks',
-            beforeDraw(chart) {
-                const {ctx, chartArea} = chart;
-                const dataset = chart.data.datasets[0];
-                const angleStep = Math.PI / 10;
-                const radius = (chart.outerRadius + chart.innerRadius) / 2;
-                const cx = chartArea.left + chart.width / 2;
-                const cy = chartArea.top + chart.height;
-
-                ctx.save();
-                ctx.strokeStyle = '#888';
-                ctx.lineWidth = 2;
-                for (let i = 0; i <= 10; i++) {
-                    const angle = Math.PI + i * angleStep;
-                    const x1 = cx + Math.cos(angle) * (radius - 10);
-                    const y1 = cy + Math.sin(angle) * (radius - 10);
-                    const x2 = cx + Math.cos(angle) * (radius + 10);
-                    const y2 = cy + Math.sin(angle) * (radius + 10);
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
-                }
-                ctx.restore();
-            }
-        });
-    </script>
 </head>
 
 <body>
@@ -232,7 +85,7 @@
         <div class="dashboard">
             <div class="alert-box">
                 <div class="alert-light"></div>
-                <input type="text" placeholder="警告信息">
+                <input type="text" placeholder="提示框" readonly>
             </div>
 
             <div class="alert-image">
@@ -297,21 +150,7 @@
     </div>
 
     <script>
-        function handleAction(action) {
-            window.location.href = '/' + action;
-        }
-
-        setInterval(() => {
-            const updateValue = (chart) => {
-                const val = Math.floor(Math.random() * 100);
-                chart.data.datasets[0].data[0] = val;
-                chart.data.datasets[0].data[1] = 100 - val;
-                chart.update();
-            };
-            updateValue(speedChart);
-            updateValue(rpmChart);
-            updateValue(fuelChart);
-        }, 2000);
+        function handleAction(action) { window.location.href = '/' + action; }
 
         function submitFusion() {
             const voice = document.getElementById('voiceText').value;
@@ -347,17 +186,14 @@
         function updateDateTime() {
             const now = new Date();
  
-            // 获取时间（时:分:秒）
+            // 获取时间（时:分）
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            //const seconds = String(now.getSeconds()).padStart(2, '0');
-            const timeString = `${hours}:${minutes}`;//:${seconds}`;
+            const timeString = `${hours}:${minutes}`;
  
-            // 获取日期（年-月-日）
-            //const year = now.getFullYear();
+            // 获取日期(月-日)
             const month = String(now.getMonth() + 1); // 月份从0开始
             const day = String(now.getDate()).padStart(2, '0');
-            //const dateString = `${year}-${month}-${day}`;
             const dateString = `${month}月${day}日`;
  
             // 获取星期
@@ -367,7 +203,7 @@
             // 更新页面显示
             document.getElementById('datetime-display').innerHTML = 
                 `<span class="time-large">${timeString}</span>
-                <span class="date-small">${dateString} ${weekday}</span>`;
+                 <span class="date-small">${dateString} ${weekday}</span>`;
         }
  
         // 初始加载时显示

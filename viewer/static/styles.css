@@ -48,21 +48,22 @@ body {
     border-radius: 50%;
     margin-left: 10%;
     margin-right: 20px;
-    /*margin-bottom: 10px;*/
 }
 
-/* 闪烁状态 */
-.alert-light.blinking {
+/* 提示灯:红色 */
+.alert-light.red {
     background-color: red;
     box-shadow: 0 0 10px red;
-    animation: blink 1s infinite;
 }
 
-/* 常亮状态 */
-.alert-light.steady {
+/* 提示灯:绿色 */
+.alert-light.green {
     background-color: rgb(0, 255, 0);
     box-shadow: 0 0 10px rgb(0, 255, 0);
 }
+
+/* 提示灯:闪烁 */
+.alert-light.blinking { animation: blink 1s infinite; }
 
 /* 闪烁动画 */
 @keyframes blink {

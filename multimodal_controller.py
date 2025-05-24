@@ -27,21 +27,21 @@ from Modality import ModalityManager, GestureTracker
 from viewer.viewer import init_viewer
 import threading
 import webbrowser
-from applications.application import Application
+from applications.application import application
 from utils.tools import speecher_player
 from setting import Setting
 
 class MultimodalController:
-    # TODO():这个函数负责启动时打开各个模态,目前还未实现视线跟踪模态
     def __init__(self) -> None:
-        #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
-        #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
+        speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
+        speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
         self.init_speecher()
-        #self.init_headpose()
-        #self.init_static_gesture()
+        self.init_headpose()
+        self.init_static_gesture()
         self.init_viewer()
-        #self.init_gazer()
+        self.init_gazer()
+        application.schedule(application.type.enter, [self])
 
     def init_gazer(self) -> None:
         parser = argparse.ArgumentParser(description='视线方向跟踪演示')
@@ -65,7 +65,7 @@ class MultimodalController:
     
         from Modality.visual import GazeDirectionTracker
 
-        gaze_tracker = GazeDirectionTracker(
+        self.gazer = GazeDirectionTracker(
             name="gaze_direction_tracker",
             source=source,
             width=args.width,
@@ -75,7 +75,7 @@ class MultimodalController:
             debug=args.debug
         )
 
-        result = self.manager.register_modality(gaze_tracker)
+        result = self.manager.register_modality(self.gazer)
         if result != SUCCESS:
             print(f"错误: 注册视线方向跟踪器失败，错误码: {result}")
             return
@@ -304,6 +304,7 @@ class MultimodalController:
 
 controller = MultimodalController()
 setting = Setting(controller.speech_modality)
+
 
 if __name__ == '__main__':
     # while True:

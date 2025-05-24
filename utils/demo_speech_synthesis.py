@@ -3,7 +3,7 @@ import asyncio
 import sounddevice as sd
 import numpy as np
 import time
-from .tools import speech_synthesize, speech_synthesize_sync
+from tools import speech_synthesize, speech_synthesize_sync
 
 SAMPLE_RATE = 24000
 

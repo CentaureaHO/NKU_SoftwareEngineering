@@ -8,9 +8,9 @@
 from flask import Flask, render_template, request, jsonify,redirect, url_for
 
 import sys
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.19.14.00')
+sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.24.14.00')
 #sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
-from applications.application import Application
+from applications.application import application
 from individuation import individuation
 import json
 import os
@@ -57,7 +57,7 @@ def index():
 def music():
     print("🎵 已跳转到 music 页面")
     try:
-        music_info = Application.schedule(Application.type.music_getlist, [])
+        music_info = application.schedule(application.type.music_getlist, [])
     except Exception as e:
         print(f"❌ 获取音乐列表失败: {e}")
         music_info = []
@@ -68,13 +68,13 @@ def music():
 @viewer.route('/navigation')
 def navigation():
     print("已跳转到导航页面")
-    info = Application.schedule(Application.type.navigation_getlist, [])
+    info = application.schedule(application.type.navigation_getlist, [])
     return render_template('navigation.html', info=info)
 
 # 渲染车辆状态监测页面
 @viewer.route('/status')
 def status():
-    status_info = Application.schedule(Application.type.vehicle_state, [])
+    status_info = application.schedule(application.type.vehicle_state, [])
     oil_quantity = status_info[0]
     tire_pressure = status_info[1]
     mileage = status_info[2]
@@ -88,7 +88,7 @@ def config():
     gesture_names = individuation.get_gesture_names()
     # print("gesture_names:", gesture_names)
     # 获取应用功能名称
-    application_names = Application.get_application_names()
+    application_names = application.get_application_names()
     # print("application_names:", application_names)
     # 根据应用程序名称设置 text_list
     text_list = {application_names[i]: [] for i in range(len(application_names))}
@@ -118,20 +118,51 @@ def settings():
     print("driver_info:", driver_info)
     return render_template('settings.html', music_info=music_info, driver_info=driver_info)
 
+# 控制提示灯状态
+light_color = "green"
+light_blink = False
+
+# 控制提示灯状态(对外调用)
+def update_light(color, blink):
+    print(f"更新提示灯颜色: {color}, 闪烁状态: {blink}")
+    global light_color
+    global light_blink
+    light_color = color
+    light_blink = blink
+
+@viewer.route('/get_light', methods=['GET'])
+def get_light():
+    global light_color
+    global light_blink
+    return jsonify({'color': light_color, 'blink': light_blink})
+
+# 在提示框输出文字
+latest_message = "车载多模态智能交互系统初始化完毕!"
+
+# 在提示框输出文字(对外调用)
+def update_note(note):
+    print(f"更新提示框内容: {note}")
+    global latest_message
+    latest_message = note
+
+@viewer.route('/get_note', methods=['GET'])
+def get_note():
+    return jsonify({'updated_message': latest_message})
+
 # 播放音乐
 @viewer.route('/play_music', methods=['POST'])
 def play_music():
     data = request.get_json()
     music_name = data.get('music')
     print(f"播放音乐：{music_name}")
-    Application.schedule(Application.type.music_play, [music_name])
+    application.schedule(application.type.music_play, [music_name])
     return '', 204  # No Content
 
 # 暂停/继续播放音乐
 @viewer.route('/pause_music', methods=['POST'])
 def pause_music():
     print("暂停或继续播放音乐")
-    Application.schedule(Application.type.music_change_pause, [])
+    application.schedule(application.type.music_change_pause, [])
     return '', 204
 
 # 导航
@@ -208,25 +239,8 @@ def trigger_action():
     else:
         return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
 
-
-
-
-
-# @viewer.route('/auto')
-# def auto():
-#     return render_template('auto.html')
-
-def exopen_music():
-    render_template("auto.html", target_url="http://127.0.0.1:5000/music")
-    
-#轮询
-
-# requests.post('http://127.0.0.1:5000/trigger_action', json={'action': 'music'})
-
 # 后端 Flask 中
 last_action = None
-
-
 
 @viewer.route('/get_action')
 def get_action():
@@ -238,40 +252,7 @@ def get_action():
 def init_viewer():
     viewer.run(debug=False)
 
-
-
-blinking_enabled = False  # 默认开启闪烁
-
-@viewer.route('/set_blinking', methods=['POST'])
-def set_blinking():
-    global blinking_enabled
-    data = request.get_json()
-    blinking_enabled = data.get('enabled', True)
-    print(f"🔴 闪烁状态设置为: {blinking_enabled}")
-    return jsonify({'status': 'ok', 'blinking': blinking_enabled})
-
-@viewer.route('/get_blinking', methods=['GET'])
-def get_blinking():
-    global blinking_enabled
-    return jsonify({'blinking': blinking_enabled})
-
-# Flask 后端
-latest_message = "默认警告信息"
-
-@viewer.route('/update_string', methods=['POST'])
-def update_string():
-    global latest_message
-    data = request.get_json()
-    latest_message = data.get('message', '无内容')
-    print(f"✅ 收到外部消息：{latest_message}")  # ✅ 终端输出确认
-    return jsonify({'updated_message': latest_message})
-
-@viewer.route('/get_latest_message', methods=['GET'])
-def get_latest_message():
-    return jsonify({'updated_message': latest_message})
-
-
-
+"""
 @viewer.route('/voice', methods=['GET'])
 def voice_page():
     # 假设你通过某个逻辑得到了以下测试列表：
@@ -294,6 +275,7 @@ def call_void():
     status = data.get('status', '空')
     enter_voiceprint(status)
     return '', 204  # 无返回内容
+"""
 
 def enter_voiceprint(username):
     print(f"开始录入声纹,用户名为\"{username}\"")
@@ -321,6 +303,23 @@ def set_driver():
     setting.set_driver(driver_name)
     return '', 204
 
+def my_function(name):
+    print(f"线程 {name} 正在运行")
+    while True:
+        time.sleep(10)  # 模拟耗时操作
+        update_light("red", True)
+        time.sleep(10)  # 模拟耗时操作
+        update_light("red", False)
+        time.sleep(10)  # 模拟耗时操作
+        update_light("green", True)
+        time.sleep(10)  # 模拟耗时操作
+        update_light("green", False)
+    print(f"线程 {name} 已完成")
+
 if __name__ == '__main__':
+    #import threading
+    #thread = threading.Thread(target=my_function, args=("示例线程",))
+    # 启动线程
+    #thread.start()
     viewer.run(debug=True)
     

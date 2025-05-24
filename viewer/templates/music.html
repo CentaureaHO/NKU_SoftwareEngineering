@@ -5,72 +5,8 @@
     <title>车载多模态智能交互系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='common.js') }}"></script>
-
-    <script>
-        function pollAction() {
-            fetch('/get_action')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.action) {
-                        console.log("检测到动作:", data.action);
-                        console.log("正在跳转到: /" + data.action);
-                        window.location.href = '/' + data.action;
-                    }
-                })
-                .catch(error => console.error('轮询错误:', error));
-        }
-        setInterval(pollAction, 2000);  // 每 2 秒轮询一次
-    </script>
-
-    <script>
-        function updateAlertBox(message) {
-            const inputBox = document.querySelector('.alert-box input[type="text"]');
-            if (inputBox) { inputBox.value = message; }
-        }
-        // 从后端读取提示框信息,并调用updateAlertBox函数更新
-        function fetchAndUpdateString() {
-            fetch('/get_latest_message')
-                .then(response => response.json())
-                .then(data => { updateAlertBox(data.updated_message); })
-                .catch(error => { console.error('请求失败:', error); });
-        }
-
-        window.onload = () => {
-            fetchAndUpdateString();
-            checkBlinking();
-            setInterval(fetchAndUpdateString, 2000);
-            setInterval(checkBlinking, 2000);
-        };
-    </script>
-    
-    <script>
-        function checkBlinking() {
-            fetch('/get_blinking')
-            .then(response => response.json())
-            .then(data => {
-                const alertLight = document.querySelector('.alert-light');
-                const blinkingStatus = data.blinking; // 假设后端返回 blinking: 'green' 或 'red' 或 boolean（需根据实际接口调整）
-
-                // 清除所有现有类
-                alertLight.classList.remove('blinking', 'steady', 'green-blinking');
-
-                if (blinkingStatus === 'green') { alertLight.classList.add('green-blinking'); } // 绿色闪烁（新增状态）
-                else if (blinkingStatus === 'red' || blinkingStatus === true) { // 红色闪烁
-                    alertLight.classList.add('blinking');
-                } 
-                else { alertLight.classList.add('steady'); } // 常亮（绿色）
-            })
-            .catch(err => console.error('获取闪烁状态失败:', err));
-        }
-    </script>
     
     <style>
-        form {
-            margin-bottom: 30px;
-            width: 100%;
-            text-align: center;
-        }
-
         input[type="file"],
         input[type="text"] {
             background-color: #222;
@@ -135,37 +71,6 @@
         }
     </style>
 
-    <!-- 引入 Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        Chart.register({
-            id: 'gaugeTicks',
-            beforeDraw(chart) {
-                const {ctx, chartArea} = chart;
-                const dataset = chart.data.datasets[0];
-                const angleStep = Math.PI / 10;
-                const radius = (chart.outerRadius + chart.innerRadius) / 2;
-                const cx = chartArea.left + chart.width / 2;
-                const cy = chartArea.top + chart.height;
-
-                ctx.save();
-                ctx.strokeStyle = '#888';
-                ctx.lineWidth = 2;
-                for (let i = 0; i <= 10; i++) {
-                    const angle = Math.PI + i * angleStep;
-                    const x1 = cx + Math.cos(angle) * (radius - 10);
-                    const y1 = cy + Math.sin(angle) * (radius - 10);
-                    const x2 = cx + Math.cos(angle) * (radius + 10);
-                    const y2 = cy + Math.sin(angle) * (radius + 10);
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
-                }
-                ctx.restore();
-            }
-        });
-    </script>
     <style>
     .alert-text {
         padding: 5px 10px;
@@ -220,7 +125,7 @@
         <div class="dashboard">
             <div class="alert-box">
                 <div class="alert-light"></div>
-                <input type="text" placeholder="警告信息">
+                <input type="text" placeholder="提示框" readonly>
             </div>
 
             <div class="alert-image">
