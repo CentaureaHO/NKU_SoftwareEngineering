@@ -13,6 +13,11 @@ import numpy as np
 import time
 from PIL import Image, ImageDraw, ImageFont
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 def put_chinese_text(img, text, position, font_size=20, color=(255, 255, 255), thickness=1):
     """在OpenCV图像上绘制中文文本"""
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -391,4 +396,4 @@ def main():
     print("演示结束")
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -224,6 +224,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
+        # BaseVisualModality.initialize() now handles camera initialization via CameraManager
         result = super().initialize()
         if result != SUCCESS:
             logger.error("基础视觉模态初始化失败")
@@ -313,24 +314,55 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         """处理线程的主循环，负责连续处理视频帧"""
         logger.info("处理线程已启动")
         
-        if self.capture is None:
-            logger.error("视频源未初始化")
-            return
+        # CameraManager handles camera readiness, no direct check for self.capture here
+        # if self.capture is None:
+        #     logger.error("视频源未初始化") # This check is now implicitly handled by camera_manager.read_frame()
+        #     return
         
-        frame_interval = 1.0 / HeadPoseParams.VIDEO_FPS
+        frame_interval = 1.0 / HeadPoseParams.VIDEO_FPS # Consider making VIDEO_FPS configurable or from CameraManager
         
         while not self._stop_event.is_set():
             start_time = time.time()
             
-            ret, frame = self.capture.read()
-            if not ret:
-                if self.is_file_source and self.loop_video:
-                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
-                else:
-                    logger.error("无法获取视频帧")
-                    break
+            # Read frame using CameraManager via BaseVisualModality's update mechanism or a direct call if needed
+            # For this loop, we assume frames are acquired by a mechanism that calls _process_frame,
+            # or we directly use the camera_manager if this loop is the primary acquisition point.
+            # Given the structure, BaseVisualModality.update() would typically call _process_frame.
+            # If this _processing_loop is independent, it needs to get frames.
             
+            # Assuming this loop is driven by BaseVisualModality's start/stop and uses its update flow:
+            # The frame acquisition is now part of the update() method in BaseVisualModality.
+            # This _processing_loop might need to be re-structured if it's meant to be the
+            # core frame acquisition loop for this specific modality.
+            # For now, let's assume update() is called elsewhere, or this loop needs to call read_frame.
+
+            # If this loop is the one pulling frames:
+            if not self.camera_manager.is_running():
+                logger.warning("CameraManager is not running. Trying to initialize...")
+                # Attempt to initialize if not running, using stored parameters
+                init_status = self.camera_manager.initialize_camera(
+                    self.source, self.width, self.height, self.loop_video
+                )
+                if init_status != SUCCESS:
+                    logger.error(f"Failed to re-initialize camera in processing loop. Error: {init_status}")
+                    time.sleep(1) # Wait before retrying or breaking
+                    continue # Or break, depending on desired behavior
+
+            ret, frame = self.camera_manager.read_frame()
+
+            if not ret:
+                # CameraManager handles looping. If ret is False, it means no frame.
+                # This could be end of a non-looping video, or a persistent camera error.
+                if self.camera_manager.is_file_source and not self.camera_manager.loop_video:
+                    logger.info("End of non-looping video file reached in HeadPoseTrackerGRU.")
+                    break # Exit loop if it's a non-looping file that ended
+                else:
+                    # For camera streams or looping videos, a False ret might indicate a temporary issue.
+                    logger.warning("Failed to get frame from CameraManager in _processing_loop. Retrying...")
+                    time.sleep(0.1) # Brief pause before retrying
+                    continue
+            
+            # Frame acquired successfully
             state = self._process_frame(frame)
             with self._state_lock:
                 self._latest_state = state
@@ -347,13 +379,28 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             HeadPoseState: 当前头部状态
         """
-        if not self._is_running or not self._processing_thread or not self._processing_thread.is_alive():
-            logger.warning("处理线程未运行")
-            return HeadPoseState()
-        
-        with self._state_lock:
-            return self._latest_state
-    
+        if self._is_running and self._processing_thread and self._processing_thread.is_alive():
+            with self._state_lock:
+                return self._latest_state
+        elif not self._is_running:
+             logger.warning(f"{self.name} modality is not running. Returning empty state.")
+             return HeadPoseState()
+        else:
+            logger.warning("Processing thread is not alive. Attempting a synchronous frame read.")
+            if not self.camera_manager.is_running():
+                logger.error("Camera manager not running for synchronous update.")
+                return HeadPoseState()
+
+            ret, frame = self.camera_manager.read_frame()
+            if not ret or frame is None:
+                logger.error("Failed to read frame synchronously.")
+                return HeadPoseState()
+            
+            state = self._process_frame(frame)
+            with self._state_lock:
+                self._latest_state = state
+            return state
+
     def _extract_features(self, face_landmarks, frame_shape) -> np.ndarray:
         """
         从人脸关键点提取特征
@@ -968,19 +1015,32 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
-        result = super().start()
+        if not self.camera_manager.is_running():
+            logger.info(f"Camera for source {self.source} not running. Initializing before start...")
+            init_status = self.camera_manager.initialize_camera(
+                source=self.source, 
+                width=self.width, 
+                height=self.height, 
+                loop_video=self.loop_video
+            )
+            if init_status != SUCCESS:
+                logger.error(f"Failed to initialize camera via CameraManager before starting HeadPoseTrackerGRU. Error: {init_status}")
+                return init_status
+            
+        result = super().start() 
         if result != SUCCESS:
-            logger.error(f"无法启动头部姿态跟踪器: {result}")
+            logger.error(f"BaseModality start failed for {self.name}: {result}")
             return result
             
         try:
             self._stop_event.clear()
             self._processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
             self._processing_thread.start()
-            logger.info("头部姿态跟踪器已开始运行")
+            logger.info(f"{self.name} has started processing.")
             return SUCCESS
         except Exception as e:
-            logger.error(f"启动处理线程时出错: {str(e)}")
+            logger.error(f"Error starting processing thread for {self.name}: {str(e)}", exc_info=True)
+            super().stop()
             return RUNTIME_ERROR
     
     def shutdown(self) -> int:
@@ -990,33 +1050,32 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
-        try:
-            if self._processing_thread and self._processing_thread.is_alive():
-                logger.info("正在停止处理线程...")
-                self._stop_event.set()
-                self._processing_thread.join(timeout=2.0) 
-                if self._processing_thread.is_alive():
-                    logger.warning("处理线程未能正常结束")
-                else:
-                    logger.info("处理线程已正常结束")
-            
-            if self.face_mesh:
+        logger.info(f"Shutting down {self.name}...")
+        if self._processing_thread and self._processing_thread.is_alive():
+            logger.info("Stopping processing thread...")
+            self._stop_event.set()
+            self._processing_thread.join(timeout=2.0) 
+            if self._processing_thread.is_alive():
+                logger.warning("Processing thread did not terminate gracefully.")
+            else:
+                logger.info("Processing thread stopped.")
+
+        if self.face_mesh:
+            try:
                 self.face_mesh.close()
                 self.face_mesh = None
-                logger.info("MediaPipe资源已释放")
-            
-            result = super().shutdown()
-            if result == SUCCESS:
-                logger.info("头部姿态跟踪器已关闭")
-            else:
-                logger.error(f"关闭头部姿态跟踪器时出错: {result}")
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"关闭头部姿态跟踪器失败: {str(e)}")
-            return RUNTIME_ERROR
+                logger.info("MediaPipe FaceMesh resources released.")
+            except Exception as e:
+                logger.error(f"Error closing MediaPipe FaceMesh: {str(e)}", exc_info=True)
+
+        result = super().shutdown() 
+        if result == SUCCESS:
+            logger.info(f"{self.name} shutdown successfully.")
+        else:
+            logger.error(f"Error during super().shutdown() for {self.name}: {result}")
         
+        return result
+
     def get_key_info(self) -> str:
         """
         获取模态的关键信息

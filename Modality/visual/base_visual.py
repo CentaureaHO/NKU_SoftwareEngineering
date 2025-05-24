@@ -5,6 +5,7 @@ import time
 import os
 import logging
 
+from utils.camera_manager import get_camera_manager, CameraManager
 from ..core import BaseModality, ModalityState
 from ..core.error_codes import (
     SUCCESS, CAMERA_NOT_AVAILABLE, VIDEO_FILE_NOT_FOUND, 
@@ -45,10 +46,9 @@ class BaseVisualModality(BaseModality):
         self.source = source
         self.width = width
         self.height = height
-        self.capture = None
-        self.last_frame = None
-        self.is_file_source = isinstance(source, str) and os.path.isfile(source)
-        self.loop_video = True
+        self.camera_manager: CameraManager = get_camera_manager()
+        self.last_frame: Optional[np.ndarray] = None
+        self.loop_video: bool = True
     
     def initialize(self) -> int:
         """
@@ -58,27 +58,25 @@ class BaseVisualModality(BaseModality):
             int: 错误码，0表示成功，其他值表示失败
         """
         try:
-            # 尝试使用DirectShow后端打开摄像头
-            if not self.is_file_source:
-                self.capture = cv2.VideoCapture(self.source, cv2.CAP_DSHOW)
-                self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-                self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-            else:
-                self.capture = cv2.VideoCapture(self.source)
+            init_status = self.camera_manager.initialize_camera(
+                source=self.source,
+                width=self.width,
+                height=self.height,
+                loop_video=self.loop_video 
+            )
+            if init_status != SUCCESS:
+                logging.error(f"CameraManager failed to initialize for source {self.source}. Error code: {init_status}")
+                return init_status
             
-            if not self.capture.isOpened():
-                if not self.is_file_source:
-                    self.capture = cv2.VideoCapture(self.source)
-                    self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-                    self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-                    
-                    if not self.capture.isOpened():
-                        return CAMERA_NOT_AVAILABLE
-                else:
-                    return VIDEO_FILE_NOT_FOUND
-                
+            props = self.camera_manager.get_properties()
+            if props.get('is_opened'):
+                self.width = int(props.get('width', self.width))
+                self.height = int(props.get('height', self.height))
+                logging.info(f"Camera initialized via CameraManager. Effective resolution: {self.width}x{self.height}")
+
             return SUCCESS
         except Exception as e:
+            logging.error(f"Exception during BaseVisualModality initialize via CameraManager: {str(e)}", exc_info=True)
             return VIDEO_SOURCE_ERROR
     
     def update(self) -> Optional[VisualState]:
@@ -88,27 +86,22 @@ class BaseVisualModality(BaseModality):
         Returns:
             Optional[VisualState]: 处理后的视觉状态
         """
-        if not self._is_running or self.capture is None:
-            logging.error(f"视频源未运行或未初始化 - is_running: {self._is_running}, capture: {self.capture is not None}")
+        if not self._is_running:
+            logging.warning(f"{self.name} modality is not running, cannot update.")
+            return None
+
+        if not self.camera_manager.is_running():
+            logging.error(f"CameraManager is not running or not initialized for source {self.source}. Cannot read frame.")
             return None
         
         try:
-            ret, frame = self.capture.read()
+            ret, frame = self.camera_manager.read_frame()
             
             if not ret:
-                if self.is_file_source:
-                    if self.loop_video:
-                        logging.info("视频文件已结束，正在循环播放")
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                        ret, frame = self.capture.read()
-                    else:
-                        logging.info("视频文件已结束，不循环播放")
-                
-                if not ret:
-                    logging.error("无法读取视频帧")
-                    return None
+                logging.warning(f"Failed to read frame from CameraManager for source {self.source}.")
+                return None 
             
-            self.last_frame = frame
+            self.last_frame = frame.copy()
             
             state = self._process_frame(frame)
             self._last_state = state
@@ -116,7 +109,7 @@ class BaseVisualModality(BaseModality):
             return state
             
         except Exception as e:
-            logging.error(f"读取视频帧时出错: {str(e)}")
+            logging.error(f"Error processing frame in BaseVisualModality update: {str(e)}", exc_info=True)
             return None
     
     def _process_frame(self, frame: np.ndarray) -> VisualState:
@@ -129,7 +122,7 @@ class BaseVisualModality(BaseModality):
         Returns:
             VisualState: 处理后的视觉状态
         """
-        return VisualState(frame=frame)
+        return VisualState(frame=frame, timestamp=time.time())
     
     def shutdown(self) -> int:
         """
@@ -139,13 +132,10 @@ class BaseVisualModality(BaseModality):
             int: 错误码，0表示成功，其他值表示失败
         """
         try:
-            if self.capture is not None:
-                self.capture.release()
-                self.capture = None
-            
+            logging.info(f"BaseVisualModality '{self.name}' shutdown. CameraManager for source '{self.source}' remains active if shared.")
             self.last_frame = None
-            return SUCCESS
         except Exception as e:
+            logging.error(f"Error during BaseVisualModality shutdown: {str(e)}", exc_info=True)
             return RUNTIME_ERROR
     
     def get_frame_size(self) -> Tuple[int, int]:
@@ -155,6 +145,12 @@ class BaseVisualModality(BaseModality):
         Returns:
             Tuple[int, int]: 宽度和高度
         """
+        if self.camera_manager.is_running():
+            props = self.camera_manager.get_properties()
+            cam_width = props.get('width')
+            cam_height = props.get('height')
+            if cam_width is not None and cam_height is not None:
+                return (int(cam_width), int(cam_height))
         return (self.width, self.height)
     
     def set_loop_video(self, loop: bool) -> None:
@@ -165,3 +161,6 @@ class BaseVisualModality(BaseModality):
             loop: 是否循环播放
         """
         self.loop_video = loop
+        if self.camera_manager:
+             self.camera_manager.set_loop_video(loop)
+             logging.info(f"BaseVisualModality '{self.name}' loop_video set to {loop}. Updated CameraManager.")
