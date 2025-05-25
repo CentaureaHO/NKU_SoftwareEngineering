@@ -9,14 +9,18 @@ from flask import Flask, render_template, request, jsonify,redirect, url_for,Res
 import cv2
 
 import sys
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.25.16.30')
-#sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 from applications.application import application
 from individuation import individuation
 import json
 import os
 import time
 import requests # Import the requests library
+from utils.camera_manager import get_camera_manager
+import numpy as np
 
 viewer = Flask(__name__)
 camera = None
@@ -120,33 +124,108 @@ def settings():
     print("driver_info:", driver_info)
     return render_template('settings.html', music_info=music_info, driver_info=driver_info)
 
-# 获取前置摄像头
 def generate_frames():
-    return
-    global camera
-    if camera is None:
-        camera = cv2.VideoCapture(0)
+    camera_mgr = get_camera_manager()
+    result = camera_mgr.initialize_camera(0, 640, 480, False)
+    
+    time.sleep(1.0)
+    
+    if not camera_mgr.is_running():
+        print("Could not start camera. Returning error frame.")
+        error_img = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.putText(error_img, "Camera Error", (50, 240), cv2.FONT_HERSHEY_SIMPLEX, 
+                    1, (0, 0, 255), 2, cv2.LINE_AA)
+        ret, buffer = cv2.imencode('.jpg', error_img)
+        if ret:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            return
 
-    if not camera.isOpened():
-        raise RuntimeError("Could not start camera.")
+    print("Starting video feed stream")
+    frame_count = 0
+    error_count = 0
+    max_errors = 10
 
     while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
+        try:
+            success, frame = camera_mgr.read_frame()
+            if not success:
+                error_count += 1
+                if error_count > max_errors:
+                    print(f"Too many errors ({error_count}) reading frames. Restarting camera...")
+                    camera_mgr.release_camera()
+                    time.sleep(1.0)
+                    camera_mgr.initialize_camera(0, 640, 480, False)
+                    error_count = 0
+                    continue
+
+                error_img = np.zeros((480, 640, 3), dtype=np.uint8)
+                cv2.putText(error_img, f"Frame Error {error_count}", (50, 240), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                ret, buffer = cv2.imencode('.jpg', error_img)
+                if ret:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+                time.sleep(0.5)
+                continue
+            
+            error_count = 0
+            frame_count += 1
+        
             ret, buffer = cv2.imencode('.jpg', frame)
             if not ret:
                 continue
+                
             frame_bytes = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+            time.sleep(0.01)
+            
+        except Exception as e:
+            print(f"Error in generate_frames: {str(e)}")
+            error_count += 1
+            if error_count > max_errors:
+                print("Too many errors. Stopping video feed.")
+                break
+            time.sleep(0.5)
 
 @viewer.route('/video_feed')
 def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@viewer.route('/image')
+def get_image():
+    camera_mgr = get_camera_manager()
+    result = camera_mgr.initialize_camera(0, 640, 480, False)
+
+    time.sleep(0.5)
+    
+    if not camera_mgr.is_running():
+        error_img = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.putText(error_img, "Camera Not Available", (50, 240), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+        ret, buffer = cv2.imencode('.jpg', error_img)
+        if ret:
+            return Response(buffer.tobytes(), mimetype='image/jpeg')
+        return jsonify({'error': 'Camera not available'}), 500
+    
+    success, frame = camera_mgr.read_frame()
+    if not success:
+        error_img = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.putText(error_img, "Failed to Capture Frame", (50, 240), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+        ret, buffer = cv2.imencode('.jpg', error_img)
+        if ret:
+            return Response(buffer.tobytes(), mimetype='image/jpeg')
+        return jsonify({'error': 'Failed to capture frame'}), 500
+    
+    ret, buffer = cv2.imencode('.jpg', frame)
+    if not ret:
+        return jsonify({'error': 'Failed to encode image'}), 500
+    
+    return Response(buffer.tobytes(), mimetype='image/jpeg')
 
 # 控制提示灯状态
 light_color = "green"
@@ -352,4 +431,3 @@ if __name__ == '__main__':
     # 启动线程
     #thread.start()
     viewer.run(debug=True)
-    

@@ -33,20 +33,20 @@ from setting import Setting
 
 class MultimodalController:
     def __init__(self) -> None:
-        speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
-        speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
+        #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
+        #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
         self.init_speecher()
-        self.init_headpose()
-        self.init_static_gesture()
+        #self.init_headpose()
+        #self.init_static_gesture()
         self.init_viewer()
-        self.init_gazer()
+        #self.init_gazer()
         #from Modality.demo_static_gesture_recognition import main
-        #from Modality.demo_gaze_tracker import main as main1
+        from Modality.demo_gaze_tracker import main as main1
         #from Modality.demo_headpose_tracker import main as main2
         #from Modality.demo_static_gesture_recognition import main as main3
         #thread = threading.Thread(target=main1(), args=("示例线程",))
-        #main3()
+        main1()
         application.schedule(application.type.enter, [self])
 
     def init_gazer(self) -> None:
