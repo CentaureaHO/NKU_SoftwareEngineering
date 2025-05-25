@@ -506,21 +506,3 @@ class GestureTracker(BaseVisualModality):
         except Exception as e:
             logger.error(f"关闭手势跟踪器时出错: {str(e)}")
             return RUNTIME_ERROR 
-    
-    def get_key_info(self) -> str:
-        """
-        获取模态的关键信息
-
-        Returns:
-            str: 模态的关键信息
-        """
-        gesture_dir = {"0": "握拳", "5": "竖起大拇指", "6": "摇手"}
-        key_info = None
-        state = self.update()
-        #print(f"是否识别到手: {state.detections["gesture"]["detected"]}")
-        if state and state.detections["gesture"]["detected"]:
-            key_info = state.detections["gesture"]["name"]
-            if key_info in gesture_dir:
-                key_info = gesture_dir[key_info]
-            #print(f"识别结果: {key_info}")
-        return key_info

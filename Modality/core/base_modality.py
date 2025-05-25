@@ -97,14 +97,3 @@ class BaseModality(ABC):
             bool: 如果模态正在运行则返回True，否则返回False
         """
         return self._is_running
-
-    @abstractmethod
-    def get_key_info(self) -> str:
-        """
-        获取模态的关键信息
-
-        Returns:
-            str: 模态的关键信息
-        """
-
-        pass
