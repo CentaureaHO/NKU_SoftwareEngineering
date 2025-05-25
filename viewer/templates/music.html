@@ -82,39 +82,6 @@
         background-color: #c32222;
     }
     </style>
-
-    <script>
-        // 前置摄像头初始化
-        async function initFrontCamera() {
-            try {
-                // 请求摄像头访问权限，指定使用前置摄像头
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" },
-                    audio: false
-                });
-                
-                // 获取视频元素并设置视频流
-                const videoElement = document.getElementById('frontCamera');
-                videoElement.srcObject = stream;
-                await videoElement.play().catch(e => console.error('播放失败:', e));
-                console.log('✅ 前置摄像头初始化成功');
-            } catch (error) {
-                console.error('❌ 摄像头初始化失败:', error);
-                // 显示错误信息
-                const cameraFeed = document.querySelector('.camera-feed');
-                cameraFeed.innerHTML = '<div class="camera-error">摄像头访问失败</div>';
-                
-                // 添加错误状态样式
-                document.querySelector('.camera-status').style.color = 'red';
-            }
-        }
-        
-        // 页面加载完成后初始化摄像头
-        window.addEventListener('DOMContentLoaded', () => {
-            initFrontCamera();
-        });
-    </script>
-
 </head>
 
 
@@ -125,7 +92,7 @@
         <div class="dashboard">
             <div class="alert-box">
                 <div class="alert-light"></div>
-                <input type="text" placeholder="提示框" readonly>
+                <textarea id="alertText" readonly></textarea>
             </div>
 
             <div class="alert-image">
@@ -135,7 +102,7 @@
         <!-- 左下侧摄像头 -->
         <div class="camera-container">
             <div class="camera-feed">
-                <video id="frontCamera" autoplay playsinline muted controls width="100%" height="100%"></video>
+                <img id="frontCamera" src="/video_feed" width="100%" height="100%" alt="摄像头画面">
                 <div class="camera-overlay">
                     <div class="camera-status">●</div>
                     <span>实时画面</span>

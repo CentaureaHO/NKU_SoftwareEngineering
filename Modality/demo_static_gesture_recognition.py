@@ -163,7 +163,9 @@ def main():
             
             # 更新所有模态
             states = manager.update_all()
-            
+            state  = static_gesture_tracker.get_key_info()
+            print("state",state)
+
             # 获取手势状态
             if "static_gesture_tracker" in states:
                 gesture_state = states["static_gesture_tracker"]

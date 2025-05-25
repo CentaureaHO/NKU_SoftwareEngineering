@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 开启前置摄像头
 async function initFrontCamera() {
-    try {
+    /*try {
         // 请求摄像头访问权限，指定使用前置摄像头
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
@@ -76,7 +76,7 @@ async function initFrontCamera() {
                 
         // 添加错误状态样式
         document.querySelector('.camera-status').style.color = 'red';
-    }
+    }*/
 }
         
 // 页面加载完成后初始化摄像头
@@ -84,8 +84,8 @@ window.addEventListener('DOMContentLoaded', () => { initFrontCamera(); });
 
 // 设置提示框和提示灯
 function updateAlertBox(message) {
-    const inputBox = document.querySelector('.alert-box input[type="text"]');
-    if (inputBox) { inputBox.value = message; }
+    const textArea = document.querySelector('.alert-box textarea');
+    if (textArea) { textArea.value = message; }
 }
 
 function fetchAndUpdateString() {

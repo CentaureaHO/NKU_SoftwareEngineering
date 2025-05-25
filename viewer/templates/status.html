@@ -84,7 +84,7 @@
         <div class="dashboard">
             <div class="alert-box">
                 <div class="alert-light"></div>
-                <input type="text" placeholder="提示框" readonly>
+                <textarea id="alertText" readonly></textarea>
             </div>
 
             <div class="alert-image">
@@ -94,7 +94,7 @@
         <!-- 左下侧摄像头 -->
         <div class="camera-container">
             <div class="camera-feed">
-                <video id="frontCamera" autoplay playsinline muted controls width="100%" height="100%"></video>
+                <img id="frontCamera" src="/video_feed" width="100%" height="100%" alt="摄像头画面">
                 <div class="camera-overlay">
                     <div class="camera-status">●</div>
                     <span>实时画面</span>
