@@ -3,6 +3,7 @@ from .head_pose_common import HeadPoseParams, HeadPoseState
 from .head_tracker_gru import HeadPoseTrackerGRU
 from .static_gesture_tracker import GestureState, GestureTracker
 from .dynamic_gesture_tracker import DynamicGestureState, DynamicGestureTracker
+from .gaze_direction_tracker import GazeDirectionTracker, GazeDirectionState
 
 __all__ = [
     # base_visual.py
@@ -19,4 +20,7 @@ __all__ = [
     
     # dynamic_gesture_tracker.py
     'DynamicGestureState', 'DynamicGestureTracker',
+
+    # gaze_direction_tracker.py
+    'GazeDirectionTracker', 'GazeDirectionState'
 ]

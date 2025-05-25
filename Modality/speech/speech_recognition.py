@@ -28,7 +28,8 @@ logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     filename='speech_recognition.log',
-    filemode='w'
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('SpeechRecognition')
 
@@ -163,6 +164,8 @@ class SpeechRecognition(BaseModality):
         # 注册信息
         self.enrolling_id = None
         self.enrolling_name = None
+
+        self.last_key_info = None
         
     def _load_config(self) -> dict:
         """加载配置文件，若不存在则创建默认配置"""
@@ -513,7 +516,11 @@ class SpeechRecognition(BaseModality):
             return False
             
         ratio = voice_frames / total_frames
+
+        # print(f"Ratio = {ratio:.2f}, current state: {"listening" if self.is_listening else "not"}")
+
         return ratio > 0.4  # 如果超过40%的帧包含语音，视为有语音活动
+        # return True
         
     def _save_audio(self, audio_data: bytes, filepath: str) -> str:
         """保存音频数据到文件"""
@@ -1032,6 +1039,7 @@ class SpeechRecognition(BaseModality):
             logger.warning("声纹识别功能未开启")
             return False
             
+        print("进入声纹注册模式，请说话...")
         logger.info("进入声纹注册模式，请说话...")
         self.is_enrolling = True
         self.audio_segments = []
@@ -1330,3 +1338,20 @@ class SpeechRecognition(BaseModality):
         logger.info("已禁用聆听状态")
         return True
     
+    def get_key_info(self) -> str:
+        """
+        获取模态的关键信息
+
+        Returns:
+            str: 模态的关键信息
+        """
+
+        key_info = None
+        state = self.update()
+        if state and state.recognition["text"]:
+            text = state.recognition["text"]
+            key_info = text
+            # self.last_key_info = text
+            state.recognition["text"] = None
+            # print(f"识别结果: {text}")
+        return key_info
