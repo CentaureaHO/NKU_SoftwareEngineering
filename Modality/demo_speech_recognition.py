@@ -4,7 +4,6 @@ import time
 import argparse
 import logging
 
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -12,8 +11,6 @@ sys.path.insert(0, parent_dir)
 from Modality.core.modality_manager import ModalityManager
 from Modality.speech.speech_recognition import SpeechRecognition
 from Modality.core.error_codes import SUCCESS, get_error_message
-
-
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
@@ -115,8 +112,6 @@ def main():
                     if result_header:
                         print(f"\n{result_header}")
                     print(f"识别结果: {current_text}")
-                    #from individuation import Individuation
-                    #Individuation.speech_individuation(current_text)
             
             import msvcrt
             if msvcrt.kbhit():

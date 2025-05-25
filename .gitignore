@@ -7,7 +7,6 @@ Dataset/**
 
 **/__pycache__
 *.log
-*.pth
 **/test.ipynb
 Modality/testcases
 ml_training/headpose/models

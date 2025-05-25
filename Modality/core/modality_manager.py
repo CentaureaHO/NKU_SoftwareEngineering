@@ -159,20 +159,3 @@ class ModalityManager:
             List[str]: 活跃模态名称列表
         """
         return self._active_modalities.copy()
-
-    def get_all_key_info(self) -> dict[str, str]:
-        """
-        获取所有活跃模态的关键信息
-
-        Returns:
-            dict[str, str]: 所有活跃模态的关键信息
-        """
-        results = {}
-        
-        for modality_name in self._active_modalities:
-            print(modality_name)
-            modality = self._modalities[modality_name]
-            key_info = modality.get_key_info()
-            results[modality_name] = key_info
-        
-        return results
