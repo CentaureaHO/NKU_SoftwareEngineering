@@ -57,5 +57,5 @@ def sync_main():
     print("同步合成测试完成")
 
 if __name__ == "__main__":
-    asyncio.run(async_main())
+    # asyncio.run(async_main())
     sync_main()

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>车载多模态智能交互系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+
+    <style>
+        input[type="file"],
+        input[type="text"] {
+            background-color: #222;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px;
+            margin-bottom: 8px;
+            width: 80%;
+        }
+
+        canvas {
+            margin: 15px 0;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        #fusion-result {
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        /* 图像展示区域 */
+        #image-display {
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000; /* 黑色背景 */
+            border-radius: 10px;
+            box-shadow: 0 0 10px #333;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #image-display img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #0ff;
+        }
+
+        #placeholder-text {
+            position: absolute;
+            color: #888;
+            font-size: 18px;
+        }
+    </style>
+
+    <style>
+    .alert-text {
+        padding: 5px 10px;
+        border: 1px solid #c59393;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;  /* 关键：保留换行 */
+        background-color: #c32222;
+    }
+    </style>
+
+</head>
+
+<body>
+    <!-- 左侧区域 -->
+    <div class="leftbody">
+        <!-- 左上侧仪表盘 -->
+        <div class="dashboard">
+            <div class="alert-box">
+                <div class="alert-light"></div>
+                <input type="text" placeholder="提示框" readonly>
+            </div>
+
+            <div class="alert-image">
+                <img src="{{ url_for('static', filename='image/control.jpg') }}" alt="控制图片" id="alert-image">
+            </div>
+        </div>
+        <!-- 左下侧摄像头 -->
+        <div class="camera-container">
+            <div class="camera-feed">
+                <video id="frontCamera" autoplay playsinline muted controls width="100%" height="100%"></video>
+                <div class="camera-overlay">
+                    <div class="camera-status">●</div>
+                    <span>实时画面</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧控制功能区 -->
+    <div class="controls">
+        <script>
+            function playMusic(musicName) {
+                fetch('/play_music', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ music: musicName })
+                }).catch(error => {
+                    console.error('播放失败:', error);
+                });
+            }
+        
+            function handleMusic(action) {
+                if (action === 'next') {
+                    fetch('/pause_music', {
+                        method: 'POST'
+                    }).catch(error => {
+                        console.error('暂停/继续失败:', error);
+                    });
+                }
+            }
+        </script>
+
+        <h2>个性化配置</h2>
+        <div style="width: 100%;margin-top: -20px;"> 
+            <!-- 语音功能 -->
+            <div style="margin-bottom: 30px;">
+            <h3 style="color: white; border-bottom: 1px solid #333; padding-bottom: 5px;">语音功能</h3>
+            {% for text, options in text_list.items() %}
+            <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
+                <label style="color: #ccc; white-space: nowrap; width: 150px;">{{ text }}</label>
+                <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
+                style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+            </div>
+            <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
+            {% endfor %}
+            </div>
+
+            <!-- 手势功能 -->
+            <div>
+                <h3 style="color: white; border-bottom: 1px solid #333; padding-bottom: 5px;">手势功能</h3>
+                {% for gesture, options in gesture_data.items() %}
+                <div style="margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="flex: 1; color: #ccc;">{{ gesture }}</span>
+                    <select id="gesture_{{ loop.index }}" style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
+                        {% for option in options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+            <!-- 保存按钮 -->
+            <button type="button" onclick="saveConfig()" style="margin-top: 25px;font-size: 16px;">保存全部配置</button>
+
+        <script>
+            document.querySelector('.alert-text').innerHTML = "警\n告信息".replace(/\n/g, "<br>");
+
+            function submitVoiceText(index) {
+                const input = document.getElementById(`voice_input_${index}`).value.trim();
+                const resultDiv = document.getElementById(`voice_result_${index}`);
+                if (input) {
+                    resultDiv.textContent = `已设置为：${input}`;
+                } else {
+                    resultDiv.textContent = '';
+                }
+            }
+
+            // 保存配置
+            function saveConfig() {
+                const voiceInputs = {};
+                const gestureOptions = {};
+
+                // 获取所有语音输入框内容
+                {% for text, options in text_list.items() %}
+                voiceInputs["{{ text }}"] = document.getElementById(`voice_input_{{ loop.index }}`).value.trim();
+                {% endfor %}
+
+                // 获取所有手势选择的选项
+                {% for gesture, options in gesture_data.items() %}
+                gestureOptions["{{ gesture }}"] = document.getElementById(`gesture_{{ loop.index }}`).value;
+                {% endfor %}
+
+                // 发送保存请求到后端
+                fetch('/save_config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'voiceInputs': voiceInputs,
+                        'gestureOptions': gestureOptions
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('配置保存成功！');
+                })
+                .catch(error => {
+                    console.error('保存配置时出错:', error);
+                });
+            }
+        </script>
+
+        <!-- 跳转按钮区 -->
+        <div id="control-buttons">
+            <button onclick="handleAction('music')" class="image-button" 
+                style="background-image: url('static/image/音乐按钮.jpg');"></button>
+            <button onclick="handleAction('navigation')" class="image-button" 
+                style="background-image: url('static/image/导航按钮.jpg');"></button>
+            <button onclick="handleAction('status')" class="image-button" 
+                style="background-image: url('static/image/状态按钮.jpg');"></button>
+            <button onclick="handleAction('config')" class="image-button" 
+                style="background-image: url('static/image/设置按钮.png');"></button>
+            <button onclick="handleAction('settings')" class="image-button" 
+                style="background-image: url('static/image/权限按钮.jpg');"></button>
+            <button onclick="handleAction('')" class="image-button" 
+                style="background-image: url('static/image/退出按钮.jpg');"></button>
+        </div>
+    </div>
+
+    <script>
+        function handleAction(action) { window.location.href = '/' + action; }
+
+        function submitFusion() {
+            const voice = document.getElementById('voiceText').value;
+            const vision = document.getElementById('visionText').value;
+            fetch('/fusion/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: voice, vision: vision })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('fusion-result').innerText = '融合结果：' + data.decision;
+            })
+            .catch(() => {
+                document.getElementById('fusion-result').innerText = '融合失败，请检查后端接口';
+            });
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview-image').src = e.target.result;
+                document.getElementById('placeholder-text').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+    </script>
+</body>
+</html>
