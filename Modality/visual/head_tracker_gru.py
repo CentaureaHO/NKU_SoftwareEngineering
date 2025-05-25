@@ -1091,3 +1091,4 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             key_info = "摇头"
         print(f"key_info: {key_info}")
         return key_info
+    

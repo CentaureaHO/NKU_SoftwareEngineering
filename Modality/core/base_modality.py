@@ -98,7 +98,7 @@ class BaseModality(ABC):
         """
         return self._is_running
 
-    @abstractmethod
+    # @abstractmethod
     def get_key_info(self) -> str:
         """
         获取模态的关键信息
@@ -107,4 +107,4 @@ class BaseModality(ABC):
             str: 模态的关键信息
         """
 
-        pass
+        return "Not implemented in base class"
