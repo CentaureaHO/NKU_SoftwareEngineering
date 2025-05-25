@@ -5,10 +5,11 @@
 """
 实现后端和后端路由控制
 """
-from flask import Flask, render_template, request, jsonify,redirect, url_for
+from flask import Flask, render_template, request, jsonify,redirect, url_for,Response
+import cv2
 
 import sys
-sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.24.14.00')
+sys.path.append(r'C:\Users\13033\Desktop\软工大作业5.25.16.30')
 #sys.path.append(r'C:\2025spring\软件工程\小组作业\NKU_SoftwareEngineering')
 from applications.application import application
 from individuation import individuation
@@ -18,6 +19,7 @@ import time
 import requests # Import the requests library
 
 viewer = Flask(__name__)
+camera = None
 
 # Your Amap Web Service API Key
 # Make sure this Key has permissions for Geocoding and Driving Route Planning
@@ -117,6 +119,34 @@ def settings():
     print("music_info:", music_info)
     print("driver_info:", driver_info)
     return render_template('settings.html', music_info=music_info, driver_info=driver_info)
+
+# 获取前置摄像头
+def generate_frames():
+    return
+    global camera
+    if camera is None:
+        camera = cv2.VideoCapture(0)
+
+    if not camera.isOpened():
+        raise RuntimeError("Could not start camera.")
+
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            if not ret:
+                continue
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+@viewer.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 # 控制提示灯状态
 light_color = "green"

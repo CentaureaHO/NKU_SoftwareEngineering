@@ -514,13 +514,14 @@ class GestureTracker(BaseVisualModality):
         Returns:
             str: 模态的关键信息
         """
-        gesture_dir = {"0": "握拳", "5": "竖起大拇指", "6": "摇手"}
+        gesture_dir = {"0": "握拳", "5": "摇手", "6": "竖起大拇指"}
         key_info = None
         state = self.update()
         #print(f"是否识别到手: {state.detections["gesture"]["detected"]}")
         if state and state.detections["gesture"]["detected"]:
             key_info = state.detections["gesture"]["name"]
+            print(f"手部初始识别结果: {key_info}")
             if key_info in gesture_dir:
                 key_info = gesture_dir[key_info]
-            #print(f"识别结果: {key_info}")
+        print(f"手部识别结果: {key_info}")
         return key_info

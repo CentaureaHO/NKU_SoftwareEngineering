@@ -73,14 +73,18 @@ body {
 }
 
 /* 提示框样式 */
-.alert-box input[type="text"] {
+.alert-box textarea {
     background-color: #222;
     border: 1px solid #555;
     color: #fff;
     padding: 6px;
     margin-top: 10px;
-    width: 300px;
+    width: 310px;
     height: 50px;
+    white-space: pre-wrap;
+    resize: none;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
 }
 
 /* 摄像头容器样式 */

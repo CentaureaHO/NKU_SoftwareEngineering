@@ -41,6 +41,12 @@ class MultimodalController:
         self.init_static_gesture()
         self.init_viewer()
         self.init_gazer()
+        #from Modality.demo_static_gesture_recognition import main
+        #from Modality.demo_gaze_tracker import main as main1
+        #from Modality.demo_headpose_tracker import main as main2
+        #from Modality.demo_static_gesture_recognition import main as main3
+        #thread = threading.Thread(target=main1(), args=("示例线程",))
+        #main3()
         application.schedule(application.type.enter, [self])
 
     def init_gazer(self) -> None:
@@ -108,10 +114,10 @@ class MultimodalController:
             os.environ["MODALITY_DEBUG"] = "0"
                 
         print("正在初始化智能座舱语音识别系统...")
-        self.speech_modality = SpeechRecognition(name="speech_recognition")
+        self.speecher = SpeechRecognition(name="speech_recognition")
         print("语音识别模态创建成功")
         
-        result = self.manager.register_modality(self.speech_modality)
+        result = self.manager.register_modality(self.speecher)
         if result != SUCCESS:
             return
         
@@ -124,18 +130,17 @@ class MultimodalController:
         print("语音识别模态启动成功")
 
         if args.no_wake:
-            self.speech_modality.toggle_wake_word(False)
+            self.speecher.toggle_wake_word(False)
         
         if args.add_wake:
-            self.speech_modality.add_wake_word(args.add_wake)
-        
-        self.speech_modality.set_max_temp_speakers(args.max_temp)
+            self.speecher.add_wake_word(args.add_wake)
+
+        self.speecher.set_max_temp_speakers(args.max_temp)
 
         if args.register:
             name = args.register_name if args.register_name else "新用户"
             MultimodalController.speecher.register_speaker(name)
         
-        self.last_recognized_text = ""
         print("语音系统初始化完成")
 
     def init_headpose(self) -> None:
@@ -163,18 +168,18 @@ class MultimodalController:
             from Modality.visual import HeadPoseTrackerGeom as Tracker
             print("使用几何方法进行头部姿态检测")
         
-        monitor = Tracker(
+        self.headposer = Tracker(
             source=video_source,
             width=args.width,
             height=args.height,
             debug=args.debug
         )
-        
-        result = self.manager.register_modality(monitor)
+
+        result = self.manager.register_modality(self.headposer)
         if result != SUCCESS:
             return
-        
-        result = self.manager.start_modality(monitor.name)
+
+        result = self.manager.start_modality(self.headposer.name)
         if result != SUCCESS:
             return
         
@@ -243,10 +248,10 @@ class MultimodalController:
         print(f"  - 稳定性阈值: {args.stability}")
         
         # 创建模态管理器
-        manager = ModalityManager()
+        # manager = ModalityManager()
         
         # 创建手势识别模态
-        static_gesture_tracker = GestureTracker(
+        self.static_gesture_tracker = GestureTracker(
             name="static_gesture_tracker",
             source=args.camera,
             width=args.width,
@@ -260,7 +265,7 @@ class MultimodalController:
         )
         
         # 注册模态
-        self.manager.register_modality(static_gesture_tracker)
+        self.manager.register_modality(self.static_gesture_tracker)
         
         # 启动模态
         result = self.manager.start_modality("static_gesture_tracker")
@@ -269,7 +274,6 @@ class MultimodalController:
             print(f"错误: 启动手势识别模态失败，错误码: {result}")
             return
         
-        self.last_gesture_name = None
         print("手势识别模态启动成功")
 
     def control(self) -> None:
@@ -287,13 +291,13 @@ class MultimodalController:
                         print(f"头部识别结果: {key_info}")
                     elif name == "static_gesture_tracker":
                         print(f"手势识别结果: {key_info}")
-                        individuation.gesture_individuation(key_info)
+                        # individuation.gesture_individuation(key_info)
                     elif name == "gaze_direction_tracker":
                         print(f"视线方向识别结果: {key_info}")
                     else:
                         assert False, f"未知模态: {name}"
 
-                    time.sleep(1)
+                    #time.sleep(1)
             #self.work_flag = True
         except KeyboardInterrupt:
             print("\n检测到终止信号")
@@ -303,14 +307,15 @@ class MultimodalController:
             print("系统已关闭")
 
 controller = MultimodalController()
-setting = Setting(controller.speech_modality)
+setting = Setting(controller.speecher)
 
 
 if __name__ == '__main__':
     # while True:
     #     controller.get_model_state()
     #     time.sleep(3)
-    controller.control()
-    #while True:
+    # controller.control()
+    while True:
+        pass
     #    Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
     #    time.sleep(10)

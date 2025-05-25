@@ -20,32 +20,73 @@ class Enter:
         pass
 
     def enter(self,controller) -> None:
-        #start_time = time.time()  # 记录开始时间
         text = "系统初始化完毕，请驾驶员目视前方"
-        #note_speaker_text1 = "请注意行车安全"
-        #note_speaker_text2 = "请立即目视前方"
-        #note_text = "注意!请目视前方\n" + \
-        #            "语音输入\"已经注意道路\"解除警告\n" + \
-        #            "竖起大拇指确认安全/摇手拒绝警告\n"
         from viewer.viewer import update_note, update_light
         update_note(text)
         update_light("red", True)
+        # 视线直视前方超过3秒
+        tag = False
+        start_time = None
         while True:
             state = controller.gazer.get_key_info()
-            print(f"获取到的状态: {state}")
-            # start_time = time.time()  # 记录开始时间
-
-        # while True:
-        #     update_light("red", True)
-        #     time.sleep(10)
-        #     update_light("green", False)
-        #     time.sleep(10)
-        #     update_light("red", False)
-        #     time.sleep(10)
-        #     update_light("green", True)
-        #requests.post('http://127.0.0.1:5000/update_string', json={'message': note_text})
-        #requests.post('http://127.0.0.1:5000/set_blinking', json={'enabled': True})
+            # print(f"获取到的状态: {state}")
+            if state != "中间":
+                tag = False
+                start_time = None
+                continue
+            if tag == False:
+                tag = True
+                start_time = time.time()
+            elif tag == True and time.time() - start_time > 3:
+                break
+        
+        text = "驾驶员已就位"
+        update_note(text)
+        update_light("green", False)
+        time.sleep(1)
         speecher_player.speech_synthesize_sync(text)
+        time.sleep(2)
+
+        text = "是否为您播放音乐"
+        speecher_player.speech_synthesize_sync(text)
+        text = "是否为您播放音乐\n" + \
+               "同意请语音输入\"同意播放音乐\"、竖起大拇指或点头\n" \
+               "拒绝请语音输入\"拒绝播放音乐\"、摇手或摇头\n"
+        update_note(text)
+
+        tag = None
+        while tag == None:
+            # 获取语音输入
+            state = controller.speecher.get_key_info()
+            if state != None:
+                print("语音输入:",state)
+            if state == "同意播放音乐":
+                tag = True
+                break
+            elif state == "拒绝播放音乐":
+                tag = False
+                break
+            # 获取手势输入
+            state = controller.static_gesture_tracker.get_key_info()
+            if state != None:
+                print("手势输入:",state)
+            if state == "竖起大拇指":
+                tag = True
+                break
+            elif state == "摇手":
+                tag = False
+                break
+            # 获取头部姿态输入
+            state = controller.headposer.get_key_info()
+            if state != None:
+                print("手势输入:",state)
+            if state == "点头":
+                tag = True
+                break
+            elif state == "摇头":
+                tag = False
+                break
+        print("退出enter")
         return
 
         Tag = True
