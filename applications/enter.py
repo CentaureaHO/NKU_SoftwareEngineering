@@ -77,49 +77,16 @@ class Enter:
                 tag = False
                 break
             # 获取头部姿态输入
+            """
             state = controller.headposer.get_key_info()
             if state != None:
-                print("手势输入:",state)
+                print("头部姿态输入:",state)
             if state == "点头":
                 tag = True
                 break
             elif state == "摇头":
                 tag = False
                 break
+            """
         print("退出enter")
         return
-
-        Tag = True
-        while Tag == True:
-            if time.time() - start_time > 5:
-                speecher_player.speech_synthesize_sync(note_speaker_text2)
-            states = controller.manager.update_all()
-            # print(states)
-            for name, state in states.items():
-                # print(f"模态:{name}")
-                if name == "speech_recognition":
-                    if state and state.recognition["text"]:
-                        text = state.recognition["text"]
-                        print(f"识别结果: {text}")
-                        if text == "已经注意道路":
-                            requests.post('http://127.0.0.1:5000/update_string', json={'message': "解除警告"})
-                            Tag = False
-                            break
-                elif name == "static_gesture_tracker":
-                    if state.detections["gesture"]["detected"]:
-                        name = state.detections["gesture"]["name"]
-                        print(f"手势识别结果: {name}")
-                        if name == "5":
-                            requests.post('http://127.0.0.1:5000/update_string', json={'message': "拒绝警告"})
-                            Tag = False
-                            break
-                        elif name == "6":
-                            requests.post('http://127.0.0.1:5000/update_string', json={'message': "确认安全"})
-                            Tag = False
-                            break
-        
-        requests.post('http://127.0.0.1:5000/set_blinking', json={'enabled': False})
-
-
-if __name__ == '__main__':
-    pass

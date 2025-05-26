@@ -316,6 +316,6 @@ if __name__ == '__main__':
     #     time.sleep(3)
     # controller.control()
     while True:
-        pass
+        application.schedule(application.type.enter, [controller])
     #    Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
-    #    time.sleep(10)
+        time.sleep(10)
