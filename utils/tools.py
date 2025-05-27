@@ -1,8 +1,15 @@
-import asyncio
-from .speech_synthesis.kokoro_synthesis import KokoroSynthesis as SpeechSyn
-import sounddevice as sd
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# _author = 'Xianda Tang' 'Yidian Lin'
 
-# synth = SpeechSyn()
+"""
+Module Description:
+    语音播放器
+"""
+
+import asyncio
+import sounddevice as sd
+from .speech_synthesis.kokoro_synthesis import KokoroSynthesis as SpeechSyn
 
 class SpeecherPlayer:
     """语音播放器类:合成并播放语音"""
@@ -16,15 +23,10 @@ class SpeecherPlayer:
         SAMPLE_RATE = 24000
         sd.play(audio_data, SAMPLE_RATE)
         sd.wait()
-        #return asyncio.run(synth.synthesize(text))
 
-    # TODO():后续可能需要异步播放语音
-    # async def speech_synthesize(text: str):
-    #     """异步合成语音，返回音频流（numpy数组）"""
-    #     audio_data = await synth.synthesize(text)
-    #     return audio_data
+    async def speech_synthesize(self, text: str):
+        """异步合成语音,返回音频流(numpy数组)"""
+        audio_data = await self.synth.synthesize(text)
+        return audio_data
 
 speecher_player = SpeecherPlayer()
-
-if __name__ == "__main__":
-    speecher_player.speech_synthesize_sync("这是一个同步合成的语音示例。")

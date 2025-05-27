@@ -15,8 +15,9 @@ import sys
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='head_tracker_gru.log',
-    filemode='w'
+    filename='./database/log/head_tracker_gru.log',
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('HeadTrackerGRU')
 

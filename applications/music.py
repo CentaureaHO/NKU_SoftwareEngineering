@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#_author = 'Yidian Lin'
+# _author = 'Yidian Lin'
 
 """
 Module Description:
@@ -8,11 +8,13 @@ Module Description:
 """
 
 import os
-import time
 import pygame
 
+
 class Music:
+    """音乐管理类"""
     def __init__(self) -> None:
+        """构造函数"""
         pygame.mixer.init()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         relative_path = "../database/music"
@@ -20,12 +22,14 @@ class Music:
         self.paused = False
 
     def getlist(self) -> str:
+        """获取音乐列表"""
         musiclist = []
         for file_name in os.listdir(self.dir_path):
             musiclist.append(file_name)
         return musiclist
 
-    def find(self,music_name: str) -> str:
+    def find(self, music_name: str) -> str:
+        """查找音乐文件"""
         for file_name in os.listdir(self.dir_path):
             if music_name not in file_name:
                 continue
@@ -35,8 +39,10 @@ class Music:
                 return file_path
         return ""
 
-    def play(self,music_name : str = "") -> None:
+    def play(self, music_name: str = "") -> None:
+        """播放音乐"""
         from viewer.viewer import jump_to_page
+
         jump_to_page("music")
         file_path = self.find(music_name)
         pygame.mixer.music.load(file_path)
@@ -44,37 +50,27 @@ class Music:
         self.paused = False
 
     def pause(self) -> None:
+        """暂停音乐"""
         print("pause")
-        if pygame.mixer.music.get_busy() == False:
+        if pygame.mixer.music.get_busy() is False:
             self.paused = False
             return
-        
+
         pygame.mixer.music.pause()
         self.paused = True
 
     def unpause(self) -> None:
+        """恢复音乐"""
         print("unpause")
-        if self.paused == False:
+        if self.paused is False:
             return
-        
+
         pygame.mixer.music.unpause()
         self.paused = False
 
     def change_pause(self) -> None:
-        if self.paused == True:
+        """切换音乐播放状态"""
+        if self.paused is True:
             self.unpause()
         else:
             self.pause()
-            
-
-if __name__ == '__main__':
-    music = Music()
-    print(music.getlist())
-    music.play("T1P2")
-    time.sleep(5)
-    music.change_pause()
-    time.sleep(5)
-    music.change_pause()
-    time.sleep(5)
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)

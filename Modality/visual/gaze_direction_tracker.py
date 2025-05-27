@@ -11,8 +11,9 @@ import sys
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='gaze_direction_tracker.log',
-    filemode='w'
+    filename='./database/log/gaze_direction_tracker.log',
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('GazeDirectionTracker')
 

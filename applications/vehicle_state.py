@@ -8,8 +8,10 @@ Module Description:
 """
 
 class VehicleState:
+    """车辆状态监测类:模拟车辆状态监测功能"""
     def __init__(self) -> None:
-        pass
+        """构造函数"""
 
     def monitor(self):
+        """监测车辆状态"""
         return ["100%","正常","0km"]

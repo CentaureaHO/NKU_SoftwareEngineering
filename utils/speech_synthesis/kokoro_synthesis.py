@@ -16,8 +16,9 @@ from huggingface_hub import snapshot_download as hf_snapshot_download
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('SYNTHESIS_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='kokoro_synthesis.log',
-    filemode='w'
+    filename='./database/log/kokoro_synthesis.log',
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('KokoroSynthesis')
 
