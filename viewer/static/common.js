@@ -50,38 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 开启前置摄像头
-async function initFrontCamera() {
-    /*try {
-        // 请求摄像头访问权限，指定使用前置摄像头
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                facingMode: "user",
-                advanced: [{ exclusive: false }]
-            },
-            audio: false
-        });
-                
-        // 获取视频元素并设置视频流
-        const videoElement = document.getElementById('frontCamera');
-        videoElement.srcObject = stream;
-        await videoElement.play().catch(e => console.error('播放失败:', e));
-        console.log('✅ 前置摄像头初始化成功');
-        } 
-    catch (error) {
-        console.error('❌ 摄像头初始化失败:', error);
-        // 显示错误信息
-        const cameraFeed = document.querySelector('.camera-feed');
-        cameraFeed.innerHTML = '<div class="camera-error">摄像头访问失败</div>';
-                
-        // 添加错误状态样式
-        document.querySelector('.camera-status').style.color = 'red';
-    }*/
-}
-        
-// 页面加载完成后初始化摄像头
-window.addEventListener('DOMContentLoaded', () => { initFrontCamera(); });
-
 // 设置提示框和提示灯
 function updateAlertBox(message) {
     const textArea = document.querySelector('.alert-box textarea');
@@ -117,10 +85,10 @@ function pollAction() {
     fetch('/get_action')
     .then(response => response.json())
     .then(data => {
-    if (data.action) {
-        console.log("🎯 检测到动作:", data.action);
-        console.log("🚀 正在跳转到: /" + data.action);
-        window.location.href = '/' + data.action;
+        if (data.action) {
+            console.log("🎯 检测到动作:", data.action);
+            console.log("🚀 正在跳转到: /" + data.action);
+            window.location.href = '/' + data.action;
         }
     })
     .catch(error => console.error('❌ 轮询错误:', error));

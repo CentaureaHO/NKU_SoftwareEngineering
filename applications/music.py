@@ -11,11 +11,6 @@ import os
 import time
 import pygame
 
-
-# 在 Flask 运行时的任意地方调用这个接口
-import requests
-
-
 class Music:
     def __init__(self) -> None:
         pygame.mixer.init()
@@ -41,13 +36,12 @@ class Music:
         return ""
 
     def play(self,music_name : str = "") -> None:
+        from viewer.viewer import jump_to_page
+        jump_to_page("music")
         file_path = self.find(music_name)
-        # TODO():异常处理
-        pygame.mixer.music.load(file_path)  # 加载文件
-        pygame.mixer.music.play()  # 开始播放
+        pygame.mixer.music.load(file_path)
+        pygame.mixer.music.play()
         self.paused = False
-        #while pygame.mixer.music.get_busy():
-        #    pygame.time.Clock().tick(10)
 
     def pause(self) -> None:
         print("pause")

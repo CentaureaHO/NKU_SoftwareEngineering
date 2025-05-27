@@ -131,7 +131,7 @@
             {% for text, options in text_list.items() %}
             <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
                 <label style="color: #ccc; white-space: nowrap; width: 150px;">{{ text }}</label>
-                <input type="text" id="voice_input_{{ loop.index }}" placeholder="请输入..." 
+                <input type="text" id="voice_input_{{ loop.index }}" placeholder="{{ options }}" 
                 style="flex: 1; padding: 6px; background-color: #222; color: #fff; border: 1px solid #555; border-radius: 5px;">
             </div>
             <div id="voice_result_{{ loop.index }}" style="margin-top: 5px; color: #0f0;"></div>
@@ -187,21 +187,15 @@
                 // 发送保存请求到后端
                 fetch('/save_config', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({
                         'voiceInputs': voiceInputs,
                         'gestureOptions': gestureOptions
                     })
                 })
                 .then(response => response.json())
-                .then(data => {
-                    alert('配置保存成功！');
-                })
-                .catch(error => {
-                    console.error('保存配置时出错:', error);
-                });
+                .then(data => { alert('配置保存成功！'); })
+                .catch(error => { console.error('保存配置时出错:', error); });
             }
         </script>
 

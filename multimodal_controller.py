@@ -22,32 +22,24 @@ from Modality.core import ModalityManager
 import sys
 # 确保可以导入Modality模块
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from individuation import individuation
+#from individuation import ndividuation
 from Modality import ModalityManager, GestureTracker
-from viewer.viewer import init_viewer
 import threading
 import webbrowser
 from applications.application import application
+#from applications.application import Application
+from individuation import Individuation
 from utils.tools import speecher_player
 from setting import Setting
+from logger import logger
 
 class MultimodalController:
     def __init__(self) -> None:
-        #speecher_player.speech_synthesize_sync("欢迎使用车载多模态智能交互系统")
-        #speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
         self.manager = ModalityManager()
         self.init_speecher()
-        #self.init_headpose()
-        #self.init_static_gesture()
-        self.init_viewer()
-        #self.init_gazer()
-        #from Modality.demo_static_gesture_recognition import main
-        from Modality.demo_gaze_tracker import main as main1
-        #from Modality.demo_headpose_tracker import main as main2
-        #from Modality.demo_static_gesture_recognition import main as main3
-        #thread = threading.Thread(target=main1(), args=("示例线程",))
-        main1()
-        application.schedule(application.type.enter, [self])
+        self.init_headpose()
+        self.init_static_gesture()
+        self.init_gazer()
 
     def init_gazer(self) -> None:
         parser = argparse.ArgumentParser(description='视线方向跟踪演示')
@@ -90,12 +82,25 @@ class MultimodalController:
         if result != SUCCESS:
             print(f"错误: 启动视线方向跟踪器失败，错误码: {result}")
             return
+        
+        logger.Log("视觉模态(视线方向部分)初始化完成")
+        speecher_player.speech_synthesize_sync("视觉模态(视线方向部分)初始化完成")
 
-    def init_viewer(self) -> None:
-        flask_thread = threading.Thread(target=init_viewer)
-        flask_thread.daemon = True  # 设置为守护线程，主线程退出时自动结束
-        flask_thread.start()
-        webbrowser.open("http://127.0.0.1:5000")
+    # def init_viewer(self) -> None:
+    #     MultimodalController._num += 1
+    #     print(f"[重要] {MultimodalController._num} {threading.get_ident()}")
+    #     # lock = threading.Lock()
+    #     # lock.acquire()
+    #     # if MultimodalController._initialized == True:
+    #     #     return
+    #     # MultimodalController._initialized = True
+    #     from viewer.viewer import init_viewer
+    #     flask_thread = threading.Thread(target=init_viewer)
+    #     flask_thread.daemon = True  # 设置为守护线程，主线程退出时自动结束
+    #     flask_thread.start()
+    #     time.sleep(5)
+    #     print("[重要]正在打开浏览器...",threading.get_ident())
+    #     webbrowser.open("http://127.0.0.1:5000")
 
     def init_speecher(self) -> None:
         parser = argparse.ArgumentParser(description='智能座舱语音识别演示')
@@ -141,7 +146,9 @@ class MultimodalController:
             name = args.register_name if args.register_name else "新用户"
             MultimodalController.speecher.register_speaker(name)
         
-        print("语音系统初始化完成")
+        print("语音模态初始化完成")
+        speecher_player.speech_synthesize_sync("语音模态初始化完成")
+        logger.Log("语音模态初始化完成")
 
     def init_headpose(self) -> None:
         parser = argparse.ArgumentParser(description="驾驶员监测系统演示")
@@ -196,6 +203,9 @@ class MultimodalController:
             video_writer = cv2.VideoWriter(args.record, fourcc, 20.0, (args.width, args.height))
         
         print("头部姿态识别系统初始化完成")
+        speecher_player.speech_synthesize_sync("视觉模态(头部姿态部分)初始化完成")
+        logger.Log("视觉模态(头部姿态部分)初始化完成")
+        
 
     def init_static_gesture(self) -> None:
         # 解析命令行参数
@@ -275,25 +285,32 @@ class MultimodalController:
             return
         
         print("手势识别模态启动成功")
+        logger.Log("视觉模态(手势动作部分)初始化完成")
+        speecher_player.speech_synthesize_sync("视觉模态(手势动作部分)初始化完成")
 
     def control(self) -> None:
         try:
+            from system_init import get_component
+            individuation = get_component('individuation')
             while True:
                 key_info = self.manager.get_all_key_info()
                 #print(key_info)
                 for name, key_info in key_info.items():
                     # print(f"模态: {name}")
                     if name == "speech_recognition" :
-                        pass
-                        #print(f"语音识别结果: {key_info}")
-                        #individuation.speech_individuation(key_info)
+                        if key_info is None:
+                            continue
+                        print(f"语音识别结果: {key_info}")
+                        individuation.speech_individuation(key_info)
                     elif name == "head_pose_tracker_gru":
-                        print(f"头部识别结果: {key_info}")
+                        pass
+                        #print(f"头部识别结果: {key_info}")
                     elif name == "static_gesture_tracker":
                         print(f"手势识别结果: {key_info}")
-                        # individuation.gesture_individuation(key_info)
+                        individuation.gesture_individuation(key_info)
                     elif name == "gaze_direction_tracker":
-                        print(f"视线方向识别结果: {key_info}")
+                        pass
+                        #print(f"视线方向识别结果: {key_info}")
                     else:
                         assert False, f"未知模态: {name}"
 
@@ -306,16 +323,22 @@ class MultimodalController:
             self.manager.shutdown_all()
             print("系统已关闭")
 
-controller = MultimodalController()
-setting = Setting(controller.speecher)
-
+# print("[重要]",threading.get_ident())
+# controller = MultimodalController()
+# setting = Setting(controller.speecher)
+# # individuation = Individuation(application)
+# # application = Application()
 
 if __name__ == '__main__':
+    time.sleep(5)
+    #application.schedule(application.type.music_play, [])
+    while True:
+        pass
     # while True:
     #     controller.get_model_state()
     #     time.sleep(3)
     # controller.control()
-    while True:
-        pass
+    #while True:
+    #    application.schedule(application.type.enter, [controller])
     #    Application.schedule(Application.type.abnormal_distraction_reminder, [controller])
     #    time.sleep(10)

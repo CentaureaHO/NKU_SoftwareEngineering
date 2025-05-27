@@ -1353,5 +1353,5 @@ class SpeechRecognition(BaseModality):
             key_info = text
             # self.last_key_info = text
             state.recognition["text"] = None
-        print(f"语音识别结果key_info: {key_info}")
+        # print(f"语音识别结果key_info: {key_info}")
         return key_info

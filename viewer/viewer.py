@@ -5,6 +5,7 @@
 """
 实现后端和后端路由控制
 """
+import threading
 from flask import Flask, render_template, request, jsonify,redirect, url_for,Response
 import cv2
 
@@ -13,8 +14,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-from applications.application import application
-from individuation import individuation
+
 import json
 import os
 import time
@@ -23,7 +23,30 @@ from utils.camera_manager import get_camera_manager
 import numpy as np
 
 viewer = Flask(__name__)
-camera = None
+camera_mgr = None
+application = None
+controller = None
+
+# 顶部添加组件获取函数
+def get_application():
+    """获取应用程序控制器"""
+    from system_init import get_component
+    return get_component('application')
+
+def get_controller():
+    """获取多模态控制器"""
+    from system_init import get_component
+    return get_component('controller')
+
+def get_setting():
+    """获取设置模块"""
+    from system_init import get_component
+    return get_component('setting')
+
+def get_individuation():
+    """获取设置模块"""
+    from system_init import get_component
+    return get_component('individuation')
 
 # Your Amap Web Service API Key
 # Make sure this Key has permissions for Geocoding and Driving Route Planning
@@ -61,26 +84,28 @@ def index():
 # 渲染音乐页面
 @viewer.route('/music')
 def music():
-    print("🎵 已跳转到 music 页面")
+    #from applications.application import application
+    print("已跳转到 music 页面")
     try:
+        application = get_application()
         music_info = application.schedule(application.type.music_getlist, [])
     except Exception as e:
-        print(f"❌ 获取音乐列表失败: {e}")
+        print(f"获取音乐列表失败: {e}")
         music_info = []
-    print("🎵 已跳转到 music 页面2")
     return render_template('music.html', music_info=music_info)
 
 # 渲染导航页面
 @viewer.route('/navigation')
 def navigation():
     print("已跳转到导航页面")
-    info = application.schedule(application.type.navigation_getlist, [])
-    return render_template('navigation.html', info=info)
+    return render_template('navigation.html')
 
 # 渲染车辆状态监测页面
 @viewer.route('/status')
 def status():
-    status_info = application.schedule(application.type.vehicle_state, [])
+    # from applications.application import application
+    application = get_application()
+    status_info = application.schedule(application.type.monitor_getlist, [])
     oil_quantity = status_info[0]
     tire_pressure = status_info[1]
     mileage = status_info[2]
@@ -90,27 +115,32 @@ def status():
 # 渲染个性化配置页面
 @viewer.route('/config', methods=['GET'])
 def config():
+    #from applications.application import application
+    application = get_application()
+    individuation = get_individuation()
     # 获取手势名称
-    gesture_names = individuation.get_gesture_names()
+    gesture_config = individuation.get_gesture_names()
     # print("gesture_names:", gesture_names)
+    print("gesture_config:", gesture_config)
     # 获取应用功能名称
     application_names = application.get_application_names()
     # print("application_names:", application_names)
     # 根据应用程序名称设置 text_list
-    text_list = {application_names[i]: [] for i in range(len(application_names))}
+    #text_list = {application_names[i]: ["你好"] for i in range(len(application_names))}
+    text_list = individuation.get_speech_individuation_dict()
     print("text_list:", text_list)
     # 根据应用功能和手势名称设置 gesture_data
-    gesture_data = {gesture_names[i]: application_names for i in range(len(gesture_names))}
-    print("gesture_data:", gesture_data)
+    #gesture_data = {gesture_names[i]: application_names for i in range(len(gesture_names))}
+    #print("gesture_data:", gesture_data)
     # 返回页面并渲染配置
-    return render_template('config.html', text_list=text_list, gesture_data=gesture_data)
+    return render_template('config.html', text_list=text_list, gesture_data=gesture_config)
 
 # 渲染权限设置页面
 @viewer.route('/settings')
 def settings():
     print(" 已跳转到权限设置页面")
     try:
-        from multimodal_controller import setting
+        setting = get_setting()
         music_info = setting.get_voiceprints()
         driver_info = setting.get_driver()
     except Exception as e:
@@ -125,10 +155,13 @@ def settings():
     return render_template('settings.html', music_info=music_info, driver_info=driver_info)
 
 def generate_frames():
-    camera_mgr = get_camera_manager()
+    global camera_mgr
+    if camera_mgr is None:
+        camera_mgr = get_camera_manager()
     result = camera_mgr.initialize_camera(0, 640, 480, False)
     
-    time.sleep(1.0)
+    #time.sleep(1.0)
+
     
     if not camera_mgr.is_running():
         print("Could not start camera. Returning error frame.")
@@ -154,7 +187,9 @@ def generate_frames():
                 if error_count > max_errors:
                     print(f"Too many errors ({error_count}) reading frames. Restarting camera...")
                     camera_mgr.release_camera()
-                    time.sleep(1.0)
+
+                    #time.sleep(1.0)
+  
                     camera_mgr.initialize_camera(0, 640, 480, False)
                     error_count = 0
                     continue
@@ -166,7 +201,10 @@ def generate_frames():
                 if ret:
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-                time.sleep(0.5)
+
+                #time.sleep(0.5)
+
+
                 continue
             
             error_count = 0
@@ -180,7 +218,8 @@ def generate_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
-            time.sleep(0.01)
+
+            #time.sleep(0.01)
             
         except Exception as e:
             print(f"Error in generate_frames: {str(e)}")
@@ -188,7 +227,9 @@ def generate_frames():
             if error_count > max_errors:
                 print("Too many errors. Stopping video feed.")
                 break
-            time.sleep(0.5)
+
+            #time.sleep(0.5)
+
 
 @viewer.route('/video_feed')
 def video_feed():
@@ -261,6 +302,7 @@ def get_note():
 # 播放音乐
 @viewer.route('/play_music', methods=['POST'])
 def play_music():
+    from applications.application import application
     data = request.get_json()
     music_name = data.get('music')
     print(f"播放音乐：{music_name}")
@@ -270,6 +312,7 @@ def play_music():
 # 暂停/继续播放音乐
 @viewer.route('/pause_music', methods=['POST'])
 def pause_music():
+    from applications.application import application
     print("暂停或继续播放音乐")
     application.schedule(application.type.music_change_pause, [])
     return '', 204
@@ -321,7 +364,7 @@ def navigate():
 @viewer.route('/save_config', methods=['POST'])
 def save_config():
     data = request.get_json()
-    
+    individuation = get_individuation()
     # 获取语音输入框的内容
     voice_inputs = data.get('voiceInputs', {})
     print("保存的语音功能配置:")
@@ -338,18 +381,28 @@ def save_config():
 
     return jsonify({'status': 'ok', 'message': '配置已保存'})
 
+# 外部控制页面跳转
+last_action = None
+
+def jump_to_page(page_name):
+    if page_name in ['music', 'navigation', 'status']:
+        print(f"外部请求跳转到: {page_name}")
+        global last_action
+        last_action = page_name
+        # requests.post('http://127.0.0.1:5000/trigger_action', json={'action': page_name})
+    else:
+        print("非法的外部跳转请求")
+
 @viewer.route('/trigger_action', methods=['POST'])
 def trigger_action():
     data = request.get_json()
     action = data.get('action')
-    if action in ['music', 'navigation', 'status', 'config', 'auto']:
-        print(f"✅ 收到 POST 请求：{action}")
-        return redirect(url_for(action))  # 自动跳转到对应的页面
+    if action in ['music', 'navigation', 'status']:
+        print(f"收到 POST 请求：{action} {url_for(action)}")
+        # return redirect(url_for(action))  # 自动跳转到对应的页面
+        return jsonify({'status': 'ok', 'action': action}) , 200
     else:
         return jsonify({'status': 'error', 'message': 'Unknown action'}), 400
-
-# 后端 Flask 中
-last_action = None
 
 @viewer.route('/get_action')
 def get_action():
@@ -358,48 +411,63 @@ def get_action():
     last_action = None  # 用后清除
     return jsonify({'action': action})
 
+# 外部控制导航
+# 自动导航参数
+#auto_navigation_params = None
+navigation_from = None
+navigation_to = None
+# 添加供外部调用的自动导航功能
+def navigate(from_ = "南开大学津南校区(地铁站)", to_ = "南开大学八里台(地铁站)"):
+    # 设置导航参数
+    global navigation_from, navigation_to
+    navigation_from = from_
+    navigation_to = to_
+    # 先跳转到导航页面
+    # jump_to_page('navigation')
+    time.sleep(1)
+
+    return True
+    
+@viewer.route('/get_navigation', methods=['GET'])
+def get_navigation():
+    """获取自动导航参数，前端页面加载时调用"""
+    global navigation_from, navigation_to
+    params = {
+        'start': navigation_from,
+        'end': navigation_to
+    }
+    navigation_from = None
+    navigation_to = None
+    return jsonify({'params': params})
+
+# 修改init_viewer函数
 def init_viewer():
+    print("[已废弃]此函数已不再使用")
+    pass
+
+# 添加新的服务器启动函数
+def start_flask_server():
+    print("[重要]启动Flask服务器", threading.get_ident())
+    global camera_mgr
+    if camera_mgr is None:
+        camera_mgr = get_camera_manager()
     viewer.run(debug=False)
 
-"""
-@viewer.route('/voice', methods=['GET'])
-def voice_page():
-    # 假设你通过某个逻辑得到了以下测试列表：
-    text_list = ["请说出导航目的地", "请说出音乐类型", "请说出车辆状态请求"]
-    dropdown_options = ["选项A", "选项B", "选项C"]
-    
-    return render_template('voice.html', text_list=text_list, dropdown_options=dropdown_options)
-
-@viewer.route('/gesture', methods=['GET'])
-def gesture_page():
-    # Assume you get the following test list for gestures
-    text_list = ["请做出左转手势", "请做出右转手势", "请做出停止手势"]
-    dropdown_options = ["选项A", "选项B", "选项C"]    
-    return render_template('gesture.html', text_list=text_list, dropdown_options=dropdown_options)
-
-@viewer.route('/call_void', methods=['POST'])
-def call_void():
-    print("调用了call_void")
+@viewer.route('/call_set_user', methods=['POST'])
+def set_user():
     data = request.get_json()
-    status = data.get('status', '空')
-    enter_voiceprint(status)
-    return '', 204  # 无返回内容
-"""
-
-def enter_voiceprint(username):
-    print(f"开始录入声纹,用户名为\"{username}\"")
-    #from multimodal_controller import controller
-    #controller.work_flag = False
-    from multimodal_controller import setting
+    username = data.get('status', '空')
+    print(f"设置用户,用户名为\"{username}\"")
+    setting = get_setting()
     setting.register_voiceprint(username)
-    setting.view_registered_voiceprints()
+    return '', 204
 
 @viewer.route('/call_delete_user', methods=['POST'])
 def delete_user():
     data = request.get_json()
     username = data.get('username', '空')
     print(f"删除用户,用户名为\"{username}\"")
-    from multimodal_controller import setting
+    setting = get_setting()
     setting.delete_voiceprint(username)
     return '', 204
 
@@ -408,7 +476,7 @@ def set_driver():
     data = request.get_json()
     driver_name = data.get('drivername', None)
     print(f"设置驾驶员,用户名为\"{driver_name}\"")
-    from multimodal_controller import setting
+    setting = get_setting()
     setting.set_driver(driver_name)
     return '', 204
 

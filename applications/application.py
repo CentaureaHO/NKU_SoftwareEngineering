@@ -15,18 +15,21 @@ from .navigation import Navigation
 from .vehicle_state import VehicleState
 from .enter import Enter
 import requests
+from logger import logger
 #from .abnormal import Abnormal
 
 class Application:
+    _instance = None
+
     type = Enum("type", ["music_getlist","music_play","music_pause","music_unpause","music_change_pause",
                          "navigation_getlist","navigation",
-                         "vehicle_state",
+                         "vehicle_state","monitor_getlist","monitor_jump",
                          "abnormal_distraction_reminder",
                          "enter",
                         ])
     user_application = [type.music_play,type.music_change_pause,
                         type.navigation,
-                        type.vehicle_state]
+                        type.monitor_jump]
     type2name = {
         type.music_getlist: "获取音乐列表",
         type.music_play: "播放音乐",
@@ -35,13 +38,22 @@ class Application:
         type.music_change_pause: "切换播放状态",
         type.navigation_getlist: "获取导航列表",
         type.navigation: "导航",
-        type.vehicle_state: "车辆状态监测",
+        type.vehicle_state: "车辆状态监测(已废弃)",
+        type.monitor_getlist: "获取监测列表",
+        type.monitor_jump: "车辆状态监测",
         type.abnormal_distraction_reminder: "异常分心提醒",
         type.enter: "系统启动时自动调用应用功能",
     }
     name2type = {}
     for key, value in type2name.items():
         name2type[value] = key
+
+    # def __new__(cls, *args, **kwargs):
+    #     if not cls._instance:
+    #         # 如果 _instance 为 None，则创建一个新的实例
+    #         cls._instance = super(Application, cls).__new__(cls, *args, **kwargs)
+    #     # 返回单例实例
+    #     return cls._instance
 
     def __init__(self) -> None:
         self.music = Music()
@@ -57,7 +69,7 @@ class Application:
         if application_type == Application.type.music_getlist:
             return self.music.getlist()
         elif application_type == Application.type.music_play:
-            requests.post('http://127.0.0.1:5000/trigger_action', json={'action': 'music'})
+            logger.Log(f"应用功能:播放音乐")
             if len(args) == 0:
                 self.music.play()
             else:
@@ -67,21 +79,19 @@ class Application:
         elif application_type == Application.type.music_unpause:
             self.music.unpause()
         elif application_type == Application.type.music_change_pause:
+            logger.Log(f"应用功能:切换音乐播放状态")
             self.music.change_pause()
-        elif application_type == Application.type.navigation_getlist:
-            navigation = Navigation()
-            return navigation.getlist()
         elif application_type == Application.type.navigation:
+            logger.Log(f"应用功能:进行导航")
             navigation = Navigation()
-            #navigation.show("南开大学津南校区","南开大学八里台校区")
-            return navigation.navigate(args[0])
-        elif application_type == Application.type.vehicle_state:
+            navigation.navigate()
+        elif application_type == Application.type.monitor_getlist:
             state = VehicleState()
             return state.monitor()
-            #print(state.monitor(VehicleState.type.oil_quantity))
-        #elif application_type == Application.type.abnormal_distraction_reminder:
-            #assert(len(args) == 1)
-            #Abnormal.distraction_reminder(args[0])
+        elif application_type == Application.type.monitor_jump:
+            from viewer.viewer import jump_to_page
+            jump_to_page("status")
+            logger.Log(f"应用功能:进行车辆状态监测")
         elif application_type == Application.type.enter:
             assert(len(args) == 1)
             self.enter.enter(args[0])
