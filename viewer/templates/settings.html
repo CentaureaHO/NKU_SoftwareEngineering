@@ -71,10 +71,14 @@
 
         .delete-btn {
            margin-right: 5px;
+           font-size: 12px;
+           padding: 10px;
         }
 
         .setting-btn {
            margin-left: auto;
+           font-size: 12px;
+           padding: 10px;
         }
     </style>
     <style>
@@ -213,21 +217,15 @@
                 showVoiceprintModal();
                 // 清空输入框
                 document.getElementById("statusInput").value = "";
-                fetch('/call_void', {
+                fetch('/call_set_user', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: input })
                 }).then(response => {
-                    if (response.ok) {
-                        console.log("✅ 成功调用空函数");
-                    } else {
-                        console.error("❌ 调用失败");
-                    }
-                }).catch(error => {
-                    console.error('❌ 请求错误:', error);
-                }); 
+                    if (response.ok) { console.log("成功调用空函数"); } 
+                    else { console.error("❌ 调用失败"); }
+                })
+                .catch(error => { console.error('❌ 请求错误:', error); });
             }
 
             // 显示声纹注册模态窗口函数

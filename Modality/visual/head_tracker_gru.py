@@ -1091,7 +1091,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             key_info = "摇头"
         #elif state.detections.get("gaze_direction", None) != None:
         #    key_info = state.detections.get("gaze_direction", None)['direction']
-        print(f"头部:key_info: {key_info}")
+        # print(f"头部:key_info: {key_info}")
         #gaze_direction = state.detections.get("gaze_direction", None)
         #print(f"gaze_direction: {gaze_direction}")
         return key_info

@@ -416,11 +416,11 @@ class GazeDirectionTracker(BaseVisualModality):
             if gaze_info["face_detected"]:
                 direction = gaze_info["direction"]
                 confidence = gaze_info["confidence"]
-                print(f"方向: {direction_names.get(direction, '未知')}, 置信度: {confidence:.2f}")
+                #print(f"方向: {direction_names.get(direction, '未知')}, 置信度: {confidence:.2f}")
 
                 if confidence < 1.0 or direction == DIRECTION_CENTER:
                     key_info = "中间"
                 else:
                     key_info = "非中间"
-        print(f"视线key_info: {key_info}")
+        #print(f"视线key_info: {key_info}")
         return key_info

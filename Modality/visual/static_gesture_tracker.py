@@ -520,8 +520,8 @@ class GestureTracker(BaseVisualModality):
         #print(f"是否识别到手: {state.detections["gesture"]["detected"]}")
         if state and state.detections["gesture"]["detected"]:
             key_info = state.detections["gesture"]["name"]
-            print(f"手部初始识别结果: {key_info}")
+            #print(f"手部初始识别结果: {key_info}")
             if key_info in gesture_dir:
                 key_info = gesture_dir[key_info]
-        print(f"手部识别结果: {key_info}")
+        #print(f"手部识别结果: {key_info}")
         return key_info

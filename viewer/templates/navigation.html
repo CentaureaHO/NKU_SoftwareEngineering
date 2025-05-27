@@ -123,6 +123,30 @@
             securityJsCode: 'cda7d0c4de555f21cf0eae4c7481ab89', // Your security key
         }
     </script>
+
+
+    <script>
+        // 在地图初始化完成后添加自动导航检查
+        function checkAutoNavigation() {
+            console.log("检查自动导航参数...");
+            fetch('/get_navigation')
+            .then(response => response.json())
+            .then(data => {
+                console.log("自动导航参数获取结果:", data);
+                if (data.params) {
+                    console.log("检测到自动导航参数:", data.params);
+                    // 填充表单
+                    document.getElementById('start-location').value = data.params.start;
+                    document.getElementById('end-location').value = data.params.end;
+                    // 延迟一秒执行导航，确保页面和地图已完全加载
+                    setTimeout(() => {
+                        searchAndNavigate();
+                    }, 1000);
+                }
+            })
+            .catch(error => console.error('获取自动导航参数失败:', error));
+        }
+    </script>
 </head>
 <body>
     <!-- 左侧区域 -->
@@ -163,6 +187,7 @@
                 // The navigation list buttons can be modified to populate the input fields
             }
 
+            // 导航搜索
             function searchAndNavigate() {
                 const startLocation = document.getElementById('start-location').value;
                 const endLocation = document.getElementById('end-location').value;
@@ -241,7 +266,7 @@
                 });
             }
 
-            // Initialize the map when the Amap API is loaded
+            // 地图初始化
             AMapLoader.load({
                 key: "2c8fcb2c866c5d8273625885aaad9255", // Your Key
                 version: "2.0",
@@ -265,10 +290,9 @@
                 // endAutoComplete.on('select', function (e) { document.getElementById('end-location').value = e.poi.name; }); // Keep select event if needed
                 // endAutoComplete.bindOnInput('end-location'); // REMOVED
 
-
-            }).catch((e) => {
-                console.error('❌ 地图初始化失败:', e);
-            });
+                checkAutoNavigation();
+            })
+            .catch((e) => { console.error('❌ 地图初始化失败:', e);});
         </script>
         
         <h2>导航</h2>
@@ -284,22 +308,6 @@
         <div style="width: 80%; background-color: #222; border: 1px solid #555; padding: 10px; border-radius: 5px; margin-top: 20px;"> <!-- Increased width and added margin -->
             <div id="map-container" style="width: 100%; height: 400px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);"></div> <!-- Increased height -->
         </div>
-
-        <!-- Optional: Add a div to display text route details 
-        <div id="panel" style="width: 100%; margin-top: 20px; color: #fff; background-color: #181818; padding: 15px; border: 1px solid #333; border-radius: 8px; max-height: 300px; overflow-y: auto;"></div> <!-- Added padding, border, background, max-height, overflow -->
-        
-        <script>
-        function handleMusic(action) {
-            if (action === 'next') {
-                fetch('/pause_music', {
-                    method: 'POST'
-                }).catch(error => {
-                    console.error('暂停/继续失败:', error);
-                });
-            }
-        }
-        </script>
-
 
         <!-- 跳转按钮区 -->
         <div id="control-buttons">
