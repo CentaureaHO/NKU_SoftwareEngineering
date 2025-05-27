@@ -14,9 +14,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-#import applications.application as app
-#from individuation import individuation
-#from multimodal_controller import application, individuation
+
 import json
 import os
 import time
@@ -163,6 +161,7 @@ def generate_frames():
     result = camera_mgr.initialize_camera(0, 640, 480, False)
     
     #time.sleep(1.0)
+
     
     if not camera_mgr.is_running():
         print("Could not start camera. Returning error frame.")
@@ -188,7 +187,9 @@ def generate_frames():
                 if error_count > max_errors:
                     print(f"Too many errors ({error_count}) reading frames. Restarting camera...")
                     camera_mgr.release_camera()
+
                     #time.sleep(1.0)
+  
                     camera_mgr.initialize_camera(0, 640, 480, False)
                     error_count = 0
                     continue
@@ -200,7 +201,10 @@ def generate_frames():
                 if ret:
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
                 #time.sleep(0.5)
+
+
                 continue
             
             error_count = 0
@@ -214,6 +218,7 @@ def generate_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
+
             #time.sleep(0.01)
             
         except Exception as e:
@@ -222,7 +227,9 @@ def generate_frames():
             if error_count > max_errors:
                 print("Too many errors. Stopping video feed.")
                 break
+
             #time.sleep(0.5)
+
 
 @viewer.route('/video_feed')
 def video_feed():
