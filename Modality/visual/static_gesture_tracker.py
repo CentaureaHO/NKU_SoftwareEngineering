@@ -12,8 +12,9 @@ import tensorflow as tf
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('MODALITY_DEBUG', '0') == '1' else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='static_gesture_tracker.log',
-    filemode='w'
+    filename='./database/log/static_gesture_tracker.log',
+    filemode='w',
+    encoding='utf-8'
 )
 logger = logging.getLogger('GestureTracker')
 
