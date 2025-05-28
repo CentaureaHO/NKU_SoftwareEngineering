@@ -1,13 +1,12 @@
 import json
 import logging
-import math
 import os
 import pickle
 import sys
 import threading
 import time
 from collections import deque
-from typing import Any, Dict, List, Tuple
+from typing import Tuple
 
 import cv2
 import mediapipe as mp
@@ -17,7 +16,7 @@ import tensorflow as tf
 from modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
                                        MODEL_LOADING_FAILED, RUNTIME_ERROR,
                                        SUCCESS)
-from modality.visual.base_visual import BaseVisualModality, VisualState
+from modality.visual.base_visual import BaseVisualModality
 from modality.visual.head_pose_common import (HeadPoseParams, HeadPoseState,
                                               euclidean_dist,
                                               rotation_matrix_to_angles)
@@ -40,84 +39,6 @@ mp_drawing_styles = mp.solutions.drawing_styles
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 导入视线方向常量
-GAZE_DIRECTION_CENTER = "center"
-GAZE_DIRECTION_LEFT = "left"
-GAZE_DIRECTION_RIGHT = "right"
-GAZE_DIRECTION_UP = "up"
-GAZE_DIRECTION_DOWN = "down"
-GAZE_DIRECTION_UP_LEFT = "up_left"
-GAZE_DIRECTION_UP_RIGHT = "up_right"
-GAZE_DIRECTION_DOWN_LEFT = "down_left"
-GAZE_DIRECTION_DOWN_RIGHT = "down_right"
-
-
-class GazeParams:
-    """视线方向检测的参数常量"""
-    # 眼睛关键点索引
-    LEFT_EYE_INDICES = [362, 382, 381, 380, 374, 373,
-                        390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
-    RIGHT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154,
-                         155, 133, 173, 157, 158, 159, 160, 161, 246]
-    LEFT_IRIS_INDICES = [468, 469, 470, 471, 472]
-    RIGHT_IRIS_INDICES = [473, 474, 475, 476, 477]
-
-    # 视线方向检测参数
-    HORIZONTAL_RATIO_THRESHOLD = 0.35  # 减小以增强水平敏感度
-    VERTICAL_RATIO_THRESHOLD = 0.38
-    CENTER_THRESHOLD = 0.40            # 调整中心区域以平衡灵敏度
-    UP_THRESHOLD_STRICTER = -0.55      # 增大以降低向上看的敏感度
-    DOWN_THRESHOLD_STRICTER = 0.55     # 减小以降低向下看的敏感度
-    VERTICAL_OFFSET = 0.03             # 垂直偏移
-
-    # 瞳孔检测参数
-    PUPIL_DETECTION_THRESHOLD = 0.01   # 瞳孔检测面积比例阈值
-    EYE_SPHERE_RADIUS = 15.0           # 眼球球面模型半径
-    DEPTH_SCALE_FACTOR = 0.003         # 深度缩放因子
-
-    # 平滑参数
-    SMOOTHING_WINDOW_SIZE = 10         # 平滑窗口大小
-    POSITION_ALPHA = 0.25              # 位置平滑系数
-    DIRECTION_ALPHA = 0.3              # 方向平滑系数
-
-    # 视线一致性检测阈值
-    EYE_CONSISTENCY_THRESHOLD = 0.25   # 左右眼一致性检查阈值
-    VERTICAL_CONSISTENCY_WEIGHT = 0.7  # 垂直方向一致性权重
-    HORIZONTAL_CONSISTENCY_WEIGHT = 0.3  # 水平方向一致性权重
-
-    # 组合视线计算权重
-    LEFT_EYE_WEIGHT = 0.5              # 左眼权重
-    RIGHT_EYE_WEIGHT = 0.5             # 右眼权重
-
-    PITCH_COMPENSATION_FACTOR = 0.3    # 减小以降低垂直敏感度
-
-
-class HeadPoseState(VisualState):
-    """头部姿态状态类，扩展自VisualState，新增视线方向检测"""
-
-    def __init__(self, frame=None, timestamp=None):
-        super().__init__(frame, timestamp)
-        self.detections = {
-            "head_pose": {
-                "pitch": 0.0,       # 俯仰角（点头）
-                "yaw": 0.0,         # 偏航角（左右转头）
-                "roll": 0.0,        # 翻滚角（头部倾斜）
-                "detected": False,  # 是否检测到人脸
-                "landmarks": []     # 关键点列表
-            },
-            "head_movement": {
-                "is_nodding": False,        # 是否正在点头
-                "is_shaking": False,        # 是否正在摇头
-                "nod_confidence": 0.0,      # 点头动作的置信度
-                "shake_confidence": 0.0,    # 摇头动作的置信度
-                "status": HeadPoseParams.STATUS_STATIONARY,  # 当前状态
-                "status_confidence": 0.0    # 当前状态的置信度
-            }
-        }
-
-    def to_dict(self):
-        result = super().to_dict()
-        return result
 
 class HeadPoseTrackerGRU(BaseVisualModality):
     """
@@ -233,7 +154,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
 
             return SUCCESS
         except Exception as e:
-            logger.error(f"初始化失败: {str(e)}")
+            logger.error("初始化失败: %s", str(e))
             return MEDIAPIPE_INITIALIZATION_FAILED
 
     def _load_model(self) -> int:
@@ -250,28 +171,28 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             config_path = os.path.join(self.model_dir, "config.json")
 
             if not os.path.exists(model_path):
-                logger.error(f"模型文件不存在: {model_path}")
+                logger.error("模型文件不存在: %s", model_path)
                 return MODEL_LOADING_FAILED
 
             if not os.path.exists(scaler_path):
-                logger.error(f"缩放器文件不存在: {scaler_path}")
+                logger.error("缩放器文件不存在: %s", scaler_path)
                 return MODEL_LOADING_FAILED
 
             if not os.path.exists(config_path):
-                logger.error(f"配置文件不存在: {config_path}")
+                logger.error("配置文件不存在: %s", config_path)
                 return MODEL_LOADING_FAILED
 
             # 加载模型
-            logger.info(f"正在加载模型: {model_path}")
+            logger.info("正在加载模型: %s", model_path)
             self.model = tf.keras.models.load_model(model_path)
 
             # 加载缩放器
-            logger.info(f"正在加载缩放器: {scaler_path}")
+            logger.info("正在加载缩放器: %s", scaler_path)
             with open(scaler_path, 'rb') as f:
                 self.scaler = pickle.load(f)
 
             # 加载配置
-            logger.info(f"正在加载配置: {config_path}")
+            logger.info("正在加载配置: %s", config_path)
             with open(config_path, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
 
@@ -289,13 +210,13 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             # 初始化特征队列
             self.features_queue = deque(maxlen=self.window_size)
 
-            logger.info(f"模型加载成功，窗口大小: {self.window_size}, 特征维度: {
-                        self.feature_dim}")
-            logger.info(f"姿势映射: {self.gesture_mapping}")
+            logger.info("模型加载成功，窗口大小: %d, 特征维度: %d",
+                        self.window_size, self.feature_dim)
+            logger.info("姿势映射: %s", self.gesture_mapping)
 
             return SUCCESS
         except Exception as e:
-            logger.error(f"加载模型时出错: {str(e)}")
+            logger.error("加载模型时出错: %s", str(e))
             return MODEL_LOADING_FAILED
 
     def _processing_loop(self):
@@ -315,27 +236,22 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 )
                 if init_status != SUCCESS:
                     logger.error(
-                        f"Failed to re-initialize camera in processing loop. Error: {init_status}")
-                    time.sleep(1)  # Wait before retrying or breaking
-                    continue  # Or break, depending on desired behavior
+                        "Failed to re-initialize camera in processing loop. Error: %d", init_status)
+                    time.sleep(1)
+                    continue
 
             ret, frame = self.camera_manager.read_frame()
 
             if not ret:
-                # CameraManager handles looping. If ret is False, it means no frame.
-                # This could be end of a non-looping video, or a persistent camera error.
-                if self.camera_manager.config.is_file_source and not self.camera_manager.loop_video:
+                if self.camera_manager.config.is_file_source and not self.camera_manager.config.loop_video:
                     logger.info(
                         "End of non-looping video file reached in HeadPoseTrackerGRU.")
-                    break  # Exit loop if it's a non-looping file that ended
-                else:
-                    # For camera streams or looping videos, a False ret might indicate a temporary issue.
-                    logger.warning(
-                        "Failed to get frame from CameraManager in _processing_loop. Retrying...")
-                    time.sleep(0.1)  # Brief pause before retrying
-                    continue
+                    break
+                logger.warning(
+                    "Failed to get frame from CameraManager in _processing_loop. Retrying...")
+                time.sleep(0.1)
+                continue
 
-            # Frame acquired successfully
             state = self._process_frame(frame)
             with self._state_lock:
                 self._latest_state = state
@@ -357,7 +273,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 return self._latest_state
         elif not self._is_running:
             logger.warning(
-                f"{self.name} modality is not running. Returning empty state.")
+                "%s modality is not running. Returning empty state.", self.name)
             return HeadPoseState()
         else:
             logger.warning(
@@ -449,7 +365,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         dist_matrix = np.zeros((4, 1), dtype=np.float64)
 
         try:
-            success, rotation_vec, translation_vec = cv2.solvePnP(
+            success, rotation_vec, _ = cv2.solvePnP(
                 self.face_3d_coords, face_coordination_in_image,
                 cam_matrix, dist_matrix
             )
@@ -502,7 +418,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             return combined_features
 
         except Exception as e:
-            logger.error(f"计算头部姿态和特征时出错: {str(e)}")
+            logger.error("计算头部姿态和特征时出错: %s", str(e))
             return None
 
     def _predict_head_pose(self) -> Tuple[str, float]:
@@ -548,7 +464,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             return pose_name, confidence
 
         except Exception as e:
-            logger.error(f"预测头部姿势时出错: {str(e)}")
+            logger.error("预测头部姿势时出错: %s", str(e))
             return HeadPoseParams.STATUS_STATIONARY, 0.0
 
     def _process_frame(self, frame: np.ndarray) -> HeadPoseState:
@@ -563,7 +479,6 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         """
         state = HeadPoseState(frame=frame, timestamp=time.time())
 
-        h, w, _ = frame.shape
         image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(image_rgb)
 
@@ -575,7 +490,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             state.detections["head_pose"]["detected"] = True
 
             landmarks_list = []
-            for i, landmark_mp in enumerate(face_landmarks.landmark):
+            for _, landmark_mp in enumerate(face_landmarks.landmark):
                 x, y, z = landmark_mp.x, landmark_mp.y, landmark_mp.z
                 landmarks_list.append((x, y, z))
             state.detections["head_pose"]["landmarks"] = landmarks_list
@@ -644,8 +559,8 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             int: 错误码，0表示成功，其他值表示失败
         """
         if not self.camera_manager.is_running():
-            logger.info(f"Camera for source {
-                        self.source} not running. Initializing before start...")
+            logger.info(
+                "Camera for source %s not running. Initializing before start...", self.source)
             init_status = self.camera_manager.initialize_camera(
                 source=self.source,
                 width=self.width,
@@ -653,14 +568,14 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 loop_video=self.loop_video
             )
             if init_status != SUCCESS:
-                logger.error(f"Failed to initialize camera via CameraManager before starting HeadPoseTrackerGRU. Error: {
-                             init_status}")
+                logger.error(
+                    "Failed to initialize camera via CameraManager before starting HeadPoseTrackerGRU. Error: %d", init_status)
                 return init_status
 
         result = super().start()
         if result != SUCCESS:
-            logger.error(f"BaseModality start failed for {
-                         self.name}: {result}")
+            logger.error("BaseModality start failed for %s: %d",
+                         self.name, result)
             return result
 
         try:
@@ -668,11 +583,11 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             self._processing_thread = threading.Thread(
                 target=self._processing_loop, daemon=True)
             self._processing_thread.start()
-            logger.info(f"{self.name} has started processing.")
+            logger.info("%s has started processing.", self.name)
             return SUCCESS
         except Exception as e:
-            logger.error(f"Error starting processing thread for {
-                         self.name}: {str(e)}", exc_info=True)
+            logger.error("Error starting processing thread for %s: %s",
+                         self.name, str(e), exc_info=True)
             super().stop()
             return RUNTIME_ERROR
 
@@ -683,7 +598,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
-        logger.info(f"Shutting down {self.name}...")
+        logger.info("Shutting down %s...", self.name)
         if self._processing_thread and self._processing_thread.is_alive():
             logger.info("Stopping processing thread...")
             self._stop_event.set()
@@ -700,15 +615,15 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 self.face_mesh = None
                 logger.info("MediaPipe FaceMesh resources released.")
             except Exception as e:
-                logger.error(f"Error closing MediaPipe FaceMesh: {
-                             str(e)}", exc_info=True)
+                logger.error("Error closing MediaPipe FaceMesh: %s",
+                             str(e), exc_info=True)
 
         result = super().shutdown()
         if result == SUCCESS:
-            logger.info(f"{self.name} shutdown successfully.")
+            logger.info("%s shutdown successfully.", self.name)
         else:
-            logger.error(f"Error during super().shutdown() for {
-                         self.name}: {result}")
+            logger.error("Error during super().shutdown() for %s: %d",
+                         self.name, result)
 
         return result
 

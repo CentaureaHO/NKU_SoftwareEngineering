@@ -80,7 +80,7 @@ class HeadPoseState(VisualState):
             }
         }
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self):
         result = super().to_dict()
         return result
 
