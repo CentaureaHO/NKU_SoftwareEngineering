@@ -1,8 +1,9 @@
-from typing import Dict, List, Optional, Type
+"""模态管理器模块，负责管理所有模态的生命周期和状态。"""
+from typing import Dict, List, Optional
 
 from .base_modality import BaseModality, ModalityState
 from .error_codes import (MODALITY_ALREADY_EXISTS, MODALITY_NOT_FOUND,
-                          MODALITY_START_FAILED, MODALITY_STOP_FAILED, SUCCESS)
+                          MODALITY_STOP_FAILED, SUCCESS)
 
 
 class ModalityManager:

@@ -1,3 +1,4 @@
+"""模态核心包，提供模态管理、创建和基础定义。"""
 from .base_modality import BaseModality, ModalityState
 from .error_codes import *
 from .modality_factory import ModalityFactory

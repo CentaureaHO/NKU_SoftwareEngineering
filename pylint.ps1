@@ -1,4 +1,4 @@
-$allPyFiles = Get-ChildItem -Path . -Filter "*.py" -Recurse
+$allPyFiles = Get-ChildItem -Path ".\modality" -Filter "*.py" -Recurse
 $pyFilesToProcess = $allPyFiles | Where-Object { $_.FullName -notlike "*models*" }
 
 $resultsFile = "pylint_report.txt"

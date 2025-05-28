@@ -1,3 +1,4 @@
+"""模态工厂模块，用于创建和注册不同类型的模态。"""
 from typing import Dict, Optional, Type
 
 from .base_modality import BaseModality
