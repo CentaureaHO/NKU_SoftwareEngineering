@@ -12,8 +12,8 @@ import os
 import queue
 import threading
 import time
-from typing import Optional, Tuple, Union, Any # Added Any
-from dataclasses import dataclass, field # Added dataclasses
+from typing import Optional, Tuple, Union, Any, Dict
+from dataclasses import dataclass, field
 
 import cv2
 import numpy as np
@@ -60,13 +60,91 @@ class CaptureState:
     """
     Holds the state of the camera capture, including buffer, thread, and frames.
     """
-    capture: Optional[cv2.VideoCapture] = None
-    frame_buffer: queue.Queue = field(default_factory=lambda: queue.Queue(maxsize=10))
-    latest_frame: Optional[np.ndarray] = None
-    capture_thread: Optional[threading.Thread] = None
-    stop_capture_event: threading.Event = field(default_factory=threading.Event)
-    is_initialized: bool = False
-    initialized_config_tuple: Optional[Tuple[Union[int, str], int, int, bool]] = None
+    data: Dict[str, Any] = field(default_factory=lambda: {
+        'capture': None,
+        'frame_buffer': queue.Queue(maxsize=10),
+        'latest_frame': None,
+
+        'capture_thread': None,
+        'stop_capture_event': threading.Event(),
+
+        'is_initialized': False,
+        'initialized_config_tuple': None,
+        'reference_count': 0
+    })
+
+    @property
+    def capture(self) -> Optional[cv2.VideoCapture]:
+        """获取捕获设备"""
+        return self.data.get('capture')
+
+    @capture.setter
+    def capture(self, device: Optional[cv2.VideoCapture]) -> None:
+        """设置捕获设备"""
+        self.data['capture'] = device
+
+    @property
+    def frame_buffer(self) -> queue.Queue:
+        """获取帧缓冲区"""
+        return self.data.get('frame_buffer')
+
+    @property
+    def latest_frame(self) -> Optional[np.ndarray]:
+        """获取最新的帧"""
+        return self.data.get('latest_frame')
+
+    @latest_frame.setter
+    def latest_frame(self, frame: Optional[np.ndarray]) -> None:
+        """设置最新的帧"""
+        self.data['latest_frame'] = frame
+
+    @property
+    def capture_thread(self) -> Optional[threading.Thread]:
+        """获取捕获线程"""
+        return self.data.get('capture_thread')
+
+    @capture_thread.setter
+    def capture_thread(self, thread: Optional[threading.Thread]) -> None:
+        """设置捕获线程"""
+        self.data['capture_thread'] = thread
+
+    @property
+    def stop_capture_event(self) -> threading.Event:
+        """获取停止捕获事件"""
+        return self.data.get('stop_capture_event')
+
+    @property
+    def is_initialized(self) -> bool:
+        """获取初始化状态"""
+        return self.data.get('is_initialized', False)
+
+    @is_initialized.setter
+    def is_initialized(self, value: bool) -> None:
+        """设置初始化状态"""
+        self.data['is_initialized'] = value
+
+    @property
+    def initialized_config_tuple(self) -> Optional[Tuple[Union[int, str], int, int, bool]]:
+        """获取初始化配置元组"""
+        return self.data.get('initialized_config_tuple')
+
+    @initialized_config_tuple.setter
+    def initialized_config_tuple(
+        self,
+        value: Optional[
+            Tuple[Union[int, str], int, int, bool]]) -> None:
+        """设置初始化配置元组"""
+        self.data['initialized_config_tuple'] = value
+
+    @property
+    def reference_count(self) -> int:
+        """获取引用计数"""
+        return self.data.get('reference_count', 0)
+
+    @reference_count.setter
+    def reference_count(self, value: int) -> None:
+        """设置引用计数"""
+        self.data['reference_count'] = value
 
 
 class CameraManager:
@@ -89,7 +167,7 @@ class CameraManager:
         if self._initialized_once:
             return
 
-        self.config = CameraConfig() # Default config
+        self.config = CameraConfig()  # Default config
         self.capture_state = CaptureState()
         self._operation_lock = threading.Lock()
         self._initialized_once = True
@@ -110,15 +188,18 @@ class CameraManager:
             self.capture_state.capture = None
             return False
 
-        self.capture_state.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.width)
-        self.capture_state.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.height)
+        self.capture_state.capture.set(
+            cv2.CAP_PROP_FRAME_WIDTH, self.config.width)
+        self.capture_state.capture.set(
+            cv2.CAP_PROP_FRAME_HEIGHT, self.config.height)
         return True
 
     def _handle_frame_read_failure(self, retry_count: int, max_retries: int) -> Tuple[bool, int]:
         """Handles frame read failure, including looping and retries. 
         Returns (should_continue, new_retry_count)"""
         if self.config.is_file_source and self.config.loop_video:
-            logger.info("Video file '%s' ended. Looping...", self.config.source)
+            logger.info("Video file '%s' ended. Looping...",
+                        self.config.source)
             if self.capture_state.capture:
                 self.capture_state.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
             return True, 0  # Continue looping, reset retry_count
@@ -127,13 +208,14 @@ class CameraManager:
         retry_count += 1
         if retry_count > max_retries:
             logger.error("Failed to read frame after %s attempts", max_retries)
-            return False, retry_count # Stop retrying
-        time.sleep(1.0) # retry_delay
-        return True, retry_count # Continue retrying
+            return False, retry_count  # Stop retrying
+        time.sleep(1.0)  # retry_delay
+        return True, retry_count  # Continue retrying
 
     def _capture_frames(self) -> None:
         """持续捕获帧并放入缓冲区的线程函数"""
-        logger.info("Frame capture thread started for source: %s", self.config.source)
+        logger.info("Frame capture thread started for source: %s",
+                    self.config.source)
         retry_count = 0
         max_retries = 5
         retry_delay = 1.0
@@ -145,7 +227,8 @@ class CameraManager:
                     if not self._open_and_configure_capture():
                         retry_count += 1
                         if retry_count > max_retries:
-                            logger.error("Failed to reconnect after %s attempts", max_retries)
+                            logger.error(
+                                "Failed to reconnect after %s attempts", max_retries)
                             break
                         time.sleep(retry_delay)
                         continue
@@ -161,7 +244,7 @@ class CameraManager:
                         break
                     continue
 
-                retry_count = 0 # Reset on successful read
+                retry_count = 0  # Reset on successful read
 
                 with self._operation_lock:
                     self.capture_state.latest_frame = frame.copy()
@@ -178,7 +261,8 @@ class CameraManager:
                 time.sleep(0.01)
 
             except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.error("Error in capture thread: %s", str(e), exc_info=True)
+                logger.error("Error in capture thread: %s",
+                             str(e), exc_info=True)
                 retry_count += 1
                 if retry_count > max_retries:
                     logger.error("Too many errors in capture thread. Exiting.")
@@ -229,11 +313,18 @@ class CameraManager:
                     "Camera already initialized and running with same parameters: %s",
                     current_config_tuple,
                 )
+                # 增加引用计数
+                self.capture_state.reference_count += 1
+                logger.debug(
+                    "Incremented reference count to %d",
+                    self.capture_state.reference_count
+                )
                 return SUCCESS
 
-            self._stop_existing_thread() # Resets capture_state.is_initialized
+            # 如果是新初始化或参数不同，重置引用计数
+            self._stop_existing_thread()  # Resets capture_state.is_initialized
 
-            self.config = new_config # Update manager's config
+            self.config = new_config  # Update manager's config
 
             logger.info(
                 "Initializing camera: source=%s, width=%s, height=%s, is_file=%s, loop=%s",
@@ -249,8 +340,10 @@ class CameraManager:
                         else CAMERA_NOT_AVAILABLE
                     )
 
-                actual_width = self.capture_state.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-                actual_height = self.capture_state.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                actual_width = self.capture_state.capture.get(
+                    cv2.CAP_PROP_FRAME_WIDTH)
+                actual_height = self.capture_state.capture.get(
+                    cv2.CAP_PROP_FRAME_HEIGHT)
                 logger.info(
                     "Camera opened. Requested: %sx%s, Actual: %sx%s",
                     self.config.width, self.config.height,
@@ -272,12 +365,15 @@ class CameraManager:
 
                 self.capture_state.is_initialized = True
                 self.capture_state.initialized_config_tuple = current_config_tuple
-                logger.info("Camera initialized successfully.")
+                self.capture_state.reference_count = 1  # 设置初始引用计数为1
+                logger.info(
+                    "Camera initialized successfully with reference count 1.")
                 return SUCCESS
 
             except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.error("Error initializing camera: %s", str(e), exc_info=True)
-                self._release_capture_internal() # Ensure cleanup
+                logger.error("Error initializing camera: %s",
+                             str(e), exc_info=True)
+                self._release_capture_internal()  # Ensure cleanup
                 return VIDEO_SOURCE_ERROR
 
     def _stop_existing_thread(self) -> None:
@@ -287,7 +383,8 @@ class CameraManager:
             self.capture_state.stop_capture_event.set()
             self.capture_state.capture_thread.join(timeout=2.0)
             if self.capture_state.capture_thread.is_alive():
-                logger.warning("Capture thread did not stop in time - continuing anyway")
+                logger.warning(
+                    "Capture thread did not stop in time - continuing anyway")
 
         if self.capture_state.capture:
             try:
@@ -297,7 +394,7 @@ class CameraManager:
             self.capture_state.capture = None
 
         self.capture_state.capture_thread = None
-        self.capture_state.is_initialized = False # Mark as not initialized
+        self.capture_state.is_initialized = False  # Mark as not initialized
 
     def read_frame(self) -> Tuple[bool, Optional[np.ndarray]]:
         """读取一帧。首先尝试从缓冲区获取，如果没有可用帧则返回最新帧或失败"""
@@ -316,6 +413,54 @@ class CameraManager:
 
         return False, None
 
+    def acquire_camera(self) -> int:
+        """
+        增加摄像头的引用计数，如果摄像头尚未初始化则返回错误码。
+        用于显式表明组件开始使用摄像头资源。
+
+        Returns:
+            int: 错误码
+        """
+        with self._operation_lock:
+            if not self.capture_state.is_initialized:
+                logger.warning("Cannot acquire: camera not initialized")
+                return CAMERA_NOT_AVAILABLE
+
+            self.capture_state.reference_count += 1
+            logger.debug(
+                "Camera acquired. Reference count increased to %d",
+                self.capture_state.reference_count
+            )
+            return SUCCESS
+
+    def release_reference(self) -> int:
+        """
+        减少摄像头的引用计数。当引用计数降为0时，释放摄像头资源。
+
+        Returns:
+            int: 错误码
+        """
+        with self._operation_lock:
+            if not self.capture_state.is_initialized:
+                logger.warning(
+                    "Cannot release reference: camera not initialized")
+                return CAMERA_NOT_AVAILABLE
+
+            if self.capture_state.reference_count > 0:
+                self.capture_state.reference_count -= 1
+                logger.debug(
+                    "Camera reference released. Reference count decreased to %d",
+                    self.capture_state.reference_count
+                )
+
+                # 只有当引用计数为0时才真正释放资源
+                if self.capture_state.reference_count == 0:
+                    logger.info(
+                        "Reference count is zero. Releasing camera resources.")
+                    self._release_capture_internal()
+
+            return SUCCESS
+
     def _release_capture_internal(self) -> None:
         """内部方法：释放摄像头资源"""
         self._stop_existing_thread()
@@ -325,17 +470,27 @@ class CameraManager:
                 self.capture_state.frame_buffer.get_nowait()
             except BaseException:  # pylint: disable=broad-exception-caught
                 pass
-        # Reset initialized config tracking
+        # Reset initialized config tracking and reference count
         self.capture_state.initialized_config_tuple = None
-
+        self.capture_state.reference_count = 0
 
     def release_camera(self) -> int:
-        """释放摄像头资源"""
+        """
+        强制释放摄像头资源，无论引用计数如何。
+        通常用于系统关闭或需要强制重置时。
+
+        Returns:
+            int: 错误码
+        """
         with self._operation_lock:
-            logger.info("Explicitly releasing camera (source: %s).", self.config.source)
+            logger.info(
+                "Explicitly releasing camera (source: %s) with reference count %d.",
+                self.config.source,
+                self.capture_state.reference_count
+            )
             self._release_capture_internal()
-            logger.info("Camera released.")
-        return SUCCESS
+            logger.info("Camera forcibly released, all references cleared.")
+            return SUCCESS
 
     def is_running(self) -> bool:
         """检查摄像头是否在运行"""
@@ -386,11 +541,12 @@ class CameraManager:
                     self.config.loop_video, self.config.source
                 )
                 if self.capture_state.is_initialized \
-                    and self.capture_state.initialized_config_tuple:
+                        and self.capture_state.initialized_config_tuple:
                     # Update the stored initialized_params tuple
                     src, w, h, _ = self.capture_state.initialized_config_tuple
                     self.capture_state.initialized_config_tuple = (
-                        src, w, h, self.config.loop_video)
+                        src, w, h, self.config.loop_video
+                    )
 
 
 def get_camera_manager() -> CameraManager:

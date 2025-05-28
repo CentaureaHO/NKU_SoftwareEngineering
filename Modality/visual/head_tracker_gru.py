@@ -12,13 +12,13 @@ import pickle
 import sys
 import threading
 import time
-from collections import deque
-from typing import Tuple
+from collections import deque, namedtuple
+from typing import Tuple, Dict, Any, List, Optional
 
 import cv2
 import mediapipe as mp
 import numpy as np
-import tensorflow as tf
+import tensorflow
 
 from modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
                                        MODEL_LOADING_FAILED, RUNTIME_ERROR,
@@ -45,6 +45,14 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 修复 tensorflow.keras 导入
+keras = tensorflow.keras
+
+# 创建命名元组用于特征计算
+FeatureParams = namedtuple('FeatureParams', [
+    'angles', 'distances', 'face_box', 'ratios'
+])
 
 
 class HeadPoseTrackerGRU(BaseVisualModality):
@@ -94,8 +102,9 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 "models", "headpose"
             )
 
-        # 模型相关属性使用专用字典
-        self._model_props = {
+        # 合并多个属性到更少的字典中，减少实例属性
+        self._runtime = {
+            # 模型相关属性
             'model': None,
             'scaler': None,
             'config': None,
@@ -104,25 +113,21 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             'feature_dim': None,
             'gesture_mapping': None,
             'inverse_gesture_mapping': None,
-            'features_queue': deque(maxlen=HeadPoseParams.HISTORY_LEN)
-        }
-
-        # 状态跟踪属性
-        self._tracking_state = {
+            'features_queue': deque(maxlen=HeadPoseParams.HISTORY_LEN),
+            # 状态跟踪属性
             'last_status_update': time.time(),
             'current_is_nodding': False,
             'current_is_shaking': False,
             'current_status': HeadPoseParams.STATUS_STATIONARY,
             'current_status_confidence': 0.0,
             'h_ratio_variance': 0.1,
-            'v_ratio_variance': 0.1
+            'v_ratio_variance': 0.1,
+            # 线程相关属性
+            'processing_thread': None,
+            'stop_event': threading.Event(),
+            'latest_state': HeadPoseState(),
+            'state_lock': threading.Lock()
         }
-
-        # 线程相关属性
-        self._processing_thread = None
-        self._stop_event = threading.Event()
-        self._latest_state = HeadPoseState()
-        self._state_lock = threading.Lock()
 
         # MediaPipe设置
         self.face_mesh = None
@@ -146,32 +151,32 @@ class HeadPoseTrackerGRU(BaseVisualModality):
     @property
     def model(self):
         """获取模型实例"""
-        return self._model_props['model']
+        return self._runtime['model']
 
     @property
     def scaler(self):
         """获取特征缩放器"""
-        return self._model_props['scaler']
+        return self._runtime['scaler']
 
     @property
     def config(self):
         """获取模型配置"""
-        return self._model_props['config']
+        return self._runtime['config']
 
     @property
     def window_size(self):
         """获取窗口大小"""
-        return self._model_props['window_size']
+        return self._runtime['window_size']
 
     @property
     def feature_dim(self):
         """获取特征维度"""
-        return self._model_props['feature_dim']
+        return self._runtime['feature_dim']
 
     @property
     def features_queue(self):
         """获取特征队列"""
-        return self._model_props['features_queue']
+        return self._runtime['features_queue']
 
     def initialize(self) -> int:
         """
@@ -180,7 +185,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
-        # BaseVisualModality.initialize() now handles camera initialization via CameraManager
+        # 调用基类初始化
         result = super().initialize()
         if result != SUCCESS:
             logger.error("基础视觉模态初始化失败")
@@ -197,15 +202,42 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             logger.info("MediaPipe人脸网格初始化成功")
 
             # 加载模型和配置
-            result = self._load_model()
-            if result != SUCCESS:
-                logger.error("模型加载失败")
-                return result
-
-            return SUCCESS
-        except Exception as e:
-            logger.error("初始化失败: %s", str(e))
+            return self._load_model()
+        except (ImportError, IOError) as e:
+            logger.error("资源导入或IO错误: %s", str(e))
             return MEDIAPIPE_INITIALIZATION_FAILED
+        except (ValueError, RuntimeError) as e:
+            logger.error("初始化参数或运行时错误: %s", str(e))
+            return MEDIAPIPE_INITIALIZATION_FAILED
+
+    def _load_model_file(self, model_path: str) -> Optional[Any]:
+        """加载模型文件"""
+        try:
+            logger.info("正在加载模型: %s", model_path)
+            return keras.models.load_model(model_path)
+        except (ImportError, IOError) as e:
+            logger.error("加载模型出错: %s", str(e))
+            return None
+
+    def _load_scaler_file(self, scaler_path: str) -> Optional[Any]:
+        """加载缩放器文件"""
+        try:
+            logger.info("正在加载缩放器: %s", scaler_path)
+            with open(scaler_path, 'rb') as f:
+                return pickle.load(f)
+        except (pickle.UnpicklingError, IOError) as e:
+            logger.error("加载缩放器出错: %s", str(e))
+            return None
+
+    def _load_config_file(self, config_path: str) -> Optional[Dict]:
+        """加载配置文件"""
+        try:
+            logger.info("正在加载配置: %s", config_path)
+            with open(config_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            logger.error("加载配置出错: %s", str(e))
+            return None
 
     def _load_model(self) -> int:
         """
@@ -214,92 +246,65 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             int: 错误码，0表示成功，其他值表示失败
         """
-        try:
-            # 找到模型文件
-            model_path = os.path.join(self._config['model_dir'], "model.h5")
-            scaler_path = os.path.join(self._config['model_dir'], "scaler.pkl")
-            config_path = os.path.join(
-                self._config['model_dir'], "config.json")
+        # 找到模型文件
+        model_path = os.path.join(self._config['model_dir'], "model.h5")
+        scaler_path = os.path.join(self._config['model_dir'], "scaler.pkl")
+        config_path = os.path.join(self._config['model_dir'], "config.json")
 
-            # 检查文件是否存在
-            if not os.path.exists(model_path):
-                logger.error("模型文件不存在: %s", model_path)
+        # 检查所有文件是否存在
+        for path, name in [(model_path, "模型"), (scaler_path, "缩放器"), (config_path, "配置")]:
+            if not os.path.exists(path):
+                logger.error(f"{name}文件不存在: %s", path)
                 return MODEL_LOADING_FAILED
 
-            if not os.path.exists(scaler_path):
-                logger.error("缩放器文件不存在: %s", scaler_path)
+        # 尝试加载所有必需的组件
+        load_results = {
+            'model': self._load_model_file(model_path),
+            'scaler': self._load_scaler_file(scaler_path),
+            'config': self._load_config_file(config_path)
+        }
+
+        # 检查是否所有组件都成功加载
+        for component, result in load_results.items():
+            if result is None:
+                logger.error("加载%s失败", component)
                 return MODEL_LOADING_FAILED
+            self._runtime[component] = result
 
-            if not os.path.exists(config_path):
-                logger.error("配置文件不存在: %s", config_path)
-                return MODEL_LOADING_FAILED
+        # 设置模型参数
+        config = self._runtime['config']
+        self._runtime['window_size'] = config.get(
+            "window_size", HeadPoseParams.HISTORY_LEN)
+        self._runtime['stride'] = config.get("stride", 5)
+        self._runtime['feature_dim'] = config.get("feature_dim", 30)
 
-            # 加载模型
-            logger.info("正在加载模型: %s", model_path)
-            try:
-                self._model_props['model'] = tf.keras.models.load_model(
-                    model_path)
-            except (ImportError, IOError) as e:
-                logger.error("加载模型出错: %s", str(e))
-                return MODEL_LOADING_FAILED
+        # 设置姿势映射
+        gesture_mapping = config.get("gesture_mapping", {
+            "stationary": 0, "nodding": 1, "shaking": 2, "other": 3
+        })
+        self._runtime['gesture_mapping'] = gesture_mapping
+        self._runtime['inverse_gesture_mapping'] = {
+            v: k for k, v in gesture_mapping.items()}
 
-            # 加载缩放器
-            logger.info("正在加载缩放器: %s", scaler_path)
-            try:
-                with open(scaler_path, 'rb') as f:
-                    self._model_props['scaler'] = pickle.load(f)
-            except (pickle.UnpicklingError, IOError) as e:
-                logger.error("加载缩放器出错: %s", str(e))
-                return MODEL_LOADING_FAILED
+        # 初始化特征队列
+        self._runtime['features_queue'] = deque(
+            maxlen=self._runtime['window_size'])
 
-            # 加载配置
-            logger.info("正在加载配置: %s", config_path)
-            try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    self._model_props['config'] = json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
-                logger.error("加载配置出错: %s", str(e))
-                return MODEL_LOADING_FAILED
+        logger.info(
+            "模型加载成功，窗口大小: %d, 特征维度: %d",
+            self._runtime['window_size'],
+            self._runtime['feature_dim']
+        )
+        logger.info("姿势映射: %s", self._runtime['gesture_mapping'])
 
-            # 设置模型参数
-            self._model_props['window_size'] = self._model_props['config'].get(
-                "window_size", HeadPoseParams.HISTORY_LEN)
-            self._model_props['stride'] = self._model_props['config'].get(
-                "stride", 5)
-            self._model_props['feature_dim'] = self._model_props['config'].get(
-                "feature_dim", 30)
-
-            # 设置姿势映射
-            self._model_props['gesture_mapping'] = self._model_props['config'].get(
-                "gesture_mapping", {
-                    "stationary": 0, "nodding": 1, "shaking": 2, "other": 3
-                })
-            self._model_props['inverse_gesture_mapping'] = {
-                v: k for k, v in self._model_props['gesture_mapping'].items()
-            }
-
-            # 初始化特征队列
-            self._model_props['features_queue'] = deque(
-                maxlen=self._model_props['window_size'])
-
-            logger.info(
-                "模型加载成功，窗口大小: %d, 特征维度: %d",
-                self._model_props['window_size'],
-                self._model_props['feature_dim']
-            )
-            logger.info("姿势映射: %s", self._model_props['gesture_mapping'])
-
-            return SUCCESS
-        except Exception as e:
-            logger.error("加载模型时出错: %s", str(e))
-            return MODEL_LOADING_FAILED
+        return SUCCESS
 
     def _processing_loop(self):
         """处理线程的主循环，负责连续处理视频帧"""
         logger.info("处理线程已启动")
 
         frame_interval = 1.0 / HeadPoseParams.VIDEO_FPS
-        while not self._stop_event.is_set():
+        while not self._runtime['stop_event'].is_set():
             start_time = time.time()
 
             # 检查相机是否在运行
@@ -336,8 +341,8 @@ class HeadPoseTrackerGRU(BaseVisualModality):
 
             # 处理帧
             state = self._process_frame(frame)
-            with self._state_lock:
-                self._latest_state = state
+            with self._runtime['state_lock']:
+                self._runtime['latest_state'] = state
 
             # 控制帧率
             elapsed_time = time.time() - start_time
@@ -352,9 +357,11 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         Returns:
             HeadPoseState: 当前头部状态
         """
-        if self._is_running and self._processing_thread and self._processing_thread.is_alive():
-            with self._state_lock:
-                return self._latest_state
+        processing_thread = self._runtime['processing_thread']
+
+        if self._is_running and processing_thread and processing_thread.is_alive():
+            with self._runtime['state_lock']:
+                return self._runtime['latest_state']
         elif not self._is_running:
             logger.warning(
                 "%s modality is not running. Returning empty state.", self.name)
@@ -375,11 +382,11 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 return HeadPoseState()
 
             state = self._process_frame(frame)
-            with self._state_lock:
-                self._latest_state = state
+            with self._runtime['state_lock']:
+                self._runtime['latest_state'] = state
             return state
 
-    def _collect_face_landmarks(self, face_landmarks, frame_shape):
+    def _collect_face_landmarks(self, face_landmarks, frame_shape) -> Tuple[List, Dict, Dict, List]:
         """
         收集人脸关键点数据
 
@@ -394,12 +401,14 @@ class HeadPoseTrackerGRU(BaseVisualModality):
 
         # 收集关键点
         face_coordination_in_image = []
-        nose_point = None
-        chin_point = None
-        left_ear_point = None
-        left_face_point = None
-        right_ear_point = None
-        right_face_point = None
+        key_points = {
+            'nose_point': None,
+            'chin_point': None,
+            'left_ear_point': None,
+            'left_face_point': None,
+            'right_ear_point': None,
+            'right_face_point': None
+        }
         all_face_coords = []
 
         for idx, lm in enumerate(face_landmarks.landmark):
@@ -411,43 +420,21 @@ class HeadPoseTrackerGRU(BaseVisualModality):
 
             # 收集特定关键点
             if idx == HeadPoseParams.LANDMARK_NOSE:  # 鼻尖
-                nose_point = (x, y)
+                key_points['nose_point'] = (x, y)
             elif idx == HeadPoseParams.LANDMARK_CHIN:  # 下巴
-                chin_point = (x, y)
+                key_points['chin_point'] = (x, y)
             elif idx == HeadPoseParams.LANDMARK_LEFT_EAR:  # 左耳
-                left_ear_point = (x, y)
+                key_points['left_ear_point'] = (x, y)
             elif idx == HeadPoseParams.LANDMARK_LEFT_FACE:  # 左脸中心点
-                left_face_point = (x, y)
+                key_points['left_face_point'] = (x, y)
             elif idx == HeadPoseParams.LANDMARK_RIGHT_EAR:  # 右耳
-                right_ear_point = (x, y)
+                key_points['right_ear_point'] = (x, y)
             elif idx == HeadPoseParams.LANDMARK_RIGHT_FACE:  # 右脸中心点
-                right_face_point = (x, y)
-
-        # 检查必要的点是否都收集到了
-        key_points = {
-            'nose_point': nose_point,
-            'chin_point': chin_point,
-            'left_ear_point': left_ear_point,
-            'left_face_point': left_face_point,
-            'right_ear_point': right_ear_point,
-            'right_face_point': right_face_point
-        }
+                key_points['right_face_point'] = (x, y)
 
         # 计算人脸框信息
-        all_face_coords = np.array(all_face_coords)
-        x_min, y_min = np.min(all_face_coords, axis=0)
-        x_max, y_max = np.max(all_face_coords, axis=0)
-        box_width = max(x_max - x_min, 1)
-        box_height = max(y_max - y_min, 1)
-        box_diagonal = np.sqrt(box_width**2 + box_height**2)
-        aspect_ratio = box_width / box_height
-
-        face_box_info = {
-            'box_width': box_width,
-            'box_height': box_height,
-            'box_diagonal': box_diagonal,
-            'aspect_ratio': aspect_ratio
-        }
+        all_face_coords_np = np.array(all_face_coords)
+        face_box_info = self._compute_face_box(all_face_coords_np)
 
         return (
             face_coordination_in_image,
@@ -456,7 +443,149 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             all_face_coords
         )
 
-    def _extract_features(self, face_landmarks, frame_shape) -> np.ndarray:
+    def _compute_face_box(self, all_face_coords: np.ndarray) -> Dict[str, float]:
+        """计算人脸框信息"""
+        x_min, y_min = np.min(all_face_coords, axis=0)
+        x_max, y_max = np.max(all_face_coords, axis=0)
+        box_width = max(x_max - x_min, 1)
+        box_height = max(y_max - y_min, 1)
+        box_diagonal = np.sqrt(box_width**2 + box_height**2)
+        aspect_ratio = box_width / box_height
+
+        return {
+            'box_width': box_width,
+            'box_height': box_height,
+            'box_diagonal': box_diagonal,
+            'aspect_ratio': aspect_ratio
+        }
+
+    def _compute_head_pose_features(self, face_data: Dict) -> Optional[np.ndarray]:
+        """计算头部姿态特征
+
+        Args:
+            face_data: 包含人脸坐标和尺寸信息的字典
+
+        Returns:
+            np.ndarray: 提取的特征向量或None
+        """
+        try:
+            # 解包数据
+            face_coords = face_data['coords']
+            key_points = face_data['key_points']
+            face_box_info = face_data['box_info']
+
+            # 计算相机矩阵
+            cam_info = self._calculate_camera_matrix(
+                face_data['width'], face_data['height'])
+
+            # 计算旋转向量和角度
+            angles = self._calculate_pose_angles(face_coords, cam_info)
+            if angles is None:
+                return None
+
+            # 提取关键尺寸数据
+            box_info = {
+                'width': face_box_info['box_width'],
+                'height': face_box_info['box_height'],
+                'diagonal': face_box_info['box_diagonal'],
+                'aspect_ratio': face_box_info['aspect_ratio']
+            }
+
+            # 计算几何特征
+            distances = self._calculate_distances(key_points)
+
+            # 组合特征参数
+            params = FeatureParams(
+                angles=angles,
+                distances=distances,
+                face_box=box_info,
+                ratios={
+                    'nose_chin_ratio': distances['nose_chin'] / box_info['height'],
+                    'left_cheek_ratio': distances['left_cheek'] / box_info['width'],
+                    'right_cheek_ratio': distances['right_cheek'] / box_info['width']
+                }
+            )
+
+            # 创建特征向量
+            return self._create_feature_vector(params)
+
+        except (ValueError, IndexError) as e:
+            logger.warning("计算头部姿态特征时出错: %s", str(e))
+            return None
+        except (AttributeError, TypeError) as e:
+            logger.warning("特征类型错误: %s", str(e))
+            return None
+
+    def _calculate_camera_matrix(self, width: int, height: int) -> Dict:
+        """计算相机内参矩阵"""
+        focal_length = 1 * width
+        cam_matrix = np.array([
+            [focal_length, 0, width / 2],
+            [0, focal_length, height / 2],
+            [0, 0, 1]
+        ])
+        dist_matrix = np.zeros((4, 1), dtype=np.float64)
+        return {'cam_matrix': cam_matrix, 'dist_matrix': dist_matrix}
+
+    def _calculate_pose_angles(
+        self,
+        face_coords: np.ndarray,
+        cam_info: Dict
+    ) -> Optional[List[float]]:
+        """计算头部姿态角度"""
+        success, rotation_vec, _ = cv2.solvePnP(
+            self.face_3d_coords, face_coords,
+            cam_info['cam_matrix'], cam_info['dist_matrix']
+        )
+
+        if not success:
+            return None
+
+        rotation_matrix, _ = cv2.Rodrigues(rotation_vec)
+        angles = rotation_matrix_to_angles(rotation_matrix)
+        return [float(a) for a in angles]  # pitch, yaw, roll
+
+    def _calculate_distances(self, key_points: Dict) -> Dict:
+        """计算关键点之间的距离"""
+        return {
+            'nose_chin': euclidean_dist(
+                key_points['nose_point'], key_points['chin_point']
+            ),
+            'left_cheek': euclidean_dist(
+                key_points['left_ear_point'], key_points['left_face_point']
+            ),
+            'right_cheek': euclidean_dist(
+                key_points['right_ear_point'], key_points['right_face_point']
+            )
+        }
+
+    def _create_feature_vector(self, params: FeatureParams) -> np.ndarray:
+        """创建特征向量"""
+        pitch, yaw, roll = params.angles
+        box = params.face_box
+        dist = params.distances
+        ratios = params.ratios
+
+        basic_features = np.array([
+            pitch, yaw, roll,
+            dist['nose_chin'], dist['left_cheek'], dist['right_cheek']
+        ], dtype=np.float32)
+
+        normalized_features = np.array([
+            box['aspect_ratio'],
+            box['width'] / box['diagonal'],
+            box['height'] / box['diagonal'],
+            pitch / box['diagonal'],
+            yaw / box['diagonal'],
+            roll / box['diagonal'],
+            ratios['nose_chin_ratio'],
+            ratios['left_cheek_ratio'],
+            ratios['right_cheek_ratio']
+        ], dtype=np.float32)
+
+        return np.concatenate([basic_features, normalized_features])
+
+    def _extract_features(self, face_landmarks, frame_shape) -> Optional[np.ndarray]:
         """
         从人脸关键点提取特征
 
@@ -469,97 +598,29 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         """
         h, w = frame_shape[:2]
 
-        # 收集人脸关键点
         try:
             face_coords, key_points, face_box_info, _ = self._collect_face_landmarks(
                 face_landmarks, frame_shape
             )
-        except (ValueError, IndexError):
+        except (ValueError, IndexError) as e:
+            logger.warning("提取关键点时出错: %s", str(e))
             return None
 
-        # 检查关键点是否齐全
         if None in key_points.values():
             return None
 
         if len(face_coords) != 6:
             return None
 
-        face_coordination_in_image = np.array(face_coords, dtype=np.float64)
+        face_data = {
+            'coords': np.array(face_coords, dtype=np.float64),
+            'key_points': key_points,
+            'box_info': face_box_info,
+            'width': w,
+            'height': h
+        }
 
-        # 获取人脸框信息
-        box_width = face_box_info['box_width']
-        box_height = face_box_info['box_height']
-        box_diagonal = face_box_info['box_diagonal']
-        aspect_ratio = face_box_info['aspect_ratio']
-
-        # 计算头部姿态
-        focal_length = 1 * w
-        cam_matrix = np.array([
-            [focal_length, 0, w / 2],
-            [0, focal_length, h / 2],
-            [0, 0, 1]
-        ])
-        dist_matrix = np.zeros((4, 1), dtype=np.float64)
-
-        try:
-            success, rotation_vec, _ = cv2.solvePnP(
-                self.face_3d_coords, face_coordination_in_image,
-                cam_matrix, dist_matrix
-            )
-
-            if not success:
-                return None
-
-            rotation_matrix, _ = cv2.Rodrigues(rotation_vec)
-            angles = rotation_matrix_to_angles(rotation_matrix)
-
-            pitch = float(angles[0])  # 俯仰角（点头）
-            yaw = float(angles[1])    # 偏航角（左右转头）
-            roll = float(angles[2])   # 翻滚角（头部倾斜）
-
-            # 计算几何特征
-            nose_chin_dist = euclidean_dist(
-                key_points['nose_point'], key_points['chin_point']
-            )
-            left_cheek_width = euclidean_dist(
-                key_points['left_ear_point'], key_points['left_face_point']
-            )
-            right_cheek_width = euclidean_dist(
-                key_points['right_ear_point'], key_points['right_face_point']
-            )
-
-            # 基本特征
-            basic_features = np.array([
-                pitch,
-                yaw,
-                roll,
-                nose_chin_dist,
-                left_cheek_width,
-                right_cheek_width
-            ], dtype=np.float32)
-
-            # 归一化特征
-            normalized_features = np.array([
-                aspect_ratio,
-                box_width / box_diagonal,
-                box_height / box_diagonal,
-                pitch / box_diagonal,
-                yaw / box_diagonal,
-                roll / box_diagonal,
-                nose_chin_dist / box_height,
-                left_cheek_width / box_width,
-                right_cheek_width / box_width
-            ], dtype=np.float32)
-
-            # 组合特征
-            combined_features = np.concatenate(
-                [basic_features, normalized_features])
-
-            return combined_features
-
-        except Exception as e:
-            logger.error("计算头部姿态和特征时出错: %s", str(e))
-            return None
+        return self._compute_head_pose_features(face_data)
 
     def _predict_head_pose(self) -> Tuple[str, float]:
         """
@@ -598,14 +659,95 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             confidence = float(prediction[0][gesture_idx])
 
             # 获取预测的姿势名称
-            pose_name = self._model_props['inverse_gesture_mapping'].get(
+            pose_name = self._runtime['inverse_gesture_mapping'].get(
                 gesture_idx, HeadPoseParams.STATUS_STATIONARY)
 
             return pose_name, confidence
 
-        except Exception as e:
+        except (ValueError, IndexError) as e:
             logger.error("预测头部姿势时出错: %s", str(e))
             return HeadPoseParams.STATUS_STATIONARY, 0.0
+
+    def _process_landmarks(self, face_landmarks, frame):
+        """处理人脸关键点"""
+        state = HeadPoseState(frame=frame, timestamp=time.time())
+        state.detections["head_pose"]["detected"] = True
+
+        # 提取所有关键点
+        landmarks_list = []
+        for _, landmark_mp in enumerate(face_landmarks.landmark):
+            x, y, z = landmark_mp.x, landmark_mp.y, landmark_mp.z
+            landmarks_list.append((x, y, z))
+        state.detections["head_pose"]["landmarks"] = landmarks_list
+
+        # 提取特征
+        features = self._extract_features(face_landmarks, frame.shape)
+
+        # 处理提取的特征
+        if features is None:
+            return state
+
+        # 基本角度信息
+        state.detections["head_pose"]["pitch"] = float(features[0])  # pitch
+        state.detections["head_pose"]["yaw"] = float(features[1])    # yaw
+        state.detections["head_pose"]["roll"] = float(features[2])   # roll
+
+        # 处理特征向量，确保长度正确
+        expected_feature_count = self.feature_dim // 2
+        if len(features) != expected_feature_count:
+            features = self._adjust_feature_length(
+                features, expected_feature_count)
+
+        # 添加到特征队列
+        self.features_queue.append(features)
+
+        # 定期更新状态
+        self._update_head_movement_status(state)
+
+        return state
+
+    def _adjust_feature_length(self, features: np.ndarray, expected_length: int) -> np.ndarray:
+        """调整特征向量长度"""
+        if len(features) > expected_length:
+            return features[:expected_length]
+        padding = np.zeros(expected_length -
+                           len(features), dtype=np.float32)
+        return np.concatenate([features, padding])
+
+    def _update_head_movement_status(self, state: HeadPoseState):
+        """更新头部运动状态"""
+        current_time = time.time()
+        if (current_time - self._runtime['last_status_update'] >=
+                HeadPoseParams.STATUS_UPDATE_INTERVAL):
+            self._runtime['last_status_update'] = current_time
+
+            # 预测头部姿势
+            pose, confidence = self._predict_head_pose()
+
+            # 更新状态
+            if pose and confidence > HeadPoseParams.CONFIDENCE_THRESHOLD:
+                self._runtime['current_status'] = pose
+                self._runtime['current_status_confidence'] = confidence
+                self._runtime['current_is_nodding'] = (
+                    pose == HeadPoseParams.STATUS_NODDING)
+                self._runtime['current_is_shaking'] = (
+                    pose == HeadPoseParams.STATUS_SHAKING)
+
+        # 填充检测结果
+        state.detections["head_movement"]["is_nodding"] = (
+            self._runtime['current_is_nodding'])
+        state.detections["head_movement"]["is_shaking"] = (
+            self._runtime['current_is_shaking'])
+        state.detections["head_movement"]["nod_confidence"] = float(
+            self._runtime['current_status_confidence']
+            if self._runtime['current_is_nodding'] else 0.0)
+        state.detections["head_movement"]["shake_confidence"] = float(
+            self._runtime['current_status_confidence']
+            if self._runtime['current_is_shaking'] else 0.0)
+        state.detections["head_movement"]["status"] = (
+            self._runtime['current_status'])
+        state.detections["head_movement"]["status_confidence"] = float(
+            self._runtime['current_status_confidence'])
 
     def _process_frame(self, frame: np.ndarray) -> HeadPoseState:
         """
@@ -623,91 +765,10 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(image_rgb)
 
-        # 初始化角度
-        current_head_pitch_rad = 0.0
-        current_head_yaw_rad = 0.0
-
         # 检测到人脸
         if results.multi_face_landmarks:
             face_landmarks = results.multi_face_landmarks[0]
-            state.detections["head_pose"]["detected"] = True
-
-            # 提取所有关键点
-            landmarks_list = []
-            for _, landmark_mp in enumerate(face_landmarks.landmark):
-                x, y, z = landmark_mp.x, landmark_mp.y, landmark_mp.z
-                landmarks_list.append((x, y, z))
-            state.detections["head_pose"]["landmarks"] = landmarks_list
-
-            # 提取特征
-            features = self._extract_features(face_landmarks, frame.shape)
-
-            # 处理提取的特征
-            if features is not None:
-                # 基本角度信息
-                current_head_pitch_rad = float(features[0])  # pitch
-                current_head_yaw_rad = float(features[1])    # yaw
-                current_head_roll_rad = float(features[2])   # roll
-
-                # 更新状态
-                state.detections["head_pose"]["pitch"] = current_head_pitch_rad
-                state.detections["head_pose"]["yaw"] = current_head_yaw_rad
-                state.detections["head_pose"]["roll"] = current_head_roll_rad
-
-                # 处理特征向量，确保长度正确
-                expected_feature_count = self.feature_dim // 2
-                if len(features) != expected_feature_count:
-                    if len(features) > expected_feature_count:
-                        features = features[:expected_feature_count]
-                    else:
-                        padding = np.zeros(
-                            expected_feature_count - len(features), dtype=np.float32)
-                        features = np.concatenate([features, padding])
-
-                # 添加到特征队列
-                self.features_queue.append(features)
-
-                # 更新头部姿态信息
-                state.detections["head_pose"]["pitch"] = float(
-                    features[0])  # 俯仰角
-                state.detections["head_pose"]["yaw"] = float(
-                    features[1])    # 偏航角
-                state.detections["head_pose"]["roll"] = float(
-                    features[2])   # 翻滚角
-
-                # 定期更新状态
-                current_time = time.time()
-                if (current_time - self._tracking_state['last_status_update'] >=
-                        HeadPoseParams.STATUS_UPDATE_INTERVAL):
-                    self._tracking_state['last_status_update'] = current_time
-
-                    # 预测头部姿势
-                    pose, confidence = self._predict_head_pose()
-
-                    # 更新状态
-                    if pose and confidence > HeadPoseParams.CONFIDENCE_THRESHOLD:
-                        self._tracking_state['current_status'] = pose
-                        self._tracking_state['current_status_confidence'] = confidence
-                        self._tracking_state['current_is_nodding'] = (
-                            pose == HeadPoseParams.STATUS_NODDING)
-                        self._tracking_state['current_is_shaking'] = (
-                            pose == HeadPoseParams.STATUS_SHAKING)
-
-                # 填充检测结果
-                state.detections["head_movement"]["is_nodding"] = (
-                    self._tracking_state['current_is_nodding'])
-                state.detections["head_movement"]["is_shaking"] = (
-                    self._tracking_state['current_is_shaking'])
-                state.detections["head_movement"]["nod_confidence"] = float(
-                    self._tracking_state['current_status_confidence']
-                    if self._tracking_state['current_is_nodding'] else 0.0)
-                state.detections["head_movement"]["shake_confidence"] = float(
-                    self._tracking_state['current_status_confidence']
-                    if self._tracking_state['current_is_shaking'] else 0.0)
-                state.detections["head_movement"]["status"] = (
-                    self._tracking_state['current_status'])
-                state.detections["head_movement"]["status_confidence"] = float(
-                    self._tracking_state['current_status_confidence'])
+            return self._process_landmarks(face_landmarks, frame)
 
         return state
 
@@ -746,13 +807,13 @@ class HeadPoseTrackerGRU(BaseVisualModality):
 
         try:
             # 启动处理线程
-            self._stop_event.clear()
-            self._processing_thread = threading.Thread(
+            self._runtime['stop_event'].clear()
+            self._runtime['processing_thread'] = threading.Thread(
                 target=self._processing_loop, daemon=True)
-            self._processing_thread.start()
+            self._runtime['processing_thread'].start()
             logger.info("%s has started processing.", self.name)
             return SUCCESS
-        except Exception as e:
+        except RuntimeError as e:
             logger.error("Error starting processing thread for %s: %s",
                          self.name, str(e), exc_info=True)
             super().stop()
@@ -768,11 +829,12 @@ class HeadPoseTrackerGRU(BaseVisualModality):
         logger.info("Shutting down %s...", self.name)
 
         # 停止处理线程
-        if self._processing_thread and self._processing_thread.is_alive():
+        processing_thread = self._runtime['processing_thread']
+        if processing_thread and processing_thread.is_alive():
             logger.info("Stopping processing thread...")
-            self._stop_event.set()
-            self._processing_thread.join(timeout=2.0)
-            if self._processing_thread.is_alive():
+            self._runtime['stop_event'].set()
+            processing_thread.join(timeout=2.0)
+            if processing_thread.is_alive():
                 logger.warning(
                     "Processing thread did not terminate gracefully.")
             else:
@@ -784,7 +846,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
                 self.face_mesh.close()
                 self.face_mesh = None
                 logger.info("MediaPipe FaceMesh resources released.")
-            except Exception as e:
+            except AttributeError as e:
                 logger.error("Error closing MediaPipe FaceMesh: %s",
                              str(e), exc_info=True)
 
