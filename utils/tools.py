@@ -24,8 +24,8 @@ class SpeecherPlayer:
         """同步合成语音，返回音频流"""
         print(f"合成文本: '{text}'")
         audio_data = asyncio.run(self.synth.synthesize(text))
-        SAMPLE_RATE = 24000
-        sd.play(audio_data, SAMPLE_RATE)
+        sample_rate = 24000  # Changed variable name
+        sd.play(audio_data, sample_rate)
         sd.wait()
 
     async def speech_synthesize(self, text: str):
