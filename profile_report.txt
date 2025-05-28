@@ -1,0 +1,58 @@
+         55355253 function calls (51605330 primitive calls) in 264.199 seconds
+
+   Ordered by: cumulative time
+   List reduced from 6223 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     76/7    4.449    0.059   23.531    3.362 D:\IDE\envs\smart_cab\Lib\site-packages\torch\serialization.py:2060(persistent_load)
+    18629   13.334    0.001   13.785    0.001 {built-in method tensorflow.python._pywrap_tfe.TFE_Py_FastPathExecute}
+36896/803   81.137    0.002    9.595    0.012 {built-in method time.sleep}
+ 3275/152    0.549    0.000    6.782    0.045 D:\IDE\envs\smart_cab\Lib\site-packages\pyaudio\__init__.py:553(read)
+    35896    1.865    0.000    5.136    0.000 D:\IDE\envs\smart_cab\Lib\collections\__init__.py:355(namedtuple)
+       16    0.000    0.000    4.588    0.287 D:\IDE\envs\smart_cab\Lib\site-packages\requests\sessions.py:500(request)
+       16    0.000    0.000    4.569    0.286 D:\IDE\envs\smart_cab\Lib\site-packages\requests\sessions.py:673(send)
+       16    0.000    0.000    4.267    0.267 D:\IDE\envs\smart_cab\Lib\site-packages\requests\adapters.py:613(send)
+       16    0.000    0.000    4.258    0.266 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connectionpool.py:592(urlopen)
+        1    0.000    0.000    3.064    3.064 D:\IDE\envs\smart_cab\Lib\site-packages\sounddevice.py:381(wait)
+        1    0.000    0.000    3.064    3.064 D:\IDE\envs\smart_cab\Lib\site-packages\sounddevice.py:2646(wait)
+    35904    2.818    0.000    2.867    0.000 {built-in method builtins.eval}
+        5    0.000    0.000    2.854    0.571 D:\IDE\envs\smart_cab\Lib\site-packages\requests\api.py:62(get)
+        5    0.000    0.000    2.854    0.571 D:\IDE\envs\smart_cab\Lib\site-packages\requests\api.py:14(request)
+    10429    0.025    0.000    2.664    0.000 D:\IDE\envs\smart_cab\Lib\site-packages\tensorflow\python\framework\ops.py:277(_create_graph_constant)
+       72    0.000    0.000    2.577    0.036 D:\IDE\envs\smart_cab\Lib\socket.py:706(readinto)
+       16    0.000    0.000    2.305    0.144 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connectionpool.py:377(_make_request)
+      218    0.001    0.000    2.297    0.011 {method 'readline' of '_io.BufferedReader' objects}
+       16    0.000    0.000    2.290    0.143 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connection.py:485(getresponse)
+       16    0.000    0.000    2.287    0.143 D:\IDE\envs\smart_cab\Lib\http\client.py:1386(getresponse)
+       16    0.000    0.000    2.286    0.143 D:\IDE\envs\smart_cab\Lib\http\client.py:324(begin)
+       24    0.000    0.000    2.262    0.094 D:\IDE\envs\smart_cab\Lib\http\client.py:291(_read_status)
+        1    0.000    0.000    2.257    2.257 D:\IDE\envs\smart_cab\Lib\site-packages\funasr\utils\version_checker.py:17(check_for_update)
+        1    0.000    0.000    2.256    2.256 D:\IDE\envs\smart_cab\Lib\site-packages\funasr\utils\version_checker.py:5(get_pypi_version)
+    35905    0.161    0.000    2.194    0.000 D:\IDE\envs\smart_cab\Lib\site-packages\mediapipe\python\solution_base.py:564(_make_packet)
+       62    0.000    0.000    2.174    0.035 D:\IDE\envs\smart_cab\Lib\ssl.py:1236(recv_into)
+       62    0.000    0.000    2.174    0.035 D:\IDE\envs\smart_cab\Lib\ssl.py:1094(read)
+       62    2.174    0.035    2.174    0.035 {method 'read' of '_ssl._SSLSocket' objects}
+        1    0.000    0.000    2.024    2.024 D:\IDE\envs\smart_cab\Lib\site-packages\misaki\zh.py:9(__init__)
+        8    0.000    0.000    1.950    0.244 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connectionpool.py:1029(_prepare_proxy)
+        8    0.000    0.000    1.950    0.244 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connection.py:669(connect)
+        8    0.000    0.000    1.902    0.238 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\connection.py:846(_ssl_wrap_socket_and_match_hostname)
+        8    0.000    0.000    1.902    0.238 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\util\ssl_.py:410(ssl_wrap_socket)
+        8    0.000    0.000    1.902    0.238 D:\IDE\envs\smart_cab\Lib\site-packages\urllib3\util\ssl_.py:508(_ssl_wrap_socket_impl)
+        8    0.000    0.000    1.902    0.238 D:\IDE\envs\smart_cab\Lib\ssl.py:449(wrap_socket)
+        8    0.000    0.000    1.902    0.238 D:\IDE\envs\smart_cab\Lib\ssl.py:955(_create)
+        8    0.000    0.000    1.901    0.238 D:\IDE\envs\smart_cab\Lib\ssl.py:1312(do_handshake)
+        8    1.901    0.238    1.901    0.238 {method 'do_handshake' of '_ssl._SSLSocket' objects}
+    21091    0.060    0.000    1.775    0.000 D:\IDE\envs\smart_cab\Lib\site-packages\mediapipe\python\packet_creator.py:152(create_image)
+       11    0.000    0.000    1.735    0.158 D:\IDE\envs\smart_cab\Lib\site-packages\requests\sessions.py:593(get)
+    21091    1.700    0.000    1.700    0.000 {built-in method mediapipe.python._framework_bindings._packet_creator._create_image_from_pixel_data}
+        2    0.000    0.000    1.603    0.802 D:\IDE\envs\smart_cab\Lib\site-packages\modelscope\hub\snapshot_download.py:30(snapshot_download)
+        2    0.000    0.000    1.603    0.802 D:\IDE\envs\smart_cab\Lib\site-packages\modelscope\hub\snapshot_download.py:201(_snapshot_download)
+     2361    1.366    0.001    1.421    0.001 D:\IDE\envs\smart_cab\Lib\site-packages\torch\serialization.py:1997(load_tensor)
+        3    0.000    0.000    1.340    0.447 D:\IDE\envs\smart_cab\Lib\site-packages\torch\utils\_contextlib.py:113(decorate_context)
+        2    0.000    0.000    1.328    0.664 D:\IDE\envs\smart_cab\Lib\site-packages\kokoro\pipeline.py:223(infer)
+   4649/2    0.009    0.000    1.328    0.664 D:\IDE\envs\smart_cab\Lib\site-packages\torch\nn\modules\module.py:1747(_wrapped_call_impl)
+   4666/2    0.013    0.000    1.328    0.664 D:\IDE\envs\smart_cab\Lib\site-packages\torch\nn\modules\module.py:1755(_call_impl)
+        2    0.000    0.000    1.328    0.664 D:\IDE\envs\smart_cab\Lib\site-packages\kokoro\model.py:121(forward)
+3749133/3722437    0.577    0.000    1.278    0.000 {built-in method builtins.isinstance}
+
+
