@@ -151,9 +151,8 @@ class SpeechProcessor:
 
         for speaker_id, file_path, registered in reference_files:
             try:
-                # 使用推理方法而不是直接调用
-                result = self._models["sv_model"].pipeline_inference(
-                    [file_path, audio_file])
+                # 修改为正确的调用方式
+                result = self._models["sv_model"]([file_path, audio_file])
                 similarity = result["score"]
 
                 if similarity > threshold and similarity > best_score:
