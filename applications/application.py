@@ -17,7 +17,6 @@ from .vehicle_state import VehicleState
 from .enter import Enter
 
 
-
 class Application:
     """实现车载多模态智能交互系统的应用功能"""
 

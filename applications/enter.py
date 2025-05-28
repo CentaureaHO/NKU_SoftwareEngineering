@@ -7,14 +7,14 @@ Module Description:
     实现启动系统时自动开启应用功能
 """
 
+from logger import logger
+from viewer.viewer import update_note, update_light
+from utils.tools import speecher_player
 import os
 import time
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.tools import speecher_player
-from viewer.viewer import update_note, update_light
-from logger import logger
 
 
 class Enter:
@@ -23,7 +23,7 @@ class Enter:
     def __init__(self) -> None:
         """构造函数"""
 
-    def begin(self ,controller) -> None:
+    def begin(self, controller) -> None:
         """视线环节"""
         logger.log("典型场景:启动系统时自动开启应用功能")
         speecher_player.speech_synthesize_sync(
@@ -105,7 +105,8 @@ class Enter:
                     print(f"说话人: {driver_state.recognition['speaker_name']}")
                     print(f"驾驶员: {setting.get_driver()}")
                     is_driver = (
-                        driver_state.recognition["speaker_name"] == setting.get_driver()
+                        driver_state.recognition["speaker_name"] == setting.get_driver(
+                        )
                     )
 
                 if state is not None:

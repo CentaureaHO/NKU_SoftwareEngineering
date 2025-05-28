@@ -1,0 +1,773 @@
+************* Module viewer.viewer
+viewer/viewer.py:14:0: E0401: Unable to import 'cv2' (import-error)
+viewer/viewer.py:22:0: C0103: Constant name "camera_mgr" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:23:0: C0103: Constant name "application" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:24:0: C0103: Constant name "controller" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:29:4: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+viewer/viewer.py:36:4: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+viewer/viewer.py:43:4: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+viewer/viewer.py:50:4: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+viewer/viewer.py:248:15: W0718: Catching too general exception Exception (broad-exception-caught)
+viewer/viewer.py:266:0: C0103: Constant name "light_color" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:267:0: C0103: Constant name "light_blink" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:273:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:274:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:285:0: C0103: Constant name "latest_message" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:291:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:382:0: C0103: Constant name "last_action" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:389:8: W0603: Using the global statement (global-statement)
+viewer/viewer.py:410:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:417:0: C0103: Constant name "navigation_from" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:418:0: C0103: Constant name "navigation_to" doesn't conform to UPPER_CASE naming style (invalid-name)
+viewer/viewer.py:424:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:434:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:499:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:500:4: W0603: Using the global statement (global-statement)
+viewer/viewer.py:503:4: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+viewer/viewer.py:11:0: C0411: standard import "sys" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:12:0: C0411: standard import "os" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:13:0: C0411: standard import "time" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:14:0: C0411: third party import "cv2" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:15:0: C0411: third party import "numpy" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:16:0: C0411: third party import "requests" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+viewer/viewer.py:17:0: C0411: third party import "flask.Flask" should be placed before first party import "utils.camera_manager.get_camera_manager"  (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 8.60/10
+
+
+-------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 9.82/10, +0.18)
+
+
+------------------------------------
+Your code has been rated at 10.00/10
+
+************* Module utils
+utils/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+utils/__init__.py:5:4: E0603: Undefined variable name 'speech_synthesize' in __all__ (undefined-all-variable)
+utils/__init__.py:5:25: E0603: Undefined variable name 'speech_synthesize_sync' in __all__ (undefined-all-variable)
+
+-----------------------------------
+Your code has been rated at 0.00/10
+
+************* Module utils.speech_synthesis.kokoro_synthesis
+utils/speech_synthesis/kokoro_synthesis.py:471:0: C0301: Line too long (115/100) (line-too-long)
+utils/speech_synthesis/kokoro_synthesis.py:583:0: C0301: Line too long (106/100) (line-too-long)
+utils/speech_synthesis/kokoro_synthesis.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+utils/speech_synthesis/kokoro_synthesis.py:60:0: R0902: Too many instance attributes (11/7) (too-many-instance-attributes)
+utils/speech_synthesis/kokoro_synthesis.py:106:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:129:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:130:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:141:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:142:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:145:4: R0914: Too many local variables (17/15) (too-many-locals)
+utils/speech_synthesis/kokoro_synthesis.py:171:19: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:168:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:172:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:178:27: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:175:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:179:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:184:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:184:31: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:188:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:189:20: W0707: Consider explicitly re-raising using 'except Exception as exc' and 'raise RuntimeError(f'模型缓存目录被锁定，且无法释放锁。请手动删除: {model_lock_path}') from exc' (raise-missing-from)
+utils/speech_synthesis/kokoro_synthesis.py:192:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:192:31: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:207:27: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:205:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:212:17: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
+utils/speech_synthesis/kokoro_synthesis.py:217:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:237:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:241:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:247:23: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:245:25: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
+utils/speech_synthesis/kokoro_synthesis.py:254:23: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:255:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:257:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:258:12: W0707: Consider explicitly re-raising using 'raise RuntimeError(f'无法创建模型下载锁，可能没有写入权限: {model_lock_path}') from lock_err' (raise-missing-from)
+utils/speech_synthesis/kokoro_synthesis.py:145:4: R0912: Too many branches (20/12) (too-many-branches)
+utils/speech_synthesis/kokoro_synthesis.py:145:4: R0915: Too many statements (73/50) (too-many-statements)
+utils/speech_synthesis/kokoro_synthesis.py:284:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:264:12: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+utils/speech_synthesis/kokoro_synthesis.py:269:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:278:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:282:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:285:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:395:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:322:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:360:19: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:361:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:366:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:396:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:418:19: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:407:16: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+utils/speech_synthesis/kokoro_synthesis.py:419:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:452:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:456:12: E0102: function already defined line 454 (function-redefined)
+utils/speech_synthesis/kokoro_synthesis.py:456:35: C0321: More than one statement on a single line (multiple-statements)
+utils/speech_synthesis/kokoro_synthesis.py:461:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:468:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:492:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:495:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:514:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:515:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:530:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:537:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:569:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:584:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:593:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:624:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:652:15: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/speech_synthesis/kokoro_synthesis.py:643:12: C0415: Import outside toplevel (gc) (import-outside-toplevel)
+utils/speech_synthesis/kokoro_synthesis.py:653:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/speech_synthesis/kokoro_synthesis.py:10:0: C0411: standard import "pathlib.Path" should be placed before third party imports "numpy", "soundfile", "torch" (wrong-import-order)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: C0411: standard import "typing.Dict" should be placed before third party imports "numpy", "soundfile", "torch" (wrong-import-order)
+utils/speech_synthesis/kokoro_synthesis.py:12:0: C0411: standard import "threading.Lock" should be placed before third party imports "numpy", "soundfile", "torch" (wrong-import-order)
+utils/speech_synthesis/kokoro_synthesis.py:6:0: W0611: Unused import asyncio (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:10:0: W0611: Unused Path imported from pathlib (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: W0611: Unused Optional imported from typing (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: W0611: Unused Union imported from typing (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: W0611: Unused Generator imported from typing (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: W0611: Unused Tuple imported from typing (unused-import)
+utils/speech_synthesis/kokoro_synthesis.py:11:0: W0611: Unused Any imported from typing (unused-import)
+
+-----------------------------------
+Your code has been rated at 7.77/10
+
+************* Module utils.speech_synthesis
+utils/speech_synthesis/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 5.00/10
+
+************* Module utils.tools
+utils/tools.py:25:8: C0103: Variable name "SAMPLE_RATE" doesn't conform to snake_case naming style (invalid-name)
+
+-----------------------------------
+Your code has been rated at 9.38/10
+
+************* Module utils.camera_manager
+utils/camera_manager.py:16:0: E0401: Unable to import 'cv2' (import-error)
+utils/camera_manager.py:39:0: R0902: Too many instance attributes (14/7) (too-many-instance-attributes)
+utils/camera_manager.py:77:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:93:20: R1724: Unnecessary "else" after "continue", remove the "else" and de-indent the code inside it (no-else-continue)
+utils/camera_manager.py:96:28: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:148:19: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/camera_manager.py:113:20: R1724: Unnecessary "else" after "continue", remove the "else" and de-indent the code inside it (no-else-continue)
+utils/camera_manager.py:114:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:123:28: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:143:23: W0718: Catching too general exception BaseException (broad-exception-caught)
+utils/camera_manager.py:149:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:154:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:155:24: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+utils/camera_manager.py:75:4: R0912: Too many branches (17/12) (too-many-branches)
+utils/camera_manager.py:75:4: R0915: Too many statements (64/50) (too-many-statements)
+utils/camera_manager.py:165:4: C0116: Missing function or method docstring (missing-function-docstring)
+utils/camera_manager.py:194:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:251:19: W0718: Catching too general exception Exception (broad-exception-caught)
+utils/camera_manager.py:206:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:214:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:228:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:237:27: W0718: Catching too general exception BaseException (broad-exception-caught)
+utils/camera_manager.py:252:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:272:19: W0718: Catching too general exception BaseException (broad-exception-caught)
+utils/camera_manager.py:303:19: W0718: Catching too general exception BaseException (broad-exception-caught)
+utils/camera_manager.py:309:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:361:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/camera_manager.py:52:50: E0203: Access to member '_initialized_once' before its definition line 72 (access-member-before-definition)
+utils/camera_manager.py:375:0: C0116: Missing function or method docstring (missing-function-docstring)
+
+-----------------------------------
+Your code has been rated at 8.25/10
+
+
+------------------------------------
+Your code has been rated at 10.00/10
+
+************* Module multimodal_controller
+multimodal_controller.py:19:0: E0401: Unable to import 'mediapipe' (import-error)
+multimodal_controller.py:125:8: C0415: Import outside toplevel (Modality.visual.HeadPoseTrackerGRU) (import-outside-toplevel)
+multimodal_controller.py:303:8: C0415: Import outside toplevel (Modality.visual.GazeDirectionTracker) (import-outside-toplevel)
+multimodal_controller.py:331:12: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+multimodal_controller.py:15:0: C0411: standard import "os" should be placed before first party imports "logger.logger", "utils.tools.speecher_player", "Modality.core.error_codes.SUCCESS", "Modality.speech.speech_recognition.SpeechRecognition", "Modality.ModalityManager"  (wrong-import-order)
+multimodal_controller.py:16:0: C0411: standard import "sys" should be placed before first party imports "logger.logger", "utils.tools.speecher_player", "Modality.core.error_codes.SUCCESS", "Modality.speech.speech_recognition.SpeechRecognition", "Modality.ModalityManager"  (wrong-import-order)
+multimodal_controller.py:17:0: C0411: standard import "time" should be placed before first party imports "logger.logger", "utils.tools.speecher_player", "Modality.core.error_codes.SUCCESS", "Modality.speech.speech_recognition.SpeechRecognition", "Modality.ModalityManager"  (wrong-import-order)
+multimodal_controller.py:18:0: C0411: standard import "argparse" should be placed before first party imports "logger.logger", "utils.tools.speecher_player", "Modality.core.error_codes.SUCCESS", "Modality.speech.speech_recognition.SpeechRecognition", "Modality.ModalityManager"  (wrong-import-order)
+multimodal_controller.py:19:0: C0411: third party import "mediapipe" should be placed before first party imports "logger.logger", "utils.tools.speecher_player", "Modality.core.error_codes.SUCCESS", "Modality.speech.speech_recognition.SpeechRecognition", "Modality.ModalityManager"  (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 9.28/10
+
+************* Module system_init
+system_init.py:39:4: C0415: Import outside toplevel (applications.application.application) (import-outside-toplevel)
+system_init.py:44:4: C0415: Import outside toplevel (multimodal_controller.MultimodalController) (import-outside-toplevel)
+system_init.py:50:4: C0415: Import outside toplevel (setting.Setting) (import-outside-toplevel)
+system_init.py:56:4: C0415: Import outside toplevel (individuation.individuation) (import-outside-toplevel)
+system_init.py:61:4: C0415: Import outside toplevel (viewer.viewer.start_flask_server) (import-outside-toplevel)
+
+-----------------------------------
+Your code has been rated at 8.86/10
+
+
+------------------------------------
+Your code has been rated at 10.00/10
+
+************* Module Modality.speech
+Modality/speech/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 5.00/10
+
+************* Module Modality.speech.speech_recognition
+Modality/speech/speech_recognition.py:545:0: C0301: Line too long (101/100) (line-too-long)
+Modality/speech/speech_recognition.py:571:0: C0301: Line too long (107/100) (line-too-long)
+Modality/speech/speech_recognition.py:728:0: C0301: Line too long (114/100) (line-too-long)
+Modality/speech/speech_recognition.py:858:0: C0301: Line too long (102/100) (line-too-long)
+Modality/speech/speech_recognition.py:1189:0: C0301: Line too long (103/100) (line-too-long)
+Modality/speech/speech_recognition.py:1:0: C0302: Too many lines in module (1397/1000) (too-many-lines)
+Modality/speech/speech_recognition.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/speech/speech_recognition.py:13:0: E0401: Unable to import 'pyaudio' (import-error)
+Modality/speech/speech_recognition.py:14:0: E0401: Unable to import 'webrtcvad' (import-error)
+Modality/speech/speech_recognition.py:20:0: E0401: Unable to import 'modelscope.pipelines' (import-error)
+Modality/speech/speech_recognition.py:21:0: E0401: Unable to import 'modelscope.hub.snapshot_download' (import-error)
+Modality/speech/speech_recognition.py:22:0: E0401: Unable to import 'funasr' (import-error)
+Modality/speech/speech_recognition.py:68:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/speech/speech_recognition.py:95:0: R0902: Too many instance attributes (28/7) (too-many-instance-attributes)
+Modality/speech/speech_recognition.py:178:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:198:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:199:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:202:4: R0914: Too many local variables (17/15) (too-many-locals)
+Modality/speech/speech_recognition.py:228:19: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:225:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:229:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:235:27: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:232:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:236:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:241:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:241:31: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+Modality/speech/speech_recognition.py:245:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:246:20: W0707: Consider explicitly re-raising using 'except Exception as exc' and 'raise RuntimeError(f'模型缓存目录被锁定，且无法释放锁。请手动删除: {model_lock_path}') from exc' (raise-missing-from)
+Modality/speech/speech_recognition.py:249:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:249:31: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+Modality/speech/speech_recognition.py:264:27: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:262:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:269:17: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
+Modality/speech/speech_recognition.py:274:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:290:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:294:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:300:23: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:298:25: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
+Modality/speech/speech_recognition.py:307:23: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:308:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:310:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:311:12: W0707: Consider explicitly re-raising using 'raise RuntimeError(f'无法创建模型下载锁，可能没有写入权限: {model_lock_path}') from lock_err' (raise-missing-from)
+Modality/speech/speech_recognition.py:202:4: R0912: Too many branches (20/12) (too-many-branches)
+Modality/speech/speech_recognition.py:202:4: R0915: Too many statements (73/50) (too-many-statements)
+Modality/speech/speech_recognition.py:419:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:339:23: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:340:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:373:27: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:374:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:409:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:412:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:413:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:415:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:416:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:420:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:313:4: R0915: Too many statements (60/50) (too-many-statements)
+Modality/speech/speech_recognition.py:364:28: W0612: Unused variable 'sv_model_info' (unused-variable)
+Modality/speech/speech_recognition.py:439:16: W0702: No exception type(s) specified (bare-except)
+Modality/speech/speech_recognition.py:449:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:467:16: W0702: No exception type(s) specified (bare-except)
+Modality/speech/speech_recognition.py:487:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:553:12: E1101: Instance of 'Wave_read' has no 'setnchannels' member; maybe 'getnchannels'? (no-member)
+Modality/speech/speech_recognition.py:554:12: E1101: Instance of 'Wave_read' has no 'setsampwidth' member; maybe 'getsampwidth'? (no-member)
+Modality/speech/speech_recognition.py:555:12: E1101: Instance of 'Wave_read' has no 'setframerate' member; maybe 'getframerate'? (no-member)
+Modality/speech/speech_recognition.py:556:12: E1101: Instance of 'Wave_read' has no 'writeframes' member (no-member)
+Modality/speech/speech_recognition.py:588:12: W0621: Redefining name 'sys' from outer scope (line 24) (redefined-outer-name)
+Modality/speech/speech_recognition.py:605:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:588:12: W0404: Reimport 'sys' (imported line 24) (reimported)
+Modality/speech/speech_recognition.py:588:12: C0415: Import outside toplevel (sys) (import-outside-toplevel)
+Modality/speech/speech_recognition.py:589:12: C0415: Import outside toplevel (io) (import-outside-toplevel)
+Modality/speech/speech_recognition.py:606:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:655:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:656:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:703:4: R0914: Too many local variables (17/15) (too-many-locals)
+Modality/speech/speech_recognition.py:713:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:733:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:757:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:779:28: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:797:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:819:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:828:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:703:4: R0912: Too many branches (18/12) (too-many-branches)
+Modality/speech/speech_recognition.py:703:4: R0915: Too many statements (85/50) (too-many-statements)
+Modality/speech/speech_recognition.py:864:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:888:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:889:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:908:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:909:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:922:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:946:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:941:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:947:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:984:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:985:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1001:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1012:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1026:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1031:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1031:27: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+Modality/speech/speech_recognition.py:1041:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1064:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1104:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1120:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:1118:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1121:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1135:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1151:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:1149:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1152:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1167:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1198:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/speech/speech_recognition.py:1196:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1199:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1221:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1235:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1243:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1275:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1275:27: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+Modality/speech/speech_recognition.py:1285:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1302:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1311:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1325:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1330:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:1330:27: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+Modality/speech/speech_recognition.py:1339:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/speech/speech_recognition.py:95:0: R0904: Too many public methods (24/20) (too-many-public-methods)
+Modality/speech/speech_recognition.py:6:0: C0411: standard import "os" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:7:0: C0411: standard import "time" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:8:0: C0411: standard import "wave" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:9:0: C0411: standard import "json" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:10:0: C0411: standard import "uuid" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:11:0: C0411: third party import "numpy" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:12:0: C0411: standard import "threading" should be placed before third party import "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:13:0: C0411: third party import "pyaudio" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:14:0: C0411: third party import "webrtcvad" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:15:0: C0411: standard import "queue.Queue" should be placed before third party imports "numpy", "pyaudio", "webrtcvad" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:16:0: C0411: third party import "pypinyin.lazy_pinyin" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:17:0: C0411: standard import "typing.Dict" should be placed before third party imports "numpy", "pyaudio", "webrtcvad", "pypinyin.lazy_pinyin" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:18:0: C0411: standard import "logging" should be placed before third party imports "numpy", "pyaudio", "webrtcvad", "pypinyin.lazy_pinyin" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:19:0: C0411: standard import "shutil" should be placed before third party imports "numpy", "pyaudio", "webrtcvad", "pypinyin.lazy_pinyin" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:20:0: C0411: third party import "modelscope.pipelines.pipeline" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:21:0: C0411: third party import "modelscope.hub.snapshot_download.snapshot_download" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:22:0: C0411: third party import "funasr.AutoModel" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+Modality/speech/speech_recognition.py:24:0: C0411: standard import "sys" should be placed before third party imports "numpy", "pyaudio", "webrtcvad" (...) "modelscope.pipelines.pipeline", "modelscope.hub.snapshot_download.snapshot_download", "funasr.AutoModel" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.core.base_modality.BaseModality"  (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 7.56/10
+
+************* Module Modality.visual.gaze_direction_tracker
+Modality/visual/gaze_direction_tracker.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/gaze_direction_tracker.py:5:0: E0401: Unable to import 'mediapipe' (import-error)
+Modality/visual/gaze_direction_tracker.py:6:0: E0401: Unable to import 'cv2' (import-error)
+Modality/visual/gaze_direction_tracker.py:41:0: C0115: Missing class docstring (missing-class-docstring)
+Modality/visual/gaze_direction_tracker.py:41:0: R0903: Too few public methods (0/2) (too-few-public-methods)
+Modality/visual/gaze_direction_tracker.py:56:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/visual/gaze_direction_tracker.py:89:4: R0913: Too many arguments (8/5) (too-many-arguments)
+Modality/visual/gaze_direction_tracker.py:89:4: R0917: Too many positional arguments (8/5) (too-many-positional-arguments)
+Modality/visual/gaze_direction_tracker.py:146:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/gaze_direction_tracker.py:147:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:154:11: E1101: Instance of 'GazeDirectionTracker' has no 'capture' member (no-member)
+Modality/visual/gaze_direction_tracker.py:164:25: E1101: Instance of 'CameraManager' has no 'read' member (no-member)
+Modality/visual/gaze_direction_tracker.py:166:16: R1724: Unnecessary "else" after "continue", remove the "else" and de-indent the code inside it (no-else-continue)
+Modality/visual/gaze_direction_tracker.py:166:19: E1101: Instance of 'GazeDirectionTracker' has no 'is_file_source' member (no-member)
+Modality/visual/gaze_direction_tracker.py:168:20: E1101: Instance of 'CameraManager' has no 'set' member (no-member)
+Modality/visual/gaze_direction_tracker.py:211:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/gaze_direction_tracker.py:198:19: E1101: Instance of 'GazeDirectionTracker' has no 'is_file_source' member (no-member)
+Modality/visual/gaze_direction_tracker.py:201:20: E1101: Instance of 'CameraManager' has no 'set' member (no-member)
+Modality/visual/gaze_direction_tracker.py:212:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:237:24: R1728: Consider using a generator instead 'sum(p[0] for p in iris_landmarks)' (consider-using-generator)
+Modality/visual/gaze_direction_tracker.py:239:24: R1728: Consider using a generator instead 'sum(p[1] for p in iris_landmarks)' (consider-using-generator)
+Modality/visual/gaze_direction_tracker.py:273:12: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+Modality/visual/gaze_direction_tracker.py:279:12: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+Modality/visual/gaze_direction_tracker.py:286:4: R0914: Too many local variables (30/15) (too-many-locals)
+Modality/visual/gaze_direction_tracker.py:373:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:311:22: W0612: Unused variable 'z' (unused-variable)
+Modality/visual/gaze_direction_tracker.py:386:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:413:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/gaze_direction_tracker.py:409:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:414:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/gaze_direction_tracker.py:424:8: W0612: Unused variable 'direction_names' (unused-variable)
+Modality/visual/gaze_direction_tracker.py:5:0: C0411: third party import "mediapipe" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:6:0: C0411: third party import "cv2" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:7:0: C0411: third party import "numpy" should be placed before first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:8:0: C0411: standard import "typing.Dict" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:9:0: C0411: standard import "time" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:10:0: C0411: standard import "logging" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:11:0: C0411: standard import "os" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:12:0: C0411: standard import "threading" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:13:0: C0411: standard import "collections.deque" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:14:0: C0411: standard import "sys" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.core.error_codes.SUCCESS", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/gaze_direction_tracker.py:8:0: W0611: Unused List imported from typing (unused-import)
+Modality/visual/gaze_direction_tracker.py:8:0: W0611: Unused Tuple imported from typing (unused-import)
+Modality/visual/gaze_direction_tracker.py:13:0: W0611: Unused deque imported from collections (unused-import)
+
+-----------------------------------
+Your code has been rated at 6.50/10
+
+************* Module Modality.visual.base_visual
+Modality/visual/base_visual.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/base_visual.py:1:0: E0401: Unable to import 'cv2' (import-error)
+Modality/visual/base_visual.py:16:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/visual/base_visual.py:82:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/base_visual.py:70:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:78:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:83:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:95:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:100:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:119:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/base_visual.py:108:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:120:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:147:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/base_visual.py:144:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:148:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:136:4: R1710: Either all return statements in a function should return an expression, or none of them should. (inconsistent-return-statements)
+Modality/visual/base_visual.py:177:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/base_visual.py:3:0: C0411: standard import "typing.Dict" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/visual/base_visual.py:4:0: C0411: standard import "time" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/visual/base_visual.py:5:0: C0411: standard import "os" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/visual/base_visual.py:6:0: C0411: standard import "logging" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/visual/base_visual.py:1:0: W0611: Unused import cv2 (unused-import)
+Modality/visual/base_visual.py:3:0: W0611: Unused List imported from typing (unused-import)
+Modality/visual/base_visual.py:5:0: W0611: Unused import os (unused-import)
+Modality/visual/base_visual.py:10:0: W0611: Unused CAMERA_NOT_AVAILABLE imported from core.error_codes (unused-import)
+Modality/visual/base_visual.py:10:0: W0611: Unused VIDEO_FILE_NOT_FOUND imported from core.error_codes (unused-import)
+Modality/visual/base_visual.py:10:0: W0611: Unused FRAME_ACQUISITION_FAILED imported from core.error_codes (unused-import)
+
+-----------------------------------
+Your code has been rated at 6.31/10
+
+************* Module Modality.visual.static_gesture_tracker
+Modality/visual/static_gesture_tracker.py:176:0: C0301: Line too long (110/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:177:0: C0301: Line too long (115/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:178:0: C0301: Line too long (117/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:361:0: C0301: Line too long (135/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:372:0: C0301: Line too long (104/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:388:0: C0301: Line too long (108/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:478:0: C0301: Line too long (102/100) (line-too-long)
+Modality/visual/static_gesture_tracker.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/static_gesture_tracker.py:6:0: E0401: Unable to import 'cv2' (import-error)
+Modality/visual/static_gesture_tracker.py:12:0: E0401: Unable to import 'mediapipe' (import-error)
+Modality/visual/static_gesture_tracker.py:14:0: E0401: Unable to import 'tensorflow' (import-error)
+Modality/visual/static_gesture_tracker.py:42:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/visual/static_gesture_tracker.py:64:0: R0914: Too many local variables (18/15) (too-many-locals)
+Modality/visual/static_gesture_tracker.py:95:0: R0914: Too many local variables (19/15) (too-many-locals)
+Modality/visual/static_gesture_tracker.py:167:0: R0902: Too many instance attributes (16/7) (too-many-instance-attributes)
+Modality/visual/static_gesture_tracker.py:172:4: R0913: Too many arguments (14/5) (too-many-arguments)
+Modality/visual/static_gesture_tracker.py:172:4: R0917: Too many positional arguments (14/5) (too-many-positional-arguments)
+Modality/visual/static_gesture_tracker.py:223:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:246:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:247:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:267:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:254:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:268:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:273:4: R0914: Too many local variables (21/15) (too-many-locals)
+Modality/visual/static_gesture_tracker.py:412:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:403:23: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:350:24: C0415: Import outside toplevel (collections.Counter) (import-outside-toplevel)
+Modality/visual/static_gesture_tracker.py:372:79: E0606: Possibly using variable 'all_probabilities' before assignment (possibly-used-before-assignment)
+Modality/visual/static_gesture_tracker.py:378:32: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:394:32: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:288:8: R1702: Too many nested blocks (6/5) (too-many-nested-blocks)
+Modality/visual/static_gesture_tracker.py:404:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:413:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:273:4: R0912: Too many branches (18/12) (too-many-branches)
+Modality/visual/static_gesture_tracker.py:273:4: R0915: Too many statements (70/50) (too-many-statements)
+Modality/visual/static_gesture_tracker.py:459:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:451:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:460:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:429:12: W0612: Unused variable 'wrist' (unused-variable)
+Modality/visual/static_gesture_tracker.py:430:12: W0612: Unused variable 'thumb_tip' (unused-variable)
+Modality/visual/static_gesture_tracker.py:432:12: W0612: Unused variable 'index_tip' (unused-variable)
+Modality/visual/static_gesture_tracker.py:434:12: W0612: Unused variable 'middle_tip' (unused-variable)
+Modality/visual/static_gesture_tracker.py:436:12: W0612: Unused variable 'ring_tip' (unused-variable)
+Modality/visual/static_gesture_tracker.py:438:12: W0612: Unused variable 'pinky_tip' (unused-variable)
+Modality/visual/static_gesture_tracker.py:489:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:476:12: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+Modality/visual/static_gesture_tracker.py:490:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:516:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:510:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:517:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:540:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/static_gesture_tracker.py:541:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/static_gesture_tracker.py:558:12: R1715: Consider using dict.get for getting values from a dict if a key is present or a default if not (consider-using-get)
+Modality/visual/static_gesture_tracker.py:6:0: C0411: third party import "cv2" should be placed before local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:7:0: C0411: third party import "numpy" should be placed before local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:8:0: C0411: standard import "typing.Dict" should be placed before third party imports "cv2", "numpy" and local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:9:0: C0411: standard import "time" should be placed before third party imports "cv2", "numpy" and local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:10:0: C0411: standard import "logging" should be placed before third party imports "cv2", "numpy" and local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:11:0: C0411: standard import "os" should be placed before third party imports "cv2", "numpy" and local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:12:0: C0411: third party import "mediapipe" should be placed before local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:13:0: C0411: standard import "collections.deque" should be placed before third party imports "cv2", "numpy", "mediapipe" and local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:14:0: C0411: third party import "tensorflow" should be placed before local imports "core.error_codes.SUCCESS", "base_visual.BaseVisualModality" (wrong-import-order)
+Modality/visual/static_gesture_tracker.py:8:0: W0611: Unused Optional imported from typing (unused-import)
+Modality/visual/static_gesture_tracker.py:8:0: W0611: Unused Tuple imported from typing (unused-import)
+Modality/visual/static_gesture_tracker.py:8:0: W0611: Unused List imported from typing (unused-import)
+Modality/visual/static_gesture_tracker.py:9:0: W0611: Unused import time (unused-import)
+
+-----------------------------------
+Your code has been rated at 6.99/10
+
+************* Module Modality.visual.head_pose_common
+Modality/visual/head_pose_common.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/head_pose_common.py:11:0: R0903: Too few public methods (0/2) (too-few-public-methods)
+Modality/visual/head_pose_common.py:54:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/visual/head_pose_common.py:82:0: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/visual/head_pose_common.py:2:0: C0411: third party import "numpy" should be placed before first party import "Modality.visual.base_visual.VisualState"  (wrong-import-order)
+Modality/visual/head_pose_common.py:3:0: C0411: standard import "typing.Dict" should be placed before third party import "numpy" and first party import "Modality.visual.base_visual.VisualState"  (wrong-import-order)
+Modality/visual/head_pose_common.py:4:0: C0411: standard import "math" should be placed before third party import "numpy" and first party import "Modality.visual.base_visual.VisualState"  (wrong-import-order)
+Modality/visual/head_pose_common.py:5:0: C0411: standard import "os" should be placed before third party import "numpy" and first party import "Modality.visual.base_visual.VisualState"  (wrong-import-order)
+Modality/visual/head_pose_common.py:6:0: C0411: standard import "sys" should be placed before third party import "numpy" and first party import "Modality.visual.base_visual.VisualState"  (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 8.04/10
+
+************* Module Modality.visual
+Modality/visual/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/__init__.py:21:4: E0603: Undefined variable name 'DynamicGestureState' in __all__ (undefined-all-variable)
+Modality/visual/__init__.py:21:27: E0603: Undefined variable name 'DynamicGestureTracker' in __all__ (undefined-all-variable)
+
+-----------------------------------
+Your code has been rated at 0.00/10
+
+************* Module Modality.visual.head_tracker_gru
+Modality/visual/head_tracker_gru.py:6:0: C0301: Line too long (117/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:131:0: C0301: Line too long (355/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:336:0: C0301: Line too long (107/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:345:0: C0301: Line too long (113/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:351:0: C0301: Line too long (103/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:355:0: C0301: Line too long (104/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:381:0: C0301: Line too long (105/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:473:0: C0301: Line too long (112/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:748:0: C0301: Line too long (124/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:778:0: C0301: Line too long (103/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:779:0: C0301: Line too long (102/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:842:0: C0301: Line too long (167/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:921:0: C0301: Line too long (101/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:940:0: C0301: Line too long (109/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:1088:0: C0301: Line too long (121/100) (line-too-long)
+Modality/visual/head_tracker_gru.py:1:0: C0302: Too many lines in module (1165/1000) (too-many-lines)
+Modality/visual/head_tracker_gru.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/visual/head_tracker_gru.py:7:0: W0404: Reimport 'BaseVisualModality' (imported line 1) (reimported)
+Modality/visual/head_tracker_gru.py:8:0: E0401: Unable to import 'mediapipe' (import-error)
+Modality/visual/head_tracker_gru.py:9:0: E0401: Unable to import 'cv2' (import-error)
+Modality/visual/head_tracker_gru.py:18:0: E0401: Unable to import 'tensorflow' (import-error)
+Modality/visual/head_tracker_gru.py:53:0: R0903: Too few public methods (0/2) (too-few-public-methods)
+Modality/visual/head_tracker_gru.py:93:0: E0102: class already defined line 6 (function-redefined)
+Modality/visual/head_tracker_gru.py:134:0: R0902: Too many instance attributes (33/7) (too-many-instance-attributes)
+Modality/visual/head_tracker_gru.py:142:4: R0913: Too many arguments (9/5) (too-many-arguments)
+Modality/visual/head_tracker_gru.py:142:4: R0917: Too many positional arguments (9/5) (too-many-positional-arguments)
+Modality/visual/head_tracker_gru.py:264:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:265:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:326:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:282:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:286:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:290:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:294:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:298:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:303:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:321:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:323:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:327:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:366:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:376:16: R1723: Unnecessary "else" after "break", remove the "else" and de-indent the code inside it (no-else-break)
+Modality/visual/head_tracker_gru.py:408:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:429:4: R0914: Too many local variables (43/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:553:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:554:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:429:4: R0915: Too many statements (55/50) (too-many-statements)
+Modality/visual/head_tracker_gru.py:501:35: W0612: Unused variable 'translation_vec' (unused-variable)
+Modality/visual/head_tracker_gru.py:599:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:600:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:611:8: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+Modality/visual/head_tracker_gru.py:619:4: R0914: Too many local variables (21/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:670:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:664:20: C0103: Variable name "M" doesn't conform to snake_case naming style (invalid-name)
+Modality/visual/head_tracker_gru.py:671:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:619:51: W0613: Unused argument 'landmarks' (unused-argument)
+Modality/visual/head_tracker_gru.py:681:4: R0914: Too many local variables (17/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:723:4: R0914: Too many local variables (22/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:738:24: R1728: Consider using a generator instead 'sum(p[0] for p in iris_landmarks)' (consider-using-generator)
+Modality/visual/head_tracker_gru.py:740:24: R1728: Consider using a generator instead 'sum(p[1] for p in iris_landmarks)' (consider-using-generator)
+Modality/visual/head_tracker_gru.py:785:4: R0913: Too many arguments (9/5) (too-many-arguments)
+Modality/visual/head_tracker_gru.py:785:4: R0917: Too many positional arguments (9/5) (too-many-positional-arguments)
+Modality/visual/head_tracker_gru.py:785:4: R0914: Too many local variables (28/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:857:12: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+Modality/visual/head_tracker_gru.py:864:12: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+Modality/visual/head_tracker_gru.py:871:12: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+Modality/visual/head_tracker_gru.py:785:4: R0911: Too many return statements (10/6) (too-many-return-statements)
+Modality/visual/head_tracker_gru.py:785:4: R0912: Too many branches (16/12) (too-many-branches)
+Modality/visual/head_tracker_gru.py:785:68: W0613: Unused argument 'left_gaze_3d' (unused-argument)
+Modality/visual/head_tracker_gru.py:786:64: W0613: Unused argument 'right_gaze_3d' (unused-argument)
+Modality/visual/head_tracker_gru.py:787:50: W0613: Unused argument 'head_yaw' (unused-argument)
+Modality/visual/head_tracker_gru.py:878:4: R0913: Too many arguments (7/5) (too-many-arguments)
+Modality/visual/head_tracker_gru.py:878:4: R0917: Too many positional arguments (7/5) (too-many-positional-arguments)
+Modality/visual/head_tracker_gru.py:878:4: R0914: Too many local variables (34/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:878:4: R0912: Too many branches (17/12) (too-many-branches)
+Modality/visual/head_tracker_gru.py:901:18: W0612: Unused variable 'z' (unused-variable)
+Modality/visual/head_tracker_gru.py:982:4: R0914: Too many local variables (24/15) (too-many-locals)
+Modality/visual/head_tracker_gru.py:982:4: R0915: Too many statements (51/50) (too-many-statements)
+Modality/visual/head_tracker_gru.py:1006:16: W0612: Unused variable 'i' (unused-variable)
+Modality/visual/head_tracker_gru.py:1079:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1088:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1094:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1105:15: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:1103:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1106:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1118:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1134:19: W0718: Catching too general exception Exception (broad-exception-caught)
+Modality/visual/head_tracker_gru.py:1135:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1140:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:1142:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+Modality/visual/head_tracker_gru.py:8:0: C0411: third party import "mediapipe" should be placed before first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:9:0: C0411: third party import "cv2" should be placed before first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:10:0: C0411: third party import "numpy" should be placed before first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:11:0: C0411: standard import "typing.Dict" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:12:0: C0411: standard import "math" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:13:0: C0411: standard import "logging" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:14:0: C0411: standard import "os" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:15:0: C0411: standard import "time" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:16:0: C0411: standard import "threading" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:17:0: C0411: standard import "collections.deque" should be placed before third party imports "mediapipe", "cv2", "numpy" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:18:0: C0411: third party import "tensorflow" should be placed before first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:19:0: C0411: standard import "pickle" should be placed before third party imports "mediapipe", "cv2", "numpy", "tensorflow" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:20:0: C0411: standard import "json" should be placed before third party imports "mediapipe", "cv2", "numpy", "tensorflow" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:21:0: C0411: standard import "sys" should be placed before third party imports "mediapipe", "cv2", "numpy", "tensorflow" and first party imports "Modality.visual.base_visual.BaseVisualModality", "Modality.core.error_codes.SUCCESS", "Modality.visual.head_pose_common.HeadPoseParams", "Modality.visual.base_visual.BaseVisualModality"  (wrong-import-order)
+Modality/visual/head_tracker_gru.py:11:0: W0611: Unused Dict imported from typing (unused-import)
+Modality/visual/head_tracker_gru.py:11:0: W0611: Unused Any imported from typing (unused-import)
+Modality/visual/head_tracker_gru.py:11:0: W0611: Unused List imported from typing (unused-import)
+
+-----------------------------------
+Your code has been rated at 7.99/10
+
+************* Module model
+Modality/models/dynamic_gesture_recognition/model.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/models/dynamic_gesture_recognition/model.py:2:0: R0402: Use 'from torch import nn' instead (consider-using-from-import)
+Modality/models/dynamic_gesture_recognition/model.py:20:8: R1725: Consider using Python 3 style super() without arguments (super-with-arguments)
+Modality/models/dynamic_gesture_recognition/model.py:5:0: C0411: standard import "math" should be placed before third party imports "torch", "torch.nn", "torch.nn.functional", "numpy" (wrong-import-order)
+Modality/models/dynamic_gesture_recognition/model.py:3:0: W0611: Unused torch.nn.functional imported as F (unused-import)
+Modality/models/dynamic_gesture_recognition/model.py:4:0: W0611: Unused numpy imported as np (unused-import)
+Modality/models/dynamic_gesture_recognition/model.py:5:0: W0611: Unused import math (unused-import)
+
+-----------------------------------
+Your code has been rated at 7.88/10
+
+************* Module Modality.core.base_modality
+Modality/core/base_modality.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/core/base_modality.py:8:0: C0115: Missing class docstring (missing-class-docstring)
+Modality/core/base_modality.py:12:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/core/base_modality.py:8:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+Modality/core/base_modality.py:16:0: C0115: Missing class docstring (missing-class-docstring)
+Modality/core/base_modality.py:30:8: W0107: Unnecessary pass statement (unnecessary-pass)
+Modality/core/base_modality.py:40:8: W0107: Unnecessary pass statement (unnecessary-pass)
+Modality/core/base_modality.py:50:8: W0107: Unnecessary pass statement (unnecessary-pass)
+Modality/core/base_modality.py:4:0: C0411: standard import "time" should be placed before third party import "numpy" (wrong-import-order)
+Modality/core/base_modality.py:2:0: W0611: Unused List imported from typing (unused-import)
+Modality/core/base_modality.py:3:0: W0611: Unused numpy imported as np (unused-import)
+Modality/core/base_modality.py:5:0: W0611: Unused OPERATION_FAILED imported from error_codes (unused-import)
+
+-----------------------------------
+Your code has been rated at 7.07/10
+
+************* Module Modality.core.modality_manager
+Modality/core/modality_manager.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/core/modality_manager.py:1:0: W0611: Unused Type imported from typing (unused-import)
+Modality/core/modality_manager.py:3:0: W0611: Unused MODALITY_START_FAILED imported from error_codes (unused-import)
+
+-----------------------------------
+Your code has been rated at 9.57/10
+
+************* Module Modality.core
+Modality/core/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 8.00/10
+
+
+------------------------------------
+Your code has been rated at 10.00/10
+
+************* Module Modality.core.modality_factory
+Modality/core/modality_factory.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 9.23/10
+
+************* Module Modality.utils.visualization
+Modality/utils/visualization.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/utils/visualization.py:1:0: E0401: Unable to import 'cv2' (import-error)
+Modality/utils/visualization.py:7:0: C0115: Missing class docstring (missing-class-docstring)
+Modality/utils/visualization.py:10:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:14:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:14:4: R0913: Too many arguments (6/5) (too-many-arguments)
+Modality/utils/visualization.py:14:4: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+Modality/utils/visualization.py:22:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:49:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:49:4: R0914: Too many local variables (18/15) (too-many-locals)
+Modality/utils/visualization.py:91:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:95:4: C0116: Missing function or method docstring (missing-function-docstring)
+Modality/utils/visualization.py:3:0: C0411: standard import "typing.Dict" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/utils/visualization.py:4:0: C0411: standard import "time" should be placed before third party imports "cv2", "numpy" (wrong-import-order)
+Modality/utils/visualization.py:3:0: W0611: Unused Optional imported from typing (unused-import)
+Modality/utils/visualization.py:3:0: W0611: Unused Union imported from typing (unused-import)
+Modality/utils/visualization.py:4:0: W0611: Unused import time (unused-import)
+
+-----------------------------------
+Your code has been rated at 6.18/10
+
+************* Module Modality
+Modality/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+Modality/__init__.py:1:0: C0103: Module name "Modality" doesn't conform to snake_case naming style (invalid-name)
+Modality/__init__.py:14:20: E0603: Undefined variable name 'GestureTrackerSpeechRecognition' in __all__ (undefined-all-variable)
+
+-----------------------------------
+Your code has been rated at 0.00/10
+
+************* Module applications.music
+applications/music.py:11:0: E0401: Unable to import 'pygame' (import-error)
+applications/music.py:45:8: C0415: Import outside toplevel (viewer.viewer.jump_to_page) (import-outside-toplevel)
+
+-----------------------------------
+Your code has been rated at 8.72/10
+
+************* Module applications.vehicle_state
+applications/vehicle_state.py:11:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+
+-----------------------------------
+Your code has been rated at 7.50/10
+
+************* Module applications.enter
+applications/enter.py:59:8: C0415: Import outside toplevel (system_init.get_component) (import-outside-toplevel)
+applications/enter.py:55:4: R0915: Too many statements (70/50) (too-many-statements)
+applications/enter.py:13:0: C0411: standard import "os" should be placed before first party imports "logger.logger", "viewer.viewer.update_note", "utils.tools.speecher_player"  (wrong-import-order)
+applications/enter.py:14:0: C0411: standard import "time" should be placed before first party imports "logger.logger", "viewer.viewer.update_note", "utils.tools.speecher_player"  (wrong-import-order)
+applications/enter.py:15:0: C0411: standard import "sys" should be placed before first party imports "logger.logger", "viewer.viewer.update_note", "utils.tools.speecher_player"  (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 9.51/10
+
+************* Module applications.navigation
+applications/navigation.py:20:8: C0415: Import outside toplevel (viewer.viewer.navigate, viewer.viewer.jump_to_page) (import-outside-toplevel)
+applications/navigation.py:11:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+
+-----------------------------------
+Your code has been rated at 7.78/10
+
+************* Module applications.application
+applications/application.py:101:12: C0415: Import outside toplevel (viewer.viewer.jump_to_page) (import-outside-toplevel)
+
+-----------------------------------
+Your code has been rated at 9.82/10
+

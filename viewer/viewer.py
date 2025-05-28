@@ -7,6 +7,7 @@ Module Description:
     用于实现车载多模态智能交互系统的前端功能
 """
 
+from utils.camera_manager import get_camera_manager
 import sys
 import os
 import time
@@ -16,7 +17,6 @@ import requests
 from flask import Flask, render_template, request, jsonify, url_for, Response
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.camera_manager import get_camera_manager
 
 viewer = Flask(__name__)
 camera_mgr = None
@@ -64,7 +64,7 @@ def get_coords(address):
     """使用Amap Geocoding API从地址获取坐标的辅助函数"""
     params = {"address": address, "key": AMAP_WEB_SERVICE_KEY}
     try:
-        response = requests.get(GEOCODE_API_URL, params=params ,timeout = 5)
+        response = requests.get(GEOCODE_API_URL, params=params, timeout=5)
         response.raise_for_status()  # Raise an exception for bad status codes
         result = response.json()
         if result and result["status"] == "1" and result["geocodes"]:
@@ -72,7 +72,8 @@ def get_coords(address):
             return result["geocodes"][0]["location"]
 
         print(
-            f"Geocoding failed for {address}: {result.get('info', 'Unknown error')}"
+            f"Geocoding failed for {address}: {
+                result.get('info', 'Unknown error')}"
         )
         return None
     except requests.exceptions.RequestException as e:
@@ -196,7 +197,8 @@ def generate_frames():
                 error_count += 1
                 if error_count > max_errors:
                     print(
-                        f"Too many errors ({error_count}) reading frames. Restarting camera..."
+                        f"Too many errors ({
+                            error_count}) reading frames. Restarting camera..."
                     )
                     camera_mgr.release_camera()
 
@@ -333,7 +335,8 @@ def call_navigate():
 
     if not start_coords:
         return (
-            jsonify({"error": f"Could not geocode start location: {start_location}"}),
+            jsonify(
+                {"error": f"Could not geocode start location: {start_location}"}),
             404,
         )
     if not end_coords:
@@ -351,7 +354,8 @@ def call_navigate():
     }
 
     try:
-        driving_response = requests.get(DRIVING_API_URL, params=driving_params , timeout=5)
+        driving_response = requests.get(
+            DRIVING_API_URL, params=driving_params, timeout=5)
         driving_response.raise_for_status()
         driving_result = driving_response.json()
 

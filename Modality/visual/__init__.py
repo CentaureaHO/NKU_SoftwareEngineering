@@ -13,13 +13,13 @@ __all__ = [
     'HeadPoseParams', 'HeadPoseState',
     # gru
     'HeadPoseTrackerGRU',
-    
+
     # static_gesture_tracker.py
     'GestureState', 'GestureTracker',
-    
+
     # dynamic_gesture_tracker.py
     'DynamicGestureState', 'DynamicGestureTracker',
-    
+
     # gaze_direction_tracker.py
     'GazeDirectionTracker', 'GazeDirectionState'
 ]

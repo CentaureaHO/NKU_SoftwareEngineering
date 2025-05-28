@@ -55,26 +55,26 @@ ERROR_DESCRIPTIONS = {
     TIMEOUT: "操作超时",
     RUNTIME_ERROR: "运行时错误",
     PERMISSION_DENIED: "权限被拒绝",
-    
+
     # 模态管理相关错误码描述
     MODALITY_NOT_FOUND: "未找到指定的模态",
     MODALITY_ALREADY_EXISTS: "模态已存在",
     MODALITY_REGISTRATION_FAILED: "模态注册失败",
     MODALITY_START_FAILED: "模态启动失败",
     MODALITY_STOP_FAILED: "模态停止失败",
-    
+
     # 视觉模态相关错误码描述
     VIDEO_SOURCE_ERROR: "视频源错误",
     CAMERA_NOT_AVAILABLE: "摄像头不可用",
     VIDEO_FILE_NOT_FOUND: "视频文件未找到",
     FRAME_ACQUISITION_FAILED: "帧获取失败",
     VIDEO_PROCESSING_ERROR: "视频处理错误",
-    
+
     # 头部跟踪器相关错误码描述
     FACE_DETECTION_ERROR: "人脸检测错误",
     HEAD_TRACKING_FAILED: "头部跟踪失败",
     MEDIAPIPE_INITIALIZATION_FAILED: "MediaPipe初始化失败",
-    
+
     # 手势识别相关错误码描述
     HAND_DETECTION_ERROR: "手部检测错误",
     GESTURE_RECOGNITION_FAILED: "手势识别失败",
@@ -83,13 +83,14 @@ ERROR_DESCRIPTIONS = {
     FEATURE_PROCESSING_ERROR: "特征处理错误"
 }
 
+
 def get_error_message(error_code: int) -> str:
     """
     获取错误码对应的描述信息
-    
+
     Args:
         error_code: 错误码
-        
+
     Returns:
         str: 错误描述信息，如果错误码未定义则返回"未定义的错误码"
     """

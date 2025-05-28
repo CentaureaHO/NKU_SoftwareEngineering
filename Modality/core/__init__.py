@@ -4,9 +4,9 @@ from .modality_factory import ModalityFactory
 from .error_codes import *
 
 __all__ = [
-    'BaseModality', 'ModalityState', 
+    'BaseModality', 'ModalityState',
     'ModalityManager', 'ModalityFactory',
-    
+
     # 错误码
     'SUCCESS', 'UNKNOWN_ERROR', 'INVALID_ARGUMENT', 'NOT_INITIALIZED',
     'ALREADY_INITIALIZED', 'OPERATION_FAILED', 'NOT_IMPLEMENTED',

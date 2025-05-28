@@ -33,7 +33,8 @@ class Logger:
         console_handler = logging.StreamHandler()
 
         # 创建Formatter（日志格式）
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s")
         console_handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
 

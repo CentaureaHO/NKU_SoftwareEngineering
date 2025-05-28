@@ -13,6 +13,7 @@ import pygame
 
 class Music:
     """音乐管理类"""
+
     def __init__(self) -> None:
         """构造函数"""
         pygame.mixer.init()

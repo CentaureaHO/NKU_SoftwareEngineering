@@ -1,3 +1,4 @@
+from Modality.visual.base_visual import VisualState
 import numpy as np
 from typing import Dict, Any
 import math
@@ -5,13 +6,13 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Modality.visual.base_visual import VisualState
+
 
 class HeadPoseParams:
     """头部姿态检测的参数常量"""
-    VIDEO_FPS   = 30  # 视频帧率
+    VIDEO_FPS = 30  # 视频帧率
     HISTORY_LEN = 15  # 历史窗口大小，与GRU模型的window_size相同
-    
+
     # 检测阈值
     NOD_THRESHOLD = 5.0          # 点头检测角度阈值 (度)
     SHAKE_THRESHOLD = 10.0       # 摇头检测角度阈值 (度)
@@ -19,22 +20,22 @@ class HeadPoseParams:
     SHAKE_RATIO_THRESHOLD = 0.4  # 摇头动作占比触发阈值
     NC_CHANGE_THRESHOLD = 0.025  # 鼻子-下巴距离变化阈值
     STABLE_THRESHOLD = 1.5       # 静止状态角度阈值
-    
+
     # 当前状态
     STATUS_STATIONARY = "stationary"
     STATUS_NODDING = "nodding"
     STATUS_SHAKING = "shaking"
     STATUS_OTHER = "other"
-    
+
     # 状态更新间隔
     STATUS_UPDATE_INTERVAL = 0.2  # 秒
-    
+
     # 状态置信度阈值
     CONFIDENCE_THRESHOLD = 0.7
-    
+
     # 最小检测所需历史数据量
     MIN_HISTORY_DATA = 3
-    
+
     # MediaPipe 人脸关键点索引
     LANDMARK_NOSE = 1          # 鼻尖
     LANDMARK_CHIN = 152        # 下巴
@@ -44,15 +45,15 @@ class HeadPoseParams:
     LANDMARK_RIGHT_EAR = 454   # 右耳
     LANDMARK_LEFT_FACE = 206   # 左脸中心
     LANDMARK_RIGHT_FACE = 426  # 右脸中心
-    
+
     # 面部关键点列表
-    ESSENTIAL_LANDMARKS = [LANDMARK_NOSE, 33, 133, LANDMARK_LEFT_EYE, 145, 
-                          263, 362, 374, LANDMARK_RIGHT_EYE, 473, 468]
+    ESSENTIAL_LANDMARKS = [LANDMARK_NOSE, 33, 133, LANDMARK_LEFT_EYE, 145,
+                           263, 362, 374, LANDMARK_RIGHT_EYE, 473, 468]
 
 
 class HeadPoseState(VisualState):
     """头部姿态状态类，扩展自VisualState"""
-    
+
     def __init__(self, frame=None, timestamp=None):
         super().__init__(frame, timestamp)
         self.detections = {
@@ -72,7 +73,7 @@ class HeadPoseState(VisualState):
                 "status_confidence": 0.0    # 当前状态的置信度
             }
         }
-    
+
     def to_dict(self) -> Dict[str, Any]:
         result = super().to_dict()
         return result
@@ -90,6 +91,6 @@ def rotation_matrix_to_angles(rotation_matrix):
     """
     x = math.atan2(rotation_matrix[2, 1], rotation_matrix[2, 2])
     y = math.atan2(-rotation_matrix[2, 0], math.sqrt(rotation_matrix[0, 0] ** 2 +
-                                                 rotation_matrix[1, 0] ** 2))
+                                                     rotation_matrix[1, 0] ** 2))
     z = math.atan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
     return np.array([x, y, z]) * 180. / math.pi

@@ -7,17 +7,17 @@ Module Description:
     用于实现车载多模态智能交互系统的控制功能
 """
 
+from logger import logger
+from utils.tools import speecher_player
+from Modality.core.error_codes import SUCCESS
+from Modality.speech.speech_recognition import SpeechRecognition
+from Modality import ModalityManager, GestureTracker
 import os
 import sys
 import time
 import argparse
 import mediapipe as mp
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from Modality import ModalityManager, GestureTracker
-from Modality.speech.speech_recognition import SpeechRecognition
-from Modality.core.error_codes import SUCCESS
-from utils.tools import speecher_player
-from logger import logger
 
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
@@ -91,7 +91,8 @@ class MultimodalController:
     def init_headpose(self) -> None:
         "初始化视觉模态(头部姿态部分)"
         parser = argparse.ArgumentParser(description="驾驶员监测系统演示")
-        parser.add_argument("--camera", type=int, default=0, help="摄像头ID (默认为0)")
+        parser.add_argument("--camera", type=int,
+                            default=0, help="摄像头ID (默认为0)")
         parser.add_argument(
             "--width", type=int, default=640, help="图像宽度 (默认为640)"
         )

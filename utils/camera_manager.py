@@ -94,7 +94,8 @@ class CameraManager:
                         retry_count += 1
                         if retry_count > max_retries:
                             logger.error(
-                                f"Failed to reconnect to camera after {max_retries} attempts"
+                                f"Failed to reconnect to camera after {
+                                    max_retries} attempts"
                             )
                             break
                         time.sleep(retry_delay)
@@ -120,7 +121,8 @@ class CameraManager:
                         retry_count += 1
                         if retry_count > max_retries:
                             logger.error(
-                                f"Failed to read frame after {max_retries} attempts"
+                                f"Failed to read frame after {
+                                    max_retries} attempts"
                             )
                             break
                         time.sleep(retry_delay)

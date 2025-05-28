@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#_author = 'Yidian Lin'
+# _author = 'Yidian Lin'
 
 """
 Module Description:
@@ -10,14 +10,15 @@ Module Description:
 
 class Navigation:
     """车载导航"""
+
     def __init__(self) -> None:
         """构造函数"""
 
-    def navigate(self,from_ = None,to_ = None) -> None:
+    def navigate(self, from_=None, to_=None) -> None:
         """导航"""
         print(f"开始导航从 {from_} 到 {to_}")
-        from viewer.viewer import navigate as navigate_ ,jump_to_page
-        if(from_ is None) or (to_ is None):
+        from viewer.viewer import navigate as navigate_, jump_to_page
+        if (from_ is None) or (to_ is None):
             navigate_()
         else:
             navigate_(from_, to_)
