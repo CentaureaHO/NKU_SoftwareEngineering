@@ -10,6 +10,8 @@ Module Description:
 import os
 
 import pygame
+# 解决 C0415: Import outside toplevel
+from viewer.viewer import jump_to_page
 
 
 class Music:
@@ -43,8 +45,6 @@ class Music:
 
     def play(self, music_name: str = "") -> None:
         """播放音乐"""
-        from viewer.viewer import jump_to_page
-
         jump_to_page("music")
         file_path = self.find(music_name)
         pygame.mixer.music.load(file_path)

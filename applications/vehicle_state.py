@@ -15,5 +15,23 @@ class VehicleState:
         """构造函数"""
 
     def monitor(self):
-        """监测车辆状态"""
-        return ["100%", "正常", "0km"]
+        """监测车辆状态概述"""
+        # 返回 [电量/油量, 胎压状态, 续航里程]
+        # return ["80%", "正常", "300km"]
+        return [
+            self.get_fuel_level(),
+            self.get_tire_pressure(),
+            self.get_remaining_mileage()
+        ]
+
+    def get_fuel_level(self) -> str:
+        """获取当前油量/电量 (模拟)"""
+        return "80%"
+
+    def get_tire_pressure(self) -> str:
+        """获取轮胎压力状态 (模拟)"""
+        return "正常"
+
+    def get_remaining_mileage(self) -> str:
+        """获取预估续航里程 (模拟)"""
+        return "300km"

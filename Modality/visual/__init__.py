@@ -1,3 +1,6 @@
+"""
+视觉模态导出
+"""
 from .base_visual import BaseVisualModality, VisualState
 from .gaze_direction_tracker import GazeDirectionState, GazeDirectionTracker
 from .head_pose_common import HeadPoseParams, HeadPoseState
@@ -16,9 +19,6 @@ __all__ = [
 
     # static_gesture_tracker.py
     'GestureState', 'GestureTracker',
-
-    # dynamic_gesture_tracker.py
-    'DynamicGestureState', 'DynamicGestureTracker',
 
     # gaze_direction_tracker.py
     'GazeDirectionTracker', 'GazeDirectionState'
