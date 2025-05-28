@@ -7,12 +7,13 @@ Module Description:
     实现启动系统时自动开启应用功能
 """
 
-from logger import logger
-from viewer.viewer import update_note, update_light
-from utils.tools import speecher_player
 import os
-import time
 import sys
+import time
+
+from logger import logger
+from utils.tools import speecher_player
+from viewer.viewer import update_light, update_note
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

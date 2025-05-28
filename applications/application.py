@@ -8,13 +8,15 @@ Module Description:
 """
 
 
-from typing import List
 from enum import Enum
+from typing import List
+
 from logger import logger
+
+from .enter import Enter
 from .music import Music
 from .navigation import Navigation
 from .vehicle_state import VehicleState
-from .enter import Enter
 
 
 class Application:

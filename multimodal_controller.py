@@ -7,16 +7,21 @@ Module Description:
     用于实现车载多模态智能交互系统的控制功能
 """
 
-from logger import logger
-from utils.tools import speecher_player
-from Modality.core.error_codes import SUCCESS
-from Modality.speech.speech_recognition import SpeechRecognition
-from Modality import ModalityManager, GestureTracker
+import argparse
 import os
 import sys
 import time
-import argparse
+
 import mediapipe as mp
+
+from logger import logger
+from Modality import GestureTracker, ModalityManager
+from Modality.core.error_codes import SUCCESS
+from Modality.speech.speech_recognition import SpeechRecognition
+from Modality.visual import GazeDirectionTracker, HeadPoseTrackerGRU
+from system_init import get_component
+from utils.tools import speecher_player
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -122,10 +127,9 @@ class MultimodalController:
 
         video_source = args.camera
 
-        from Modality.visual import HeadPoseTrackerGRU as Tracker
         print("使用 GRU 模型进行头部姿态检测")
 
-        self.headposer = Tracker(
+        self.headposer = HeadPoseTrackerGRU(
             source=video_source, width=args.width, height=args.height, debug=args.debug
         )
 
@@ -300,8 +304,6 @@ class MultimodalController:
 
         source = args.video if args.video else args.camera
 
-        from Modality.visual import GazeDirectionTracker
-
         self.gazer = GazeDirectionTracker(
             name="gaze_direction_tracker",
             source=source,
@@ -328,8 +330,6 @@ class MultimodalController:
     def control(self) -> None:
         "协调各模态的工作"
         try:
-            from system_init import get_component
-
             individuation = get_component("individuation")
             while True:
                 key_info = self.manager.get_all_key_info()

@@ -1,16 +1,17 @@
+import logging
+import os
+import time
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import cv2
 import numpy as np
-from typing import Dict, Any, Optional, Tuple, List, Union
-import time
-import os
-import logging
 
-from utils.camera_manager import get_camera_manager, CameraManager
+from utils.camera_manager import CameraManager, get_camera_manager
+
 from ..core import BaseModality, ModalityState
-from ..core.error_codes import (
-    SUCCESS, CAMERA_NOT_AVAILABLE, VIDEO_FILE_NOT_FOUND,
-    VIDEO_SOURCE_ERROR, FRAME_ACQUISITION_FAILED, RUNTIME_ERROR
-)
+from ..core.error_codes import (CAMERA_NOT_AVAILABLE, FRAME_ACQUISITION_FAILED,
+                                RUNTIME_ERROR, SUCCESS, VIDEO_FILE_NOT_FOUND,
+                                VIDEO_SOURCE_ERROR)
 
 
 class VisualState(ModalityState):

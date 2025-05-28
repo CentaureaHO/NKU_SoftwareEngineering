@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional, Type
+
 from .base_modality import BaseModality, ModalityState
-from .error_codes import (
-    SUCCESS, MODALITY_ALREADY_EXISTS, MODALITY_NOT_FOUND,
-    MODALITY_START_FAILED, MODALITY_STOP_FAILED
-)
+from .error_codes import (MODALITY_ALREADY_EXISTS, MODALITY_NOT_FOUND,
+                          MODALITY_START_FAILED, MODALITY_STOP_FAILED, SUCCESS)
 
 
 class ModalityManager:

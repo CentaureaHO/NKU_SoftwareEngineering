@@ -1,7 +1,7 @@
 from .base_modality import BaseModality, ModalityState
-from .modality_manager import ModalityManager
-from .modality_factory import ModalityFactory
 from .error_codes import *
+from .modality_factory import ModalityFactory
+from .modality_manager import ModalityManager
 
 __all__ = [
     'BaseModality', 'ModalityState',

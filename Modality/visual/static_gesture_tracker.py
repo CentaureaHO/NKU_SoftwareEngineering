@@ -1,17 +1,18 @@
-from ..core.error_codes import (
-    SUCCESS, MEDIAPIPE_INITIALIZATION_FAILED, RUNTIME_ERROR,
-    MODEL_LOADING_FAILED, MODEL_NOT_FOUND
-)
-from .base_visual import BaseVisualModality, VisualState
-import cv2
-import numpy as np
-from typing import Dict, Any, Optional, Tuple, List
-import time
 import logging
 import os
-import mediapipe as mp
+import time
 from collections import deque
+from typing import Any, Dict, List, Optional, Tuple
+
+import cv2
+import mediapipe as mp
+import numpy as np
 import tensorflow as tf
+
+from ..core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
+                                MODEL_LOADING_FAILED, MODEL_NOT_FOUND,
+                                RUNTIME_ERROR, SUCCESS)
+from .base_visual import BaseVisualModality, VisualState
 
 # 配置日志
 logging.basicConfig(

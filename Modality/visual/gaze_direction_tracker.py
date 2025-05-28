@@ -1,17 +1,18 @@
-from Modality.core.error_codes import (
-    SUCCESS, MEDIAPIPE_INITIALIZATION_FAILED, RUNTIME_ERROR
-)
-from Modality.visual.base_visual import BaseVisualModality, VisualState
-import mediapipe as mp
-import cv2
-import numpy as np
-from typing import Dict, Any, List, Tuple
-import time
 import logging
 import os
-import threading
-from collections import deque
 import sys
+import threading
+import time
+from collections import deque
+from typing import Any, Dict, List, Tuple
+
+import cv2
+import mediapipe as mp
+import numpy as np
+
+from Modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
+                                       RUNTIME_ERROR, SUCCESS)
+from Modality.visual.base_visual import BaseVisualModality, VisualState
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get(

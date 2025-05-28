@@ -8,7 +8,9 @@ Module Description:
 """
 
 import asyncio
+
 import sounddevice as sd
+
 from .speech_synthesis.kokoro_synthesis import KokoroSynthesis as SpeechSyn
 
 

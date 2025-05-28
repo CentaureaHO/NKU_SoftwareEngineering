@@ -7,8 +7,8 @@ Module Description:
     用于实现车载多模态智能交互系统的日志功能
 """
 
-import os
 import logging
+import os
 
 
 class Logger:

@@ -11,9 +11,10 @@ Module Description:
     手势模态:特定手势映射特定功能(可以个性化,包括个性化默认参数,类似快捷键的功能)
 """
 
-import os
 import ast
+import os
 from typing import List
+
 from applications.application import application
 
 

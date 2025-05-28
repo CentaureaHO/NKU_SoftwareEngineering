@@ -1,8 +1,8 @@
 from .base_visual import BaseVisualModality, VisualState
+from .gaze_direction_tracker import GazeDirectionState, GazeDirectionTracker
 from .head_pose_common import HeadPoseParams, HeadPoseState
 from .head_tracker_gru import HeadPoseTrackerGRU
 from .static_gesture_tracker import GestureState, GestureTracker
-from .gaze_direction_tracker import GazeDirectionTracker, GazeDirectionState
 
 __all__ = [
     # base_visual.py

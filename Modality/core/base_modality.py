@@ -1,8 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
-import numpy as np
 import time
-from .error_codes import SUCCESS, ALREADY_INITIALIZED, NOT_INITIALIZED, OPERATION_FAILED
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
+from .error_codes import (ALREADY_INITIALIZED, NOT_INITIALIZED,
+                          OPERATION_FAILED, SUCCESS)
 
 
 class ModalityState:

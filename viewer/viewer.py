@@ -7,14 +7,16 @@ Module Description:
     用于实现车载多模态智能交互系统的前端功能
 """
 
-from utils.camera_manager import get_camera_manager
-import sys
 import os
+import sys
 import time
+
 import cv2
 import numpy as np
 import requests
-from flask import Flask, render_template, request, jsonify, url_for, Response
+from flask import Flask, Response, jsonify, render_template, request, url_for
+
+from utils.camera_manager import get_camera_manager
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

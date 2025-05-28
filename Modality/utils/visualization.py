@@ -1,7 +1,8 @@
+import time
+from typing import Any, Dict, List, Optional, Union
+
 import cv2
 import numpy as np
-from typing import Dict, Any, Optional, List, Union
-import time
 
 
 class VisualizationUtil:

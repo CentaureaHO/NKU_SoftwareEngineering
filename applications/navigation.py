@@ -17,7 +17,8 @@ class Navigation:
     def navigate(self, from_=None, to_=None) -> None:
         """导航"""
         print(f"开始导航从 {from_} 到 {to_}")
-        from viewer.viewer import navigate as navigate_, jump_to_page
+        from viewer.viewer import jump_to_page
+        from viewer.viewer import navigate as navigate_
         if (from_ is None) or (to_ is None):
             navigate_()
         else:

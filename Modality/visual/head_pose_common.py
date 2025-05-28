@@ -1,9 +1,11 @@
-from Modality.visual.base_visual import VisualState
-import numpy as np
-from typing import Dict, Any
 import math
 import os
 import sys
+from typing import Any, Dict
+
+import numpy as np
+
+from Modality.visual.base_visual import VisualState
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

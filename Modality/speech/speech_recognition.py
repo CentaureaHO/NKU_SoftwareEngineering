@@ -1,27 +1,28 @@
-from Modality.core.error_codes import (
-    SUCCESS, ALREADY_INITIALIZED, NOT_INITIALIZED,
-    OPERATION_FAILED, MODEL_LOADING_FAILED
-)
-from Modality.core.base_modality import BaseModality, ModalityState
-import os
-import time
-import wave
 import json
-import uuid
-import numpy as np
+import logging
+import os
+import shutil
+import sys
 import threading
+import time
+import uuid
+import wave
+from queue import Queue
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 import pyaudio
 import webrtcvad
-from queue import Queue
-from pypinyin import lazy_pinyin
-from typing import Dict, Any, List, Optional
-import logging
-import shutil
-from modelscope.pipelines import pipeline
-from modelscope.hub.snapshot_download import snapshot_download
 from funasr import AutoModel
+from modelscope.hub.snapshot_download import snapshot_download
+from modelscope.pipelines import pipeline
+from pypinyin import lazy_pinyin
 
-import sys
+from Modality.core.base_modality import BaseModality, ModalityState
+from Modality.core.error_codes import (ALREADY_INITIALIZED,
+                                       MODEL_LOADING_FAILED, NOT_INITIALIZED,
+                                       OPERATION_FAILED, SUCCESS)
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 logging.basicConfig(
@@ -585,8 +586,8 @@ class SpeechRecognition(BaseModality):
             str: 识别结果文本，失败返回空字符串
         """
         try:
-            import sys
             import io
+            import sys
             original_stdout = sys.stdout
             sys.stdout = io.StringIO()
 
