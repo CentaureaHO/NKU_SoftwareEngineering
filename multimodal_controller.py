@@ -78,16 +78,16 @@ class MultimodalController:
         print("语音识别模态启动成功")
 
         if args.no_wake:
-            self.speecher.toggle_wake_word(False)
+            self.speecher.manage_wake_word("toggle", enable=False)
 
         if args.add_wake:
-            self.speecher.add_wake_word(args.add_wake)
+            self.speecher.manage_wake_word("add", wake_word=args.add_wake)
 
         self.speecher.set_max_temp_speakers(args.max_temp)
 
         if args.register:
             name = args.register_name if args.register_name else "新用户"
-            self.speecher.register_speaker(name)
+            self.speecher.manage_speakers("register", name=name)
 
         print("语音模态初始化完成")
         speecher_player.speech_synthesize_sync("语音模态初始化完成")
