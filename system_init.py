@@ -20,20 +20,7 @@ from multimodal_controller import MultimodalController
 from setting import Setting
 from individuation import individuation
 from viewer.viewer import start_flask_server
-
-# 全局组件字典，存储所有系统组件
-_components = {}
-
-
-def get_component(name):
-    """获取已初始化的系统组件"""
-    return _components.get(name)
-
-
-def register_component(name, component):
-    """注册系统组件"""
-    _components[name] = component
-    return component
+from components import register_component, get_all_components # 新增导入
 
 
 def initialize_system():
@@ -79,4 +66,4 @@ def initialize_system():
 
     print("=== 系统初始化完成 ===")
     speecher_player.speech_synthesize_sync("系统初始化完成")
-    return _components
+    return get_all_components() # 返回所有组件

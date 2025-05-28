@@ -19,7 +19,7 @@ from Modality import GestureTracker, ModalityManager
 from Modality.core.error_codes import SUCCESS
 from Modality.speech.speech_recognition import SpeechRecognition
 from Modality.visual import GazeDirectionTracker, HeadPoseTrackerGRU
-from system_init import get_component
+from components import get_component
 from utils.tools import speecher_player
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

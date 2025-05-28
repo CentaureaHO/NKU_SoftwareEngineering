@@ -164,7 +164,7 @@ class GazeDirectionTracker(BaseVisualModality):
             # ret, frame = self.capture.read()
             ret, frame = self.camera_manager.read()
             if not ret:
-                if self.is_file_source and self.loop_video:
+                if self.camera_manager.config.is_file_source and self.loop_video:
                     # self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     self.camera_manager.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     continue
@@ -196,7 +196,7 @@ class GazeDirectionTracker(BaseVisualModality):
             # ret, frame = self.capture.read()
             ret, frame = self.camera_manager.read_frame()
             if not ret:
-                if self.is_file_source and self.loop_video:
+                if self.camera_manager.config.is_file_source and self.loop_video:
                     # self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     # ret, frame = self.capture.read()
                     self.camera_manager.set(cv2.CAP_PROP_POS_FRAMES, 0)

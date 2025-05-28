@@ -375,7 +375,7 @@ class HeadPoseTrackerGRU(BaseVisualModality):
             if not ret:
                 # CameraManager handles looping. If ret is False, it means no frame.
                 # This could be end of a non-looping video, or a persistent camera error.
-                if self.camera_manager.is_file_source and not self.camera_manager.loop_video:
+                if self.camera_manager.config.is_file_source and not self.camera_manager.loop_video:
                     logger.info(
                         "End of non-looping video file reached in HeadPoseTrackerGRU.")
                     break  # Exit loop if it's a non-looping file that ended

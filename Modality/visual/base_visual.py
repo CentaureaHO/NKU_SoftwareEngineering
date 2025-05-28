@@ -1,9 +1,7 @@
 import logging
-import os
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import cv2
 import numpy as np
 
 from utils.camera_manager import CameraManager, get_camera_manager

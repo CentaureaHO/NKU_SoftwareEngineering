@@ -14,7 +14,7 @@ import time
 from logger import logger
 from utils.tools import speecher_player
 from viewer.viewer import update_light, update_note
-from system_init import get_component
+from components import get_component
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

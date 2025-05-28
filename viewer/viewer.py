@@ -10,6 +10,7 @@ Module Description:
 import os
 import sys
 import time
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
@@ -17,40 +18,42 @@ import requests
 from flask import Flask, Response, jsonify, render_template, request, url_for
 
 from utils.camera_manager import get_camera_manager
+from components import get_component # Moved from start_flask_server
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 viewer = Flask(__name__)
-camera_mgr = None
-application = None
-controller = None
 
+@dataclass
+class AppState:
+    """封装应用的可变状态"""
+    def __init__(self):
+        self.camera_mgr = None
+        self.application = None
+        self.light_color = "green"
+        self.light_blink = False
+        self.latest_message = "车载多模态智能交互系统初始化完毕!"
+        self.last_action = None
+        self.navigation = None
+
+app_state = AppState()
 
 def get_application():
     """获取应用程序控制器"""
-    from system_init import get_component
-
     return get_component("application")
 
 
 def get_controller():
     """获取多模态控制器"""
-    from system_init import get_component
-
     return get_component("controller")
-
 
 def get_setting():
     """获取设置模块"""
-    from system_init import get_component
-
     return get_component("setting")
 
 
 def get_individuation():
     """获取个性化模块"""
-    from system_init import get_component
-
     return get_component("individuation")
 
 
@@ -94,7 +97,7 @@ def music():
     """渲染音乐页面"""
     print("已跳转到音乐页面")
     try:
-        music_info = application.schedule(application.type.music_getlist, [])
+        music_info = app_state.application.schedule(app_state.application.type.music_getlist, [])
     except ImportError as e:
         print(f"获取音乐列表失败: {e}")
         music_info = []
@@ -111,7 +114,7 @@ def navigation():
 @viewer.route("/status")
 def status():
     """渲染车辆状态监测页面"""
-    status_info = application.schedule(application.type.monitor_getlist, [])
+    status_info = app_state.application.schedule(app_state.application.type.monitor_getlist, [])
     oil_quantity = status_info[0]
     tire_pressure = status_info[1]
     mileage = status_info[2]
@@ -164,9 +167,9 @@ def settings():
 
 def generate_frames():
     """获取前置摄像头"""
-    camera_mgr.initialize_camera(0, 640, 480, False)
+    app_state.camera_mgr.initialize_camera(0, 640, 480, False)
 
-    if not camera_mgr.is_running():
+    if not app_state.camera_mgr.is_running():
         print("Could not start camera. Returning error frame.")
         error_img = np.zeros((480, 640, 3), dtype=np.uint8)
         cv2.putText(
@@ -194,19 +197,18 @@ def generate_frames():
 
     while True:
         try:
-            success, frame = camera_mgr.read_frame()
+            success, frame = app_state.camera_mgr.read_frame()
             if not success:
                 error_count += 1
                 if error_count > max_errors:
                     print(
-                        f"Too many errors ({
-                            error_count}) reading frames. Restarting camera..."
+                        f"Too many errors ({error_count}) reading frames. Restarting camera..."
                     )
-                    camera_mgr.release_camera()
+                    app_state.camera_mgr.release_camera()
 
                     # time.sleep(1.0)
 
-                    camera_mgr.initialize_camera(0, 640, 480, False)
+                    app_state.camera_mgr.initialize_camera(0, 640, 480, False)
                     error_count = 0
                     continue
 
@@ -247,7 +249,7 @@ def generate_frames():
 
             # time.sleep(0.01)
 
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-exception-caught
             print(f"Error in generate_frames: {str(e)}")
             error_count += 1
             if error_count > max_errors:
@@ -265,39 +267,32 @@ def video_feed():
     )
 
 
-light_color = "green"
-light_blink = False
-
-
 def update_light(color, blink):
     """更新提示灯状态(供外部调用的接口)"""
     print(f"更新提示灯颜色: {color}, 闪烁状态: {blink}")
-    global light_color
-    global light_blink
-    light_color = color
-    light_blink = blink
+    # global LIGHT_COLOR # pylint: disable=global-statement (移除)
+    # global LIGHT_BLINK # pylint: disable=global-statement (移除)
+    app_state.light_color = color
+    app_state.light_blink = blink
 
 
 @viewer.route("/get_light", methods=["GET"])
 def get_light():
     """获取提示灯状态"""
-    return jsonify({"color": light_color, "blink": light_blink})
-
-
-latest_message = "车载多模态智能交互系统初始化完毕!"
+    return jsonify({"color": app_state.light_color, "blink": app_state.light_blink})
 
 
 def update_note(note):
     """更新提示框内容(供外部调用的接口)"""
     print(f"更新提示框内容: {note}")
-    global latest_message
-    latest_message = note
+    # global LATEST_MESSAGE # pylint: disable=global-statement (移除)
+    app_state.latest_message = note
 
 
 @viewer.route("/get_note", methods=["GET"])
 def get_note():
     """更新提示框内容"""
-    return jsonify({"updated_message": latest_message})
+    return jsonify({"updated_message": app_state.latest_message})
 
 
 @viewer.route("/play_music", methods=["POST"])
@@ -306,7 +301,7 @@ def play_music():
     data = request.get_json()
     music_name = data.get("music")
     print(f"播放音乐：{music_name}")
-    application.schedule(application.type.music_play, [music_name])
+    app_state.application.schedule(app_state.application.type.music_play, [music_name])
     return "", 204  # No Content
 
 
@@ -314,7 +309,7 @@ def play_music():
 def pause_music():
     """暂停或继续播放音乐"""
     print("暂停或继续播放音乐")
-    application.schedule(application.type.music_change_pause, [])
+    app_state.application.schedule(app_state.application.type.music_change_pause, [])
     return "", 204
 
 
@@ -381,15 +376,14 @@ def call_navigate():
 
 
 # 外部控制页面跳转
-last_action = None
 
 
 def jump_to_page(page_name):
     """页面跳转(供外部调用的接口)"""
     if page_name in ["music", "navigation", "status"]:
         print(f"外部请求跳转到: {page_name}")
-        global last_action
-        last_action = page_name
+        # global LAST_ACTION # pylint: disable=global-statement (移除)
+        app_state.last_action = page_name
     else:
         print("非法的外部跳转请求")
 
@@ -409,23 +403,20 @@ def trigger_action():
 @viewer.route("/get_action")
 def get_action():
     """获取的跳转动作"""
-    global last_action
-    action = last_action
-    last_action = None
+    # global LAST_ACTION # pylint: disable=global-statement (移除)
+    action = app_state.last_action
+    app_state.last_action = None
     return jsonify({"action": action})
 
 
 # 导航参数
-navigation_from = None
-navigation_to = None
 
 
 def navigate(from_="南开大学津南校区(地铁站)", to_="南开大学八里台(地铁站)"):
     """自动导航功能(供外部调用的接口)"""
     # 设置导航参数
-    global navigation_from, navigation_to
-    navigation_from = from_
-    navigation_to = to_
+    # global NAVIGATION_FROM, NAVIGATION_TO # pylint: disable=global-statement (移除)
+    app_state.navigation = (from_, to_)
     time.sleep(1)
     return True
 
@@ -433,10 +424,10 @@ def navigate(from_="南开大学津南校区(地铁站)", to_="南开大学八�
 @viewer.route("/get_navigation", methods=["GET"])
 def get_navigation():
     """获取自动导航参数，前端页面加载时调用"""
-    global navigation_from, navigation_to
-    params = {"start": navigation_from, "end": navigation_to}
-    navigation_from = None
-    navigation_to = None
+    # global NAVIGATION_FROM, NAVIGATION_TO # pylint: disable=global-statement (移除)
+    params = {"start": app_state.navigation[0],
+              "end": app_state.navigation[1]} if app_state.navigation else {}
+    app_state.navigation = None
     return jsonify({"params": params})
 
 
@@ -498,11 +489,11 @@ def set_driver():
 def start_flask_server():
     """启动Flask服务器"""
     print("启动Flask服务器")
-    global camera_mgr
-    global application
-    if camera_mgr is None:
-        camera_mgr = get_camera_manager()
-    from system_init import get_component
-    if application is None:
-        application = get_component("application")
+    # global CAMERA_MGR # pylint: disable=global-statement (移除)
+    # global APPLICATION # pylint: disable=global-statement (移除)
+    if app_state.camera_mgr is None:
+        app_state.camera_mgr = get_camera_manager()
+    # from components import get_component # Moved to top
+    if app_state.application is None:
+        app_state.application = get_component("application")
     viewer.run(debug=False)
