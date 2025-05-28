@@ -15,10 +15,10 @@ import time
 import mediapipe as mp
 
 from logger import logger
-from Modality import GestureTracker, ModalityManager
-from Modality.core.error_codes import SUCCESS
-from Modality.speech.speech_recognition import SpeechRecognition
-from Modality.visual import GazeDirectionTracker, HeadPoseTrackerGRU
+from modality import GestureTracker, ModalityManager
+from modality.core.error_codes import SUCCESS
+from modality.speech.speech_recognition import SpeechRecognition
+from modality.visual import GazeDirectionTracker, HeadPoseTrackerGRU
 from components import get_component
 from utils.tools import speecher_player
 

@@ -10,9 +10,9 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-from Modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
+from modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
                                        RUNTIME_ERROR, SUCCESS)
-from Modality.visual.base_visual import BaseVisualModality, VisualState
+from modality.visual.base_visual import BaseVisualModality, VisualState
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get(

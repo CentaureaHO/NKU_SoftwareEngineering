@@ -18,8 +18,8 @@ from modelscope.hub.snapshot_download import snapshot_download
 from modelscope.pipelines import pipeline
 from pypinyin import lazy_pinyin
 
-from Modality.core.base_modality import BaseModality, ModalityState
-from Modality.core.error_codes import (ALREADY_INITIALIZED,
+from modality.core.base_modality import BaseModality, ModalityState
+from modality.core.error_codes import (ALREADY_INITIALIZED,
                                        MODEL_LOADING_FAILED, NOT_INITIALIZED,
                                        OPERATION_FAILED, SUCCESS)
 

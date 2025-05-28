@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 import numpy as np
 
-from Modality.visual.base_visual import VisualState
+from modality.visual.base_visual import VisualState
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

@@ -19,12 +19,12 @@ import cv2
 import numpy as np
 
 try:
-    from Modality.core.error_codes import (CAMERA_NOT_AVAILABLE, SUCCESS,
+    from modality.core.error_codes import (CAMERA_NOT_AVAILABLE, SUCCESS,
                                            VIDEO_FILE_NOT_FOUND,
                                            VIDEO_SOURCE_ERROR)
 except ImportError:
     logging.warning(
-        "Failed to import error codes from Modality.core. Using fallback definitions."
+        "Failed to import error codes from modality.core. Using fallback definitions."
     )
     SUCCESS = 0
     CAMERA_NOT_AVAILABLE = 101

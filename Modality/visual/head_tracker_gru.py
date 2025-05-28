@@ -14,11 +14,11 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 
-from Modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
+from modality.core.error_codes import (MEDIAPIPE_INITIALIZATION_FAILED,
                                        MODEL_LOADING_FAILED, RUNTIME_ERROR,
                                        SUCCESS)
-from Modality.visual.base_visual import BaseVisualModality, VisualState
-from Modality.visual.head_pose_common import (HeadPoseParams, HeadPoseState,
+from modality.visual.base_visual import BaseVisualModality, VisualState
+from modality.visual.head_pose_common import (HeadPoseParams, HeadPoseState,
                                               euclidean_dist,
                                               rotation_matrix_to_angles)
 
