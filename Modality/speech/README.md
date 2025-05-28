@@ -15,8 +15,8 @@
 ### 基本用法
 
 ```python
-from Modality.speech.speech_recognition import SpeechRecognition
-from Modality.core.modality_manager import ModalityManager
+from modality.speech.speech_recognition import SpeechRecognition
+from modality.core.modality_manager import ModalityManager
 
 # 创建语音识别模态
 speech = SpeechRecognition(name="speech_recognition")

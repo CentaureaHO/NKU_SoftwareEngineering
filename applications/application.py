@@ -8,14 +8,16 @@ Module Description:
 """
 
 
-from typing import List
 from enum import Enum
+from typing import List
+
 from logger import logger
+from viewer.viewer import jump_to_page
+
+from .enter import Enter
 from .music import Music
 from .navigation import Navigation
 from .vehicle_state import VehicleState
-from .enter import Enter
-
 
 
 class Application:
@@ -99,8 +101,6 @@ class Application:
             state = VehicleState()
             return state.monitor()
         if application_type == Application.type.monitor_jump:
-            from viewer.viewer import jump_to_page
-
             jump_to_page("status")
             logger.log("应用功能:进行车辆状态监测")
         if application_type == Application.type.enter:

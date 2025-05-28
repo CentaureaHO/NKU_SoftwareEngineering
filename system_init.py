@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#_author = 'Yidian Lin'
+# _author = 'Yidian Lin'
 
 """
 Module Description:
@@ -10,20 +10,18 @@ Module Description:
 import threading
 import time
 import webbrowser
+
 from logger import logger
 from utils.tools import speecher_player
 
-# 全局组件字典，存储所有系统组件
-_components = {}
+# 解决 C0415: Import outside toplevel
+from applications.application import application
+from multimodal_controller import MultimodalController
+from setting import Setting
+from individuation import individuation
+from viewer.viewer import start_flask_server
+from components import register_component, get_all_components # 新增导入
 
-def get_component(name):
-    """获取已初始化的系统组件"""
-    return _components.get(name)
-
-def register_component(name, component):
-    """注册系统组件"""
-    _components[name] = component
-    return component
 
 def initialize_system():
     """系统初始化入口函数"""
@@ -33,29 +31,24 @@ def initialize_system():
     speecher_player.speech_synthesize_sync("正在初始化系统,请耐心等待...")
 
     # 1. 初始化应用程序控制器
-    from applications.application import application
     register_component('application', application)
     print("✓ 应用程序控制器初始化完成")
 
     # 2. 初始化多模态控制器
-    from multimodal_controller import MultimodalController
     controller = MultimodalController()
     register_component('controller', controller)
     print("✓ 多模态控制器初始化完成")
 
     # 3. 初始化设置模块
-    from setting import Setting
     setting = Setting(controller.speecher)
     register_component('setting', setting)
     print("✓ 设置模块初始化完成")
 
     # 4. 初始化个性化配置
-    from individuation import individuation
     register_component('individuation', individuation)
     print("✓ 个性化配置初始化完成")
 
     # 5. 启动Web界面
-    from viewer.viewer import start_flask_server
     flask_thread = threading.Thread(target=start_flask_server)
     flask_thread.daemon = True
     flask_thread.start()
@@ -73,4 +66,4 @@ def initialize_system():
 
     print("=== 系统初始化完成 ===")
     speecher_player.speech_synthesize_sync("系统初始化完成")
-    return _components
+    return get_all_components() # 返回所有组件

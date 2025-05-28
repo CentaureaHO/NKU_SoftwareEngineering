@@ -1,12 +1,13 @@
+"""模态核心包，提供模态管理、创建和基础定义。"""
 from .base_modality import BaseModality, ModalityState
-from .modality_manager import ModalityManager
-from .modality_factory import ModalityFactory
 from .error_codes import *
+from .modality_factory import ModalityFactory
+from .modality_manager import ModalityManager
 
 __all__ = [
-    'BaseModality', 'ModalityState', 
+    'BaseModality', 'ModalityState',
     'ModalityManager', 'ModalityFactory',
-    
+
     # 错误码
     'SUCCESS', 'UNKNOWN_ERROR', 'INVALID_ARGUMENT', 'NOT_INITIALIZED',
     'ALREADY_INITIALIZED', 'OPERATION_FAILED', 'NOT_IMPLEMENTED',

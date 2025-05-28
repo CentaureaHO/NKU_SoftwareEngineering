@@ -17,3 +17,6 @@ Modality/models/speech
 utils/models
 
 test.py
+
+pylint_report.txt
+pylint.ps1

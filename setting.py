@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#_author = 'Xianda Tang' 'Yidian Lin'
+# _author = 'Xianda Tang' 'Yidian Lin'
 
 """
 Module Description:
@@ -10,15 +10,17 @@ Module Description:
 import os
 import time
 
+
 class Setting:
     "基于声纹的权限控制类"
-    def __init__(self , speecher):
+
+    def __init__(self, speecher):
         "构造函数"
         self.speecher = speecher
         current_dir = os.path.dirname(os.path.abspath(__file__))
         relative_path = "./database/setting/setting.txt"
         self.file_path = os.path.join(current_dir, relative_path)
-        with open(self.file_path, 'r' , encoding = "utf-8" ) as file:
+        with open(self.file_path, 'r', encoding="utf-8") as file:
             self.driver = file.read()
 
     def register_voiceprint(self, username):
@@ -69,7 +71,7 @@ class Setting:
             return
         print(f"将声纹 {speakers[speaker_id]['name']}设为驾驶员")
         self.driver = speakers[speaker_id]['name']
-        with open(self.file_path, 'w' , encoding = "utf-8" ) as file:
+        with open(self.file_path, 'w', encoding="utf-8") as file:
             file.write(self.driver)
 
     def get_driver(self):

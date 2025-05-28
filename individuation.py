@@ -11,13 +11,16 @@ Module Description:
     手势模态:特定手势映射特定功能(可以个性化,包括个性化默认参数,类似快捷键的功能)
 """
 
-import os
 import ast
+import os
 from typing import List
+
 from applications.application import application
+
 
 class Individuation:
     """个性化配置类"""
+
     def __init__(self) -> None:
         """构造函数"""
         # 获取记录个性化配置的文件路径
@@ -71,7 +74,6 @@ class Individuation:
                     ]
         print(f"speech_individuation_dict: {self.speech_individuation_dict}")
 
-
     def speech_individuation(self, speech_text: str) -> None:
         """根据语音文本执行个性化功能"""
         if speech_text in self.speech_individuation_dict:
@@ -79,7 +81,6 @@ class Individuation:
             application.schedule(function_name, [])
         else:
             print(f"无效语音命令: {speech_text}")
-
 
     def gesture_individuation(self, gesture_text: str) -> None:
         """根据手势动作执行个性化功能"""
@@ -132,7 +133,8 @@ class Individuation:
     def set_gesture_individuation(self, gesture_options) -> None:
         """设置手势个性化字典"""
         self.gesture_individuation_dict = gesture_options
-        print(f"self.gesture_individuation_dict: {self.gesture_individuation_dict}")
+        print(f"self.gesture_individuation_dict: {
+              self.gesture_individuation_dict}")
         with open(self.gesture_individuation_file_path, "w", encoding="utf-8") as f:
             f.write(str(self.gesture_individuation_dict))
         for gesture_name, application_type in gesture_options.items():
@@ -152,7 +154,8 @@ class Individuation:
                 ]
         speech_options = {}
         for speech_text, application_type in self.speech_individuation_dict.items():
-            speech_options[application.type2name[application_type]] = speech_text
+            speech_options[application.type2name[application_type]
+                           ] = speech_text
         with open(self.speech_individuation_file_path, "w", encoding="utf-8") as f:
             f.write(str(speech_options))
 

@@ -4,19 +4,21 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
+
 class ConvColumn(nn.Module):
     """
     动态手势识别的卷积网络模型
     """
+
     def __init__(self, num_classes):
         """
         初始化网络结构
-        
+
         Args:
             num_classes: 输出类别数量
         """
         super(ConvColumn, self).__init__()
-        
+
         self.conv_layer1 = self._make_conv_layer(3, 64, (1, 2, 2), (1, 2, 2))
         self.conv_layer2 = self._make_conv_layer(64, 128, (2, 2, 2), (2, 2, 2))
         self.conv_layer3 = self._make_conv_layer(
@@ -27,7 +29,7 @@ class ConvColumn(nn.Module):
         self.fc5 = nn.Linear(12800, 512)
         self.fc5_act = nn.ELU()
         self.fc6 = nn.Linear(512, num_classes)
-    
+
     def _make_conv_layer(self, in_c, out_c, pool_size, stride):
         conv_layer = nn.Sequential(
             nn.Conv3d(in_c, out_c, kernel_size=3, stride=1, padding=1),
@@ -40,10 +42,10 @@ class ConvColumn(nn.Module):
     def forward(self, x):
         """
         前向传播
-        
+
         Args:
             x: 输入张量，形状为[batch_size, channels, time, height, width]
-        
+
         Returns:
             输出类别的预测
         """
@@ -58,10 +60,11 @@ class ConvColumn(nn.Module):
         x = self.fc5_act(x)
 
         x = self.fc6(x)
-        return x 
+        return x
+
 
 if __name__ == "__main__":
     input_tensor = torch.autograd.Variable(torch.rand(5, 3, 18, 84, 84))
-    model = ConvColumn(27) #ConvColumn(27).cuda()
-    output = model(input_tensor) #model(input_tensor.cuda())
-    print(output.size()) 
+    model = ConvColumn(27)  # ConvColumn(27).cuda()
+    output = model(input_tensor)  # model(input_tensor.cuda())
+    print(output.size())

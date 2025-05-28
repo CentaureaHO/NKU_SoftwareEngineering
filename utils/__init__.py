@@ -1,7 +1,8 @@
-from .tools import *
-from .camera_manager import get_camera_manager, CameraManager
+"""Utilities package for NKU Software Engineering project."""
+from .camera_manager import CameraManager, get_camera_manager
+from .tools import speecher_player # Import speecher_player instance
 
 __all__ = [
-    'speech_synthesize', 'speech_synthesize_sync',
+    'speecher_player', # Export instance
     'get_camera_manager', 'CameraManager'
 ]

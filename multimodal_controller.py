@@ -7,17 +7,22 @@ Module Description:
     用于实现车载多模态智能交互系统的控制功能
 """
 
+import argparse
 import os
 import sys
 import time
-import argparse
+
 import mediapipe as mp
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from Modality import ModalityManager, GestureTracker
-from Modality.speech.speech_recognition import SpeechRecognition
-from Modality.core.error_codes import SUCCESS
-from utils.tools import speecher_player
+
 from logger import logger
+from modality import GestureTracker, ModalityManager
+from modality.core.error_codes import SUCCESS
+from modality.speech.speech_recognition import SpeechRecognition
+from modality.visual import GazeDirectionTracker, HeadPoseTrackerGRU
+from components import get_component
+from utils.tools import speecher_player
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
@@ -73,16 +78,16 @@ class MultimodalController:
         print("语音识别模态启动成功")
 
         if args.no_wake:
-            self.speecher.toggle_wake_word(False)
+            self.speecher.manage_wake_word("toggle", enable=False)
 
         if args.add_wake:
-            self.speecher.add_wake_word(args.add_wake)
+            self.speecher.manage_wake_word("add", wake_word=args.add_wake)
 
         self.speecher.set_max_temp_speakers(args.max_temp)
 
         if args.register:
             name = args.register_name if args.register_name else "新用户"
-            self.speecher.register_speaker(name)
+            self.speecher.manage_speakers("register", name=name)
 
         print("语音模态初始化完成")
         speecher_player.speech_synthesize_sync("语音模态初始化完成")
@@ -91,7 +96,8 @@ class MultimodalController:
     def init_headpose(self) -> None:
         "初始化视觉模态(头部姿态部分)"
         parser = argparse.ArgumentParser(description="驾驶员监测系统演示")
-        parser.add_argument("--camera", type=int, default=0, help="摄像头ID (默认为0)")
+        parser.add_argument("--camera", type=int,
+                            default=0, help="摄像头ID (默认为0)")
         parser.add_argument(
             "--width", type=int, default=640, help="图像宽度 (默认为640)"
         )
@@ -121,10 +127,9 @@ class MultimodalController:
 
         video_source = args.camera
 
-        from Modality.visual import HeadPoseTrackerGRU as Tracker
         print("使用 GRU 模型进行头部姿态检测")
 
-        self.headposer = Tracker(
+        self.headposer = HeadPoseTrackerGRU(
             source=video_source, width=args.width, height=args.height, debug=args.debug
         )
 
@@ -299,8 +304,6 @@ class MultimodalController:
 
         source = args.video if args.video else args.camera
 
-        from Modality.visual import GazeDirectionTracker
-
         self.gazer = GazeDirectionTracker(
             name="gaze_direction_tracker",
             source=source,
@@ -327,8 +330,6 @@ class MultimodalController:
     def control(self) -> None:
         "协调各模态的工作"
         try:
-            from system_init import get_component
-
             individuation = get_component("individuation")
             while True:
                 key_info = self.manager.get_all_key_info()

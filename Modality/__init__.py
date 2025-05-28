@@ -1,18 +1,19 @@
-from .core import BaseModality, ModalityState, ModalityManager, ModalityFactory
-from .visual import (BaseVisualModality, VisualState, 
-                     HeadPoseState, HeadPoseTrackerGRU,
-                     GestureState, GestureTracker)
+"""多模态交互系统模块，整合视觉、语音等多种交互方式"""
+
+from .core import BaseModality, ModalityFactory, ModalityManager, ModalityState
 from .speech import SpeechRecognition, SpeechState
+from .visual import (BaseVisualModality, GestureState, GestureTracker,
+                     HeadPoseState, HeadPoseTrackerGRU, VisualState)
 
 __all__ = [
     # core
     'BaseModality', 'ModalityState', 'ModalityManager', 'ModalityFactory',
-    
+
     # visual modality
     'BaseVisualModality', 'VisualState',
     'HeadPoseState', 'HeadPoseTrackerGRU',
-    'GestureState', 'GestureTracker'
-    
+    'GestureState', 'GestureTracker',
+
     # speech modality
     'SpeechRecognition', 'SpeechState',
 ]
