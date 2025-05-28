@@ -1,7 +1,8 @@
 import logging
 import os
 from collections import deque
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
+from dataclasses import dataclass
 
 import cv2
 import mediapipe as mp
@@ -39,6 +40,7 @@ GESTURE_NAMES = {
 }
 
 
+@dataclass
 class GestureState(VisualState):
     """手势状态类"""
 
@@ -244,14 +246,14 @@ class GestureTracker(BaseVisualModality):
             )
             logger.info("MediaPipe手部检测初始化成功")
         except Exception as e:
-            logger.error(f"MediaPipe初始化失败: {str(e)}")
+            logger.error("MediaPipe初始化失败: %s", str(e))
             return MEDIAPIPE_INITIALIZATION_FAILED
 
         # 加载模型和参数
         try:
             # 检查模型文件
             if not os.path.exists(self.model_path):
-                logger.error(f"错误: 模型文件不存在 {self.model_path}")
+                logger.error("错误: 模型文件不存在 - %s", self.model_path)
                 return MODEL_NOT_FOUND
 
             # 加载模型
@@ -265,7 +267,7 @@ class GestureTracker(BaseVisualModality):
 
             self.loaded = True
         except Exception as e:
-            logger.error(f"模型加载失败: {str(e)}")
+            logger.error("模型加载失败: %s", str(e))
             return MODEL_LOADING_FAILED
 
         return SUCCESS
@@ -375,8 +377,9 @@ class GestureTracker(BaseVisualModality):
                                 stability)
 
                             if self.debug:
-                                logger.debug(f"检测到手势: {gesture_name}, 置信度: {
-                                             avg_confidence:.2f}, 稳定性: {stability:.2f}")
+                                logger.debug("检测到手势: %s (ID: %d, 置信度: %.2f, 稳定性: %.2f)",
+                                             gesture_name, most_common,
+                                             avg_confidence, stability)
                         else:
                             # 不够稳定或置信度低，显示为ignore
                             state.detections["gesture"]["id"] = 10
@@ -391,8 +394,7 @@ class GestureTracker(BaseVisualModality):
                                 stability)
 
                             if self.debug:
-                                logger.debug(f"手势不稳定或置信度低: 稳定性 {stability:.2f}, 置信度 {
-                                             avg_confidence:.2f}")
+                                logger.debug("手势不稳定或置信度低")
 
                     # 存储手部关键点
                     landmarks_list = []
@@ -401,7 +403,7 @@ class GestureTracker(BaseVisualModality):
                     state.detections["gesture"]["landmarks"] = landmarks_list
 
                 except Exception as e:
-                    logger.error(f"处理手部关键点时出错: {str(e)}")
+                    logger.error("处理手部关键点时出错: %s", str(e))
             else:
                 # 未检测到手
                 self.gesture_history.clear()  # 清空历史
@@ -410,7 +412,7 @@ class GestureTracker(BaseVisualModality):
                     logger.debug("未检测到手部")
 
         except Exception as e:
-            logger.error(f"处理帧时出错: {str(e)}")
+            logger.error("处理帧时出错: %s", str(e))
 
         return state
 
@@ -426,17 +428,6 @@ class GestureTracker(BaseVisualModality):
 
             # 2. 计算手指伸直程度 - 检查关键的关节角度
             # 获取手掌关键点
-            wrist = np.array([landmarks[0].x, landmarks[0].y, landmarks[0].z])
-            thumb_tip = np.array(
-                [landmarks[4].x, landmarks[4].y, landmarks[4].z])
-            index_tip = np.array(
-                [landmarks[8].x, landmarks[8].y, landmarks[8].z])
-            middle_tip = np.array(
-                [landmarks[12].x, landmarks[12].y, landmarks[12].z])
-            ring_tip = np.array(
-                [landmarks[16].x, landmarks[16].y, landmarks[16].z])
-            pinky_tip = np.array(
-                [landmarks[20].x, landmarks[20].y, landmarks[20].z])
 
             # 计算手部大小 - 手掌宽度
             index_mcp = np.array(
@@ -448,7 +439,7 @@ class GestureTracker(BaseVisualModality):
             # 如果手部太小，可能是远处的手，不够清晰
             if palm_width < 0.08:
                 if self.debug:
-                    logger.debug(f"手部尺寸太小: {palm_width:.3f}")
+                    logger.debug("手部尺寸太小: %.2f", palm_width)
                 return False
 
             # 3. 检查手的稳定性 - 通过连续帧之间的位置变化
@@ -457,7 +448,7 @@ class GestureTracker(BaseVisualModality):
             return True
 
         except Exception as e:
-            logger.error(f"手部质量检查失败: {str(e)}")
+            logger.error("手部质量检查失败: %s", str(e))
             return False
 
     def _preprocess_landmarks(self, landmarks):
@@ -477,17 +468,15 @@ class GestureTracker(BaseVisualModality):
                 normalized_features = (
                     features - self.feature_mean[:len(features)]) / self.feature_scale[:len(features)]
                 return normalized_features.reshape(1, -1)
-            else:
-                # 如果维度不匹配，截断特征
-                if self.debug:
-                    logger.debug("特征维度不匹配，进行截断")
-                truncated_features = features[:len(self.feature_mean)]
-                normalized_features = (
-                    truncated_features - self.feature_mean) / self.feature_scale
-                return normalized_features.reshape(1, -1)
+            if self.debug:
+                logger.debug("特征维度不匹配，进行截断")
+            truncated_features = features[:len(self.feature_mean)]
+            normalized_features = (
+                truncated_features - self.feature_mean) / self.feature_scale
+            return normalized_features.reshape(1, -1)
 
         except Exception as e:
-            logger.error(f"特征预处理失败: {str(e)}")
+            logger.error("特征预处理失败: %s", str(e))
             # 应急处理 - 返回零向量
             # 获取模型的输入维度
             input_shape = self.model.layers[0].input_shape[1]
@@ -507,14 +496,13 @@ class GestureTracker(BaseVisualModality):
             # 如果最高置信度低于阈值，则识别为"ignore"
             if confidence < self.confidence_threshold:
                 if self.debug:
-                    logger.debug(f"置信度低于阈值: {confidence:.3f} < {
-                                 self.confidence_threshold}")
+                    logger.debug("置信度低于阈值")
                 return 10, confidence, prediction[0]  # 返回"ignore"类别
 
             return gesture_id, confidence, prediction[0]
 
         except Exception as e:
-            logger.error(f"预测失败: {str(e)}")
+            logger.error("预测失败: %s", str(e))
             return None, 0, []
 
     def shutdown(self) -> int:
@@ -538,7 +526,7 @@ class GestureTracker(BaseVisualModality):
             logger.info("手势跟踪器已关闭")
             return result
         except Exception as e:
-            logger.error(f"关闭手势跟踪器时出错: {str(e)}")
+            logger.error("关闭手势跟踪器时出错: %s", str(e))
             return RUNTIME_ERROR
 
     def get_key_info(self) -> str:
@@ -551,11 +539,8 @@ class GestureTracker(BaseVisualModality):
         gesture_dir = {"0": "握拳", "5": "摇手", "6": "竖起大拇指"}
         key_info = None
         state = self.update()
-        # print(f"是否识别到手: {state.detections["gesture"]["detected"]}")
         if state and state.detections["gesture"]["detected"]:
             key_info = state.detections["gesture"]["name"]
-            # print(f"手部初始识别结果: {key_info}")
             if key_info in gesture_dir:
-                key_info = gesture_dir[key_info]
-        # print(f"手部识别结果: {key_info}")
+                key_info = gesture_dir.get(key_info, "未知手势")
         return key_info

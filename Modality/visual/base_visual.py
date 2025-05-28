@@ -1,17 +1,20 @@
+"""视觉模态基类，提供视频源处理和状态管理功能"""
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
+from dataclasses import dataclass
 
 import numpy as np
 
 from utils.camera_manager import CameraManager, get_camera_manager
 
 from ..core import BaseModality, ModalityState
-from ..core.error_codes import (CAMERA_NOT_AVAILABLE, FRAME_ACQUISITION_FAILED,
-                                RUNTIME_ERROR, SUCCESS, VIDEO_FILE_NOT_FOUND,
-                                VIDEO_SOURCE_ERROR)
+from ..core.error_codes import (
+    RUNTIME_ERROR, SUCCESS,
+    VIDEO_SOURCE_ERROR)
 
 
+@dataclass
 class VisualState(ModalityState):
     """
     视觉模态状态类，存储视觉感知的结果
@@ -66,21 +69,21 @@ class BaseVisualModality(BaseModality):
                 loop_video=self.loop_video
             )
             if init_status != SUCCESS:
-                logging.error(f"CameraManager failed to initialize for source {
-                              self.source}. Error code: {init_status}")
+                print(f"CameraManager failed to initialize for source {self.source}.\
+                      Error code: {init_status}")
                 return init_status
 
             props = self.camera_manager.get_properties()
             if props.get('is_opened'):
                 self.width = int(props.get('width', self.width))
                 self.height = int(props.get('height', self.height))
-                logging.info(f"Camera initialized via CameraManager. Effective resolution: {
-                             self.width}x{self.height}")
+                print(f"Camera initialized via CameraManager. Effective resolution:\
+                      {self.width}x{self.height}")
 
             return SUCCESS
-        except Exception as e:
-            logging.error(f"Exception during BaseVisualModality initialize via CameraManager: {
-                          str(e)}", exc_info=True)
+        except (ValueError, IOError, OSError, RuntimeError) as e:
+            print(f"Exception during BaseVisualModality initialize via CameraManager:\
+                  {str(e)}", exc_info=True)
             return VIDEO_SOURCE_ERROR
 
     def update(self) -> Optional[VisualState]:
@@ -91,21 +94,19 @@ class BaseVisualModality(BaseModality):
             Optional[VisualState]: 处理后的视觉状态
         """
         if not self._is_running:
-            logging.warning(
-                f"{self.name} modality is not running, cannot update.")
+            print(f"{self.name} modality is not running, cannot update.")
             return None
 
         if not self.camera_manager.is_running():
-            logging.error(f"CameraManager is not running or not initialized for source {
-                          self.source}. Cannot read frame.")
+            print(f"CameraManager is not running or not initialized for source {self.source}.\
+                  Cannot read frame.")
             return None
 
         try:
             ret, frame = self.camera_manager.read_frame()
 
             if not ret:
-                logging.warning(
-                    f"Failed to read frame from CameraManager for source {self.source}.")
+                print("Failed to read frame from CameraManager for source %s.", str(self.source))
                 return None
 
             self.last_frame = frame.copy()
@@ -115,9 +116,8 @@ class BaseVisualModality(BaseModality):
 
             return state
 
-        except Exception as e:
-            logging.error(f"Error processing frame in BaseVisualModality update: {
-                          str(e)}", exc_info=True)
+        except (ValueError, IOError, OSError, RuntimeError) as e:
+            print(f"Error processing frame in BaseVisualModality update: {str(e)}", exc_info=True)
             return None
 
     def _process_frame(self, frame: np.ndarray) -> VisualState:
@@ -140,12 +140,11 @@ class BaseVisualModality(BaseModality):
             int: 错误码，0表示成功，其他值表示失败
         """
         try:
-            logging.info(f"BaseVisualModality '{self.name}' shutdown. CameraManager for source '{
-                         self.source}' remains active if shared.")
+            logging.info("BaseVisualModality shutdown called.")
             self.last_frame = None
-        except Exception as e:
-            logging.error(f"Error during BaseVisualModality shutdown: {
-                          str(e)}", exc_info=True)
+            return SUCCESS
+        except (IOError, OSError, RuntimeError) as e:
+            logging.error("Error during BaseVisualModality shutdown: %s", str(e), exc_info=True)
             return RUNTIME_ERROR
 
     def get_frame_size(self) -> Tuple[int, int]:
@@ -173,5 +172,5 @@ class BaseVisualModality(BaseModality):
         self.loop_video = loop
         if self.camera_manager:
             self.camera_manager.set_loop_video(loop)
-            logging.info(f"BaseVisualModality '{self.name}' loop_video set to {
-                         loop}. Updated CameraManager.")
+            print(f"BaseVisualModality '{self.name}'\
+                  loop_video set to {loop}. Updated CameraManager.")

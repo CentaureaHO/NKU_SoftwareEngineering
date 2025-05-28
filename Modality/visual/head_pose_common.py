@@ -1,7 +1,9 @@
+"""头部姿态检测的常量和状态类"""
 import math
 import os
 import sys
 from typing import Any, Dict
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -10,6 +12,7 @@ from modality.visual.base_visual import VisualState
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
+@dataclass
 class HeadPoseParams:
     """头部姿态检测的参数常量"""
     VIDEO_FPS = 30  # 视频帧率
@@ -53,6 +56,7 @@ class HeadPoseParams:
                            263, 362, 374, LANDMARK_RIGHT_EYE, 473, 468]
 
 
+@dataclass
 class HeadPoseState(VisualState):
     """头部姿态状态类，扩展自VisualState"""
 
@@ -82,6 +86,7 @@ class HeadPoseState(VisualState):
 
 
 def euclidean_dist(point1, point2):
+    """计算二维点之间的欧几里得距离"""
     return np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
 
