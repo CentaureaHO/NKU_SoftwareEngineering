@@ -85,7 +85,7 @@ def profile_enter():
     with open("profile_enter_report.txt", "w", encoding="utf-8") as f:
         f.write(s.getvalue())
 
-    print("✅ 性能分析完成，结果已保存至 profile_enter_report.txt")
+    print("性能分析完成，结果已保存至 profile_enter_report.txt")
 
 
 if __name__ == "__main__":

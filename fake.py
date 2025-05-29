@@ -20,14 +20,14 @@ called_flag = {"called": False}
 class FakeApp:
     def __init__(self):
         self.type = types.SimpleNamespace(
-            monitor_jump=lambda: print("🚗 mock monitor_jump"),
-            navigation=lambda: print("📍 mock navigation"),
-            music_play=lambda: print("🎵 mock music_play")
+            monitor_jump=lambda: print("mock monitor_jump"),
+            navigation=lambda: print("mock navigation"),
+            music_play=lambda: print("mock music_play")
         )
 
     def schedule(self, func, args):
         called_flag["called"] = True
-        print("❌ 非法调度被触发！系统可能存在权限漏洞")
+        print("非法调度被触发！系统可能存在权限漏洞")
         func()
 
 register_component("application", FakeApp())
@@ -65,7 +65,7 @@ class FakeController:
 # ==== Step 6: 超时保护线程 ====
 def timeout_guard(seconds=10):
     time.sleep(seconds)
-    print(f"⏰ 超时退出（超过 {seconds}s 未完成）")
+    print(f"超时退出（超过 {seconds}s 未完成）")
     os._exit(0)
 
 # ==== Step 7: 执行测试 ====
@@ -75,11 +75,11 @@ if __name__ == '__main__':
     try:
         Enter().enter(FakeController())
     except KeyboardInterrupt:
-        print("⛔ 自动中断：测试结束")
+        print("自动中断：测试结束")
 
     # ==== Step 8: 判断安全性结果 ====
-    print("\n🎯 测试结果：")
+    print("\n测试结果：")
     if called_flag["called"]:
-        print("❌ 安全性测试失败：非法用户触发调度！")
+        print("安全性测试失败：非法用户触发调度！")
     else:
-        print("✅ 安全性测试通过：非法用户未能触发调度。")
+        print("安全性测试通过：非法用户未能触发调度。")
