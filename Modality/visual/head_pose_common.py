@@ -81,6 +81,7 @@ class HeadPoseState(VisualState):
 
     def to_dict(self):
         result = super().to_dict()
+        result.update({'head state': self.detections})
         return result
 
 

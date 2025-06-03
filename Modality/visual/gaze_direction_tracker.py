@@ -104,6 +104,7 @@ class GazeDirectionState(VisualState):
     def to_dict(self) -> Dict[str, Any]:
         """将状态转换为字典格式"""
         result = super().to_dict()
+        result.update({"gaze tracection": self.detections["gaze_direction"]})
         return result
 
     def is_looking_center(self) -> bool:

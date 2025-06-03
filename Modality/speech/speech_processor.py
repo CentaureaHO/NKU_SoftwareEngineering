@@ -121,7 +121,10 @@ class SpeechProcessor:
                     input=audio_file,
                     cache={},
                     language="zn",  # "zn", "en", "yue", "ja", "ko", "nospeech", "auto"
-                    use_itn=False,
+                    use_itn=True,
+                    batch_size_s=60,
+                    merge_vad=True,  #
+                    merge_length_s=15,
                 )
 
                 recognized_text = res[0]['text'].split(">")[-1]

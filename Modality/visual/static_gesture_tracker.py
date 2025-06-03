@@ -60,6 +60,7 @@ class GestureState(VisualState):
 
     def to_dict(self) -> Dict[str, Any]:
         result = super().to_dict()
+        result.update({"hand state": self.detections["gesture"]})
         return result
 
 
