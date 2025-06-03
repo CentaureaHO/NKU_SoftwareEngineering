@@ -20,3 +20,5 @@ test.py
 
 pylint_report.txt
 pylint.ps1
+
+database/conversation

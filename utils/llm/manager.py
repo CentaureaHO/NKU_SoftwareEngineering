@@ -128,6 +128,10 @@ class ConversationManager:
         """获取工具调用历史"""
         return self.tool_call_history
     
+    def chat(self, message, tools):
+        self.add_user_message(message)
+        return self.get_response(tools=tools)
+    
     def get_response(self, max_tokens=512, temperature=0.7, tools=None):
         """发送请求并获取回复"""
         # 准备请求负载
@@ -205,7 +209,7 @@ def get_conversation_manager(api_key=None, model=None):
 4. 语音输入：驾驶员的语音指令
 
 分析规则：
-- 当驾驶员视线离开前方时，可能需要提醒注意安全
+- 当驾驶员视线离开前方时过久时，可能需要提醒注意安全
 - 当检测到点头动作时，通常表示确认或同意
 - 当检测到摇头动作时，通常表示否定或拒绝
 - 特定手势可触发对应功能，如"竖起大拇指"表示赞同
@@ -218,7 +222,10 @@ def get_conversation_manager(api_key=None, model=None):
 - 回答驾驶员问询
 - 紧急情况处理（如检测到驾驶员疲劳）
                                                  
-但目前暂时只实现了语音工具的接入，因此当你认为你需要做什么的适合，暂时通过语音工具来返回。
+但目前暂时只实现了语音工具的接入，因此当你认为你需要做什么的适合，暂时通过语音工具来返回。例如说，
+现在还没有实现导航的接入，当你认为需要导航时，直接说："从{当前位置}到{目的地}，请导航。"即可。
+                                                 
+目前我在测试语音的function calling功能，因此请你直接调用该工具，尝试输出一段语音。
 
 请根据接收到的多模态信息，理解驾驶员的真实需求，并通过调用合适的工具来提供精准、及时的帮助。""")
     return _conversation_manager
