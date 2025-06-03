@@ -3,7 +3,7 @@
 from .core import BaseModality, ModalityFactory, ModalityManager, ModalityState
 from .speech import SpeechRecognition, SpeechState
 from .visual import (BaseVisualModality, GestureState, GestureTracker,
-                     HeadPoseState, HeadPoseTrackerGRU, VisualState)
+                     HeadPoseState, HeadPoseTrackerGRU, VisualState, GazeBoost)
 
 __all__ = [
     # core
@@ -12,7 +12,7 @@ __all__ = [
     # visual modality
     'BaseVisualModality', 'VisualState',
     'HeadPoseState', 'HeadPoseTrackerGRU',
-    'GestureState', 'GestureTracker',
+    'GestureState', 'GestureTracker', 'GazeBoost',
 
     # speech modality
     'SpeechRecognition', 'SpeechState',
